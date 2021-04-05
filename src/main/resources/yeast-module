@@ -1,0 +1,671 @@
+' 0.01 %
+Const IDY_PRECISION As Double = 0.0001
+' 0.06 hrs = 3.6 min
+Const TIME_PRECISION As Double = 0.06
+
+' https://aem.asm.org/content/aem/77/7/2292.full.pdf
+' Saccharomyces cerevisiae (strain CECT 10131) constants:
+' maximum temperature [°C]
+Const T_MAX As Double = 45.9
+' optimum temperature [°C]
+Const T_OPT As Double = 32.86
+' minimum temperature [°C]
+Const T_MIN As Double = 0.74
+' [hrs^-1]
+Const MU_OPT As Double = 0.449
+' [hrs] (calculated to obtain a maximum specific grow rate of MU_OPT at T_MAX)
+Const LAMBDA As Double = 11844
+
+
+' Saccharomyces cerevisiae (avg) constants:
+'Const T_MAX As Double = 45.39
+'Const T_OPT As Double = 32.27
+'Const T_MIN As Double = 2.84
+'Const MU_OPT As Double = 0.368
+'Const LAMBDA As Double = 14487
+
+' Saccharomyces bayanus var. uvarum constants:
+'Const T_MAX As Double = 45.39
+'Const T_OPT As Double = 32.27
+'Const T_MIN As Double = 2.84
+'Const MU_OPT As Double = 0.295
+'Const LAMBDA As Double = 18071
+
+' Lactobacillus sanfranciscensis
+'Const T_MAX As Double = 41.0 +/-0.1
+'Const T_OPT As Double = 32-33
+'Const T_MIN As Double = 3.0 +/-0.6
+'Const MU_OPT As Double = 0.71
+'Const LAMBDA As Double = 8081
+
+' Candida milleri
+'Const T_MAX As Double = 35.9 +/-0.3
+'Const T_OPT As Double = 27
+'Const T_MIN As Double = 8.0 +/-1
+'Const MU_OPT As Double = 0.42
+'Const LAMBDA As Double = 60702
+
+
+' http://www.fao.org/3/a-ap815e.pdf
+' Maximum volume expansion ratio
+Const MAX_VOLUME_EXPANSION As Double = 2.87
+' Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
+Const VOLUME_REDUCTION As Double = 1 - 0.4187
+
+Const PRESSURE_FACTOR_K As Double = 1.46
+Const PRESSURE_FACTOR_M As Double = 2.031
+
+Const MOLECULAR_WEIGHT_NA_CL As Double = 22.98976928 + 35.45
+
+' [°C]
+Const ABSOLUTE_ZERO As Double = 273.15
+
+
+Public Type LeaveningParameters
+    ' [%]
+    idy As Double
+    ' [%]
+    sugar As Double
+    ' can be one of ['sucrose', 'maltose', 'honey']
+    sugarType As String
+    ' [%]
+    fat As Double
+    ' can be one of ['olive oil', 'lard']
+    fatType As String
+    ' fat density [g/cm^3]
+    fatDensity As Double
+    ' [%]
+    salt As Double
+    ' [%]
+    hydration As Double
+    ' [mg/l]
+    chlorineDioxide As Double
+    ' [mbar]
+    atmosphericPressure As Double
+    ' [°C]
+    ambientTemperature As Double
+    ' [hrs]
+    leaveningTime As Variant
+    ' [°C]
+    temperature As Variant
+    ' target area [cm^2]
+    targetArea As Double
+    ' target height [cm]
+    targetHeight As Double
+    ' final dough weight [g]
+    dough As Double
+    ' final dough temperature [°C]
+    doughTemperature As Double
+    ' baking temperature [°C]
+    bakingTemperature As Double
+
+    ' target volume over the maximum attainable volume [%]
+    targetVolume As Double
+    ' volume at each stage [%]
+    volume As Variant
+    ' final volume ratio at the end of all the stages
+    finalVolumeRatio As Double
+End Type
+
+
+Public Function getYeastMinimumTemperature() As Double
+    getYeastMinimumTemperature = T_MIN
+End Function
+
+Public Function getYeastMaximumTemperature() As Double
+    getYeastMaximumTemperature = T_MAX
+End Function
+
+Public Function getYeastMiminumInhibitoryPressure() As Double
+    getYeastMiminumInhibitoryPressure = 10000 ^ 2 * (1 / PRESSURE_FACTOR_K) ^ (1 / PRESSURE_FACTOR_M)
+End Function
+
+Public Function getDoughHumidity(airRelativeHumidity As Double) As Double
+    getDoughHumidity = 0.035 * airRelativeHumidity ^ 2
+End Function
+
+' https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf
+' FIXME this formula is for 36 °C
+' [hrs]
+Public Function getEstimatedLag(idy As Double) As Double
+    getEstimatedLag = 0.0068 * idy ^ -0.937
+End Function
+
+' https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf
+' FIXME this formula is for 36 °C
+' [hrs]
+Public Function getEstimatedExhaustion(idy As Double) As Double
+    getEstimatedExhaustion = 0.0596 * idy ^ -0.756
+End Function
+
+' [%]
+Private Function getTargetVolume(params As LeaveningParameters) As Double
+    Dim doughVolume As Double: doughVolume = calculateDoughVolume(params)
+    Dim minimumHeight As Double: minimumHeight = doughVolume / params.targetArea
+    ' FIXME
+    getTargetVolume = 0.98 * (params.targetHeight - minimumHeight) / (2.5 - minimumHeight)
+    '1.41687 = 3.3
+    '0.98 = 2.5
+
+    'targetVolume = params.targetHeight * 0.98 / (2.5 - minimumHeight) - 0.98 * minimumHeight / (2.5 - minimumHeight)
+
+'TODO account for baking temperature
+'initialTemperature is somethat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
+'volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
+End Function
+
+Private Function calculateCO2Plateau(temperature As Double) As Double
+    ' [hrs]
+    Dim ln As Double: ln = Math.Log((temperature - T_MIN) / (T_MAX - T_MIN))
+    Dim lag As Double: lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln
+    Dim plateau As Double: plateau = -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60
+    calculateCO2Plateau = -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60
+End Function
+
+Public Function validateParams(params As LeaveningParameters) As String
+    params.targetVolume = getTargetVolume(params)
+
+    Dim yeastMiminumInhibitoryPressure As Double: yeastMiminumInhibitoryPressure = getYeastMiminumInhibitoryPressure()
+    Dim yeastMinimumTemperature As Double: yeastMinimumTemperature = getYeastMinimumTemperature()
+    Dim yeastMaximumTemperature As Double: yeastMaximumTemperature = getYeastMaximumTemperature()
+    Dim waterBoilingTemp As Double: waterBoilingTemp = calculateWaterBoilingTemperature(params.salt * 1000 / params.hydration, params.atmosphericPressure)
+
+    If params.hydration < 0 Then
+        validateParams = "hydration [%] cannot be less than zero"
+    ElseIf params.chlorineDioxide < 0 Then
+        validateParams = "chlorine dioxide [mg/l] cannot be less than zero"
+    ElseIf params.salt < 0 Then
+        validateParams = "salt [%] cannot be less than zero"
+    ElseIf params.fat < 0 Then
+        validateParams = "fat [%] cannot be less than zero"
+    ElseIf params.sugar < 0 Then
+        validateParams = "sugar [%] cannot be less than zero"
+    ElseIf params.idy < 0 Then
+        validateParams = "IDY [%] cannot be less than zero"
+    ElseIf params.atmosphericPressure <= 0 Or params.atmosphericPressure >= yeastMiminumInhibitoryPressure Then
+        validateParams = "Atmospheric pressure [hPa] must be between 0 and " & Round(yeastMiminumInhibitoryPressure, 0) & " hPa"
+    ElseIf params.doughTemperature <= yeastMinimumTemperature Or params.doughTemperature >= yeastMaximumTemperature Then
+        validateParams = "Dough temperature [°C] must be between " & Round(yeastMinimumTemperature, 1) & " °C and " & Round(yeastMaximumTemperature, 1) & " °C"
+    ElseIf params.bakingTemperature <= waterBoilingTemp Then
+        validateParams = "Baking temperature [°C] must be greater than water boiling temperature (" & Round(waterBoilingTemp, 1) & " °C)"
+    ElseIf params.targetHeight <= 0 Then
+        validateParams = "targetHeight [cm] cannot be less than or equal to zero"
+    ElseIf params.targetVolume <= 0 Or params.targetVolume > 1 Then
+        validateParams = "targetVolume [%] cannot be less than or equal to zero or greater than or equal to one"
+    Else
+        Dim size As Integer: size = UBound(params.temperature)
+        If size <> UBound(params.leaveningTime) Then
+            validateParams = "temperature [°C] and leaveningTime [hrs] must have the same length"
+        Else
+            For index = LBound(params.temperature) To size
+                If params.temperature(index) <= yeastMinimumTemperature Or params.temperature(index) >= yeastMaximumTemperature Then
+                    validateParams = "temperature [°C] at stage " & index & " must be between " & Round(yeastMinimumTemperature, 1) & " °C and " & Round(yeastMaximumTemperature, 1) & " °C"
+                    Exit For
+                End If
+            Next index
+            For index = LBound(params.leaveningTime) To size
+                If params.leaveningTime(index) < 0 Then
+                    validateParams = "leavening time at stage " & index & " cannot be less than zero"
+                    Exit For
+                End If
+            Next index
+        End If
+    End If
+End Function
+
+
+Public Sub calculateIDY(params As LeaveningParameters)
+    Dim index As Integer
+    Dim size As Integer: size = UBound(params.temperature)
+    Dim T As Double: T = params.leaveningTime(0)
+
+    Dim finalVolume As Double: finalVolume = 0
+    ReDim params.volume(size - LBound(params.temperature))
+    For index = LBound(params.temperature) To size
+        If params.leaveningTime(index) > 0 Then
+            If index > 0 And params.idy > 0 Then
+                ' save value for subsequent restore after `calculateLeaveningTime` changed it
+                T = params.leaveningTime(index)
+
+                Call calculateLeaveningTime(params, index)
+
+                ' prepare for next iteration
+                params.leaveningTime(index) = params.leaveningTime(index) + T
+            End If
+
+            Dim volume As Double: volume = calculateIDYSingle(params, index)
+
+            ' account for volume reduction caused by re-kneading
+            If index < size Then
+                finalVolume = finalVolume - volume * VOLUME_REDUCTION
+            Else
+                params.finalVolumeRatio = MAX_VOLUME_EXPANSION * (finalVolume + volume)
+            End If
+
+            ' restore original value (for `index` > 0)
+            params.leaveningTime(index) = T
+        End If
+    Next index
+End Sub
+
+' Density studies of sugar solutions (https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf)
+' Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980. (https://core.ac.uk/download/pdf/197306213.pdf)
+' Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014. (https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions)
+' Calculate density of a slurry (https://www.engineeringtoolbox.com/slurry-density-calculate-d_1188.html)
+' Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005. (https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements)
+Public Function calculateDoughVolume(params As LeaveningParameters) As Double
+    ' convert salt to [g/l]
+    ' Dim salt As Double: salt = params.salt * 1000 / params.hydration
+    ' calculateDoughVolume = 1.41 - (0.0026 * params.water - 0.0064 * salt) - 0.0000676 * params.atmosphericPressure
+
+    ' true formula should be the following, but the salt is accounted next, so here it is zero
+    ' Dim waterDensity As Double: waterDensity = calculateWaterDensity(params.salt * 1000 / params.hydration, params.doughTemperature, params.atmosphericPressure)
+    Dim waterDensity As Double: waterDensity = calculateWaterDensity(0, params.doughTemperature, params.atmosphericPressure)
+    Dim brineDensity As Double: brineDensity = calculateBrineDensity(0, params)
+
+    ' density of flour + water + salt + sugar
+    Dim doughDensity As Double: doughDensity = 1.41 _
+        - (0.002611 * waterDensity * params.hydration - brineDensity) _
+        - 0.0000676 * params.atmosphericPressure
+
+    ' account for fats (convert fat to [g/l])
+    Dim fat As Double: fat = params.fat * 1000 / params.hydration
+    doughDensity = ((params.dough - fat) * doughDensity + fat / params.fatDensity) / params.dough
+
+    calculateDoughVolume = params.dough / doughDensity
+End Function
+
+Private Function calculateCharlesGayLussacVolumeExpansion(initialTemperature As Double, finalTemperature As Double) As Double
+    calculateCharlesGayLussacVolumeExpansion = (finalTemperature + ABSOLUTE_ZERO) / (initialTemperature + ABSOLUTE_ZERO)
+End Function
+
+' Density studies of sugar solutions (https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf)
+' Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980. (https://core.ac.uk/download/pdf/197306213.pdf)
+' Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014. (file:///C:/Users/mauro/Downloads/Year2015Vol21Issue1Pages41-52copy.pdf)
+Private Function calculateBrineDensity(waterDensity As Double, params As LeaveningParameters) As Double
+    ' Molarity of sucrose: 342.29648 g/mol
+    ' Molarity of salt: 58.44277 g/mol
+    ' convert salt and sugar to [g/l]
+    calculateBrineDensity = waterDensity _
+        + ((0.020391744 * params.salt + 0.003443681 * params.sugar) _
+        + (-0.000044231 * params.salt + 0.0000004195 * params.sugar) * (params.doughTemperature + ABSOLUTE_ZERO) _
+        ) * 1000 / params.hydration
+End Function
+
+' https://metgen.pagesperso-orange.fr/metrologieen19.htm
+' http://www.csgnetwork.com/water_density_calculator.html
+' https://www.translatorscafe.com/unit-converter/en-US/calculator/salt-water-density/
+Private Function calculateWaterDensity(salinity As Double, temperature As Double, pressure As Double) As Double
+    Dim rho0 As Double: rho0 = calculatePureWaterDensity(salinity, temperature)
+    Dim bulkModulus As Double: bulkModulus = calculateSecantBulkModulus(salinity, temperature, pressure)
+    ' account for pressure
+    calculateWaterDensity = rho0 / (1000 - pressure / bulkModulus)
+End Function
+
+' https://www.niot.res.in/COAT/coat_pdf/CHAP%20III%20-%20Equation%20of%20State.pdf
+Private Function calculatePureWaterDensity(salinity As Double, temperature As Double) As Double
+    Dim a As Double: a = 0.824493 + (-0.0040899 + (0.000076438 + (-0.00000082467 + 0.0000000053875 * temperature) * temperature) * temperature) * temperature
+    Dim b As Double: b = -0.00572466 + (0.00010227 - 0.0000016546 * temperature) * temperature
+    Dim c As Double: c = 0.00048314
+    Dim rho0 As Double: rho0 = 999.842594 + (0.06793952 + (-0.00909529 + (0.0001001685 + (-0.000001120083 + 0.000000006536336 * temperature) * temperature) * temperature) * temperature) * temperature
+    calculatePureWaterDensity = rho0 + (a + b * Math.Sqr(salinity) + c * salinity) * salinity
+End Function
+
+' https://www.niot.res.in/COAT/coat_pdf/CHAP%20III%20-%20Equation%20of%20State.pdf
+Private Function calculateSecantBulkModulus(salinity As Double, temperature As Double, pressure As Double) As Double
+    Dim aw As Double: aw = 3.239908 + (0.00143713 + (0.000116092 - 0.000000577905 * temperature) * temperature) * temperature
+    Dim a As Double: a = aw + (0.0022838 + (-0.000010981 - 0.0000016078 * temperature) * temperature + 0.000191075 * Math.Sqr(salinity)) * salinity
+    Dim bw As Double: bw = 0.0000850935 + (-0.00000612293 + 0.000000052787 * temperature) * temperature
+    Dim b As Double: b = bw + (-0.00000099348 + (0.000000020816 + 0.00000000091697 * temperature) * temperature) * salinity
+    Dim kw As Double: kw = 19652.21 + (148.4206 + (-2.327105 + (0.01360477 - 0.00005155288 * temperature) * temperature) * temperature) * temperature
+    Dim k0 As Double: k0 = kw + (54.6746 + (-0.603459 + (0.0109987 - 0.00006167 * temperature) * temperature) * temperature _
+        + (0.07944 + (0.016483 - 0.00053009 * temperature) * temperature) * Math.Sqr(salinity)) * salinity
+    calculateSecantBulkModulus = k0 + (a + b * pressure) * pressure
+End Function
+
+Private Function calculateWaterBoilingTemperature(salinity As Double, pressure As Double) As Double
+    Dim molality As Double: molality = salinity / MOLECULAR_WEIGHT_NA_CL
+    ' number of particles formed when that compound dissolves
+    Dim i As Double: i = 2
+    calculateWaterBoilingTemperature = 100 + 0.515 * molality * i
+End Function
+
+' http://web.mit.edu/lienhard/www/Thermophysical_properties_of_seawater-DWT-16-354-2010.pdf
+' TODO
+Private Function calculateWaterSpecificHeat(temperature As Double) As Double
+    calculateWaterSpecificHeat = 4.21637926544041 + (-0.003308868318933 + (0.00010589293114 + (-1.5945787284753E-06 _
+        + (1.21388818907112E-08 - 3.47840399741934E-11 * temperature) * temperature) * temperature) * temperature) * temperature
+End Function
+
+' http://www.mscampicchio.com/tecal_10.php
+' Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101
+' http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf
+Private Function estimateSpecificHeat(protein As Double, fat As Double, carbohydrate As Double, fiber As Double, ash As Double, temperature As Double) As Double
+    Dim cp_protein As Double: cp_protein = 2.0082 + (1.2089 - 0.0013129 * temperature) * temperature
+    Dim cp_fat As Double: cp_fat = 1.9842 + (1.4733 - 0.0048008 * temperature) * temperature
+    Dim cp_carbohydrate As Double: cp_carbohydrate = 1.5488 + (1.9625 - 0.0059399 * temperature) * temperature
+    Dim cp_fiber As Double: cp_fiber = 1.8459 + (1.8306 - 0.0046509 * temperature) * temperature
+    Dim cp_ash As Double: cp_ash = 1.0926 + (1.8896 - 0.0036817 * temperature) * temperature
+
+    ' Cp [kJ/(kg * K)]
+    estimateSpecificHeat = (cp_protein * protein + cp_fat * fat + cp_carbohydrate * carbohydrate + cp_fiber * fiber + cp_ash * ash) / 100
+End Function
+
+' Use bisection method to calculate the yeast able to generate a given final volume after a given time
+Private Function calculateIDYSingle(params As LeaveningParameters, index As Integer) As Double
+    Dim idy_min As Double
+    Dim idy_max As Double: idy_max = 0
+
+    calculateIDYSingle = 0
+    params.idy = idy_min
+    Dim f_min As Double: f_min = doughVolumeForStage(params, index)
+    Dim f_max As Double
+    Dim f_max_previous As Double: f_max_previous = f_min
+    Do
+        idy_min = idy_max
+        idy_max = idy_max + 0.025
+
+        params.idy = idy_max
+        f_max = doughVolumeForStage(params, index)
+
+        If Abs(f_max - f_max_previous) < 0.0001 Then
+            Err.Raise vbObjectError + 513, "PizzaProject.YeastModule", "Cannot reach desired target volume"
+        End If
+        f_max_previous = f_max
+    ' continue until the function seems to change sign in the interval
+    Loop While Not changedSign(f_min, f_max, params.targetVolume)
+
+    While idy_max - idy_min > IDY_PRECISION
+        params.idy = (idy_min + idy_max) / 2
+        f_max = doughVolumeForStage(params, index)
+        If changedSign(f_min, f_max, params.targetVolume) Then
+            idy_max = params.idy
+        Else
+            idy_min = params.idy
+            f_min = f_max
+        End If
+    Wend
+    calculateIDYSingle = (idy_min + idy_max) / 2
+End Function
+
+' Use bisection method to calculate the time necessary to reach a given final volume using a given yeast quantity
+Private Sub calculateLeaveningTime(params As LeaveningParameters, index As Integer)
+    Dim leaveningTimeMin As Double
+    Dim leaveningTimeMax As Double: leaveningTimeMax = 0
+
+    params.leaveningTime(index) = leaveningTimeMax
+    Dim f_min As Double: f_min = doughVolumeForStage(params, index)
+    Dim f_max As Double
+    Do
+        leaveningTimeMin = leaveningTimeMax
+        leaveningTimeMax = leaveningTimeMax + 2
+
+        params.leaveningTime(index) = leaveningTimeMax
+        f_max = doughVolumeForStage(params, index)
+    ' continue until the function seems to change sign in the interval
+    Loop While Not changedSign(f_min, f_max, params.targetVolume)
+
+    While leaveningTimeMax - leaveningTimeMin > TIME_PRECISION
+        params.leaveningTime(index) = (leaveningTimeMin + leaveningTimeMax) / 2
+        f_max = doughVolumeForStage(params, index)
+        If changedSign(f_min, f_max, params.targetVolume) Then
+            leaveningTimeMax = params.leaveningTime(index)
+        Else
+            leaveningTimeMin = params.leaveningTime(index)
+            f_min = f_max
+        End If
+    Wend
+End Sub
+
+Private Function changedSign(a As Double, b As Double, ref As Double) As Boolean
+    changedSign = ((ref - a) * (ref - b) < 0)
+End Function
+
+' TODO? use density function `0.135+(1.187-0.135)/(1+(time[min]/20.8)^1.82)`
+' Calculate volume in percent over maximum volume
+' Shafaghat, Najafpour, Rezaei, Sharifzadeh. Optimal growth of Saccharomyces cerevisiaea on pretreated molasses for the ethanol production. 2010. (http://www.doiserbia.nb.rs/img/doi/1451-9372/2010/1451-93721000029S.pdf)
+' Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
+Public Function doughVolumeForStage(params As LeaveningParameters, index As Integer) As Double
+    If params.idy = 0 Or params.leaveningTime(index) = 0 Then
+        ' no yeast or no leavening time implies no expansion
+        doughVolumeForStage = 0
+    Else
+        ' maximum relative volume expansion ratio (Vmax)
+        Dim alpha As Double: alpha = IIf(params.idy < 0.011, 1 + (297.6 - 10694 * params.idy) * params.idy, MAX_VOLUME_EXPANSION)
+        ' lag time [hrs]
+        Dim t_lag As Double: t_lag = getEstimatedLag(params.idy)
+        Dim mu As Double: mu = calculateMu(params, index)
+
+        Dim leaveningTime As Double: leaveningTime = params.leaveningTime(index)
+        ' [%]
+        doughVolumeForStage = alpha * f(leaveningTime, mu, t_lag, alpha)
+    End If
+End Function
+
+' Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
+Private Function calculateMu(params As LeaveningParameters, index As Integer) As Double
+    'Dim gas As Double: gas = gasProductionForStage(params, index)
+    ' NOTE: the factor 2.4 is empirical...
+    calculateMu = 2.4 * accountForIngredients(params) * maximumSpecificGrowthRate(params.idy, params.temperature(index))
+End Function
+
+' Calculate IDY(t)
+Private Function f(T As Double, mu As Double, t_lag As Double, alpha As Double) As Double
+    f = Math.Exp(-Math.Exp(-mu * Math.Exp(1) * (T - t_lag) / alpha + 1))
+End Function
+
+' UNUSED
+' Calculate area under the curve using Romberg's method
+' https://github.com/jrvarma/MSExcel-Numerical-Integration/blob/master/QuadratureForm.frm
+' http://www.namirshammas.com/NEW/Romberg.pdf
+Private Function gasProductionForStage(params As LeaveningParameters, index As Integer, Optional eps As Double = 0.00000001) As Double
+    If params.idy = 0 Or params.leaveningTime(index) = 0 Then
+        ' no yeast or no leavening time implies no expansion
+        gasProductionForStage = 0
+    Else
+        ' maximum relative volume expansion ratio (Vmax)
+        Dim alpha As Double: alpha = 10 * IIf(params.idy < 0.011, 1 + (297.6 - 10694 * params.idy) * params.idy, MAX_VOLUME_EXPANSION)
+        ' lag time [hrs]
+        Dim t_lag As Double: t_lag = getEstimatedLag(params.idy)
+        Dim mu As Double: mu = calculateMu(params, index)
+
+
+        ' a and b are the limits of integration
+        ' f is the function to be integrated (see function definition at the top)
+        ' Trapezoidal rule with 2^k subintervals of length (a-b)/2^k is
+        ' T(k) = h[f(a)/2 + f(a+h) + f(a+2h) + ... + f(b)/2]
+        ' This can be computed more easily using the recursive definition
+        ' T(k) = [T(k-1) + M(k-1)]/2 where M(k) denotes the mid-point rule
+        ' Consider the triangular array
+        ' T(0,0)
+        ' T(1,0)    T(0,1)
+        ' T(2,0)    T(1,1)  T(0,2)
+        '   ...
+        ' where T(k,0) denotes T(k) and
+        ' T(k,m) = [4^m T(k+1,m-1) - T(k,m-1)]/(4^m-1)
+        ' The successive Romberg approximants are the diagonal elements of this array
+        Dim eta As Double: eta = 0.00000001
+
+        Dim n As Integer, i As Integer, j As Integer, g As Long
+        Dim a As Double: a = 0
+        Dim b As Double: b = params.leaveningTime(index)
+        Dim h As Double: h = b - a
+        ' t = T(0,0)
+        Dim T As Double: T = h * (f(a, mu, t_lag, alpha) + f(b, mu, t_lag, alpha)) / 2
+        Dim x As Double, sum As Double
+        Dim q(1 To 100) As Double, qx1 As Double, qx2 As Double
+
+        Dim nx As Integer: nx = 1
+        Dim convergedAbs As Boolean, convergedRel As Boolean
+        For n = 1 To 33
+            ' compute new step size
+            h = h / 2
+
+            ' compute trapezoid rule approximation
+            sum = 0
+            For i = 1 To nx
+                sum = sum + f(a + (2 * i - 1) * h, mu, t_lag, alpha)
+            Next i
+
+            ' 2h*sum is M(n-1) and we compute T(n) from T(n-1) and M(n-1)
+            T = T / 2 + h * sum
+            ' compute q(n) = T(n-1,1)
+            q(n) = 2 * (T + h * sum) / 3
+
+            If (n >= 2) Then
+                ' get Romberg improvements
+                g = 4
+                For j = 2 To n
+                    i = n + 1 - j
+                    g = g * 4
+                    ' at the end of each iteration:
+                    '   q is the n'th row of the T array in reverse order with the element T(n,0) omitted
+                    '   q(1) = T(0,n)
+                    '   q(n) = T(n-1,1) and the elements in between are T(1,n-1), T(2,n-2), T(3,n-3) ...
+                    ' compute now the new q array using the previous q array proceeding from q(n) to q(1)
+                    q(i) = q(i + 1) + (q(i + 1) - q(i)) / (g - 1)
+                Next j
+            End If
+            If (n >= 3) Then
+                ' for convergence tests, compute the differences between the q(1) values from the last three iterations
+                x = Abs(q(1) - qx2) + Abs(qx2 - qx1)
+                ' absolute error test : |q(1)-I| < eps where I is the true integral
+                convergedAbs = x <= 3 * eps
+                ' relative error test : |q(1)-I|/|I| < eta or more precisely
+                '   q(1) = integral of (1+y(x))f(x)dx where |y(x)| < eta
+                ' this is relative error only if f(x) does not change sign
+                convergedRel = (T <> 0 And (x <= T * 3 * eta))
+                gasProductionForStage = q(1)
+
+                ' check convergence
+                If ((n >= Min) And (convergedAbs Or convergedRel)) Then
+                    Exit For
+                End If
+            End If
+
+            ' store the q(1) values of last two iterations
+            If (n >= 2) Then
+                qx1 = qx2
+                qx2 = q(1)
+            End If
+
+            nx = nx * 2
+        Next n
+        If Not (convergedAbs Or convergedRel) Then
+            gasProductionForStage = -1
+        End If
+    End If
+End Function
+
+' Maximum specific growth rate of Saccharomyces Cerevisiae versus temperature [hrs^-1]
+' Salvadó, Arroyo-López, Guillamón, Salazar, Querol, Barrio. Temperature adaptation markedly determines evolution within the genus Saccharomyces. 2011. (https://aem.asm.org/content/aem/77/7/2292.full.pdf)
+' Tjørve. The use of Gompertz models in growth analyses, and new Gompertz-model approach: An addition to the Unified-Richards family. 2017. (https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0178691&type=printable)
+Private Function maximumSpecificGrowthRate(ByVal yeast As Double, ByVal temperature As Double) As Double
+    If temperature <= T_MIN Or T_MAX <= temperature Then
+        maximumSpecificGrowthRate = 0
+    Else
+        Dim d As Double: d = (T_MAX - temperature) * (temperature - T_MIN) ^ 2
+        Dim e As Double: e = (T_OPT - T_MIN) * _
+            ((T_OPT - T_MIN) * (temperature - T_OPT) - (T_OPT - T_MAX) * (T_OPT + T_MIN - 2 * temperature))
+        ' NOTE: the factor (MU_OPT / 5317.62132) is to ensure that at T_OPT the growth rate is MU_OPT
+        maximumSpecificGrowthRate = d * Math.Exp(-Math.Exp(MU_OPT * Math.Exp(1) * LAMBDA / e + 1)) * (MU_OPT / 5317.62132)
+
+        ' account for yeast quantity (asymmetrical sigmoidal regression)
+        Dim yeastFactor As Double: yeastFactor = 1 + (0.01967462 - 4.639907) _
+            / (4.639907 * (1 + (yeast / 838.5129) ^ 1.371698) ^ 3129189)
+
+        maximumSpecificGrowthRate = yeastFactor * maximumSpecificGrowthRate
+    End If
+End Function
+
+' Modify specific growth ratio in order to account for sugar, fat, salt, water, and chlorine dioxide
+' Yeast activity is impacted by:
+'  - quantity percent of flour
+'  - temperature
+'  - hydration
+'  - salt
+'  * fat
+'  - sugar
+'  * yeast age
+'  * dough ball size
+'  * gluten development
+'  - altitude (air pressure)
+'  - water chemistry (level of chlorination especially)
+'  * container material and thickness (conductivity if ambient and dough temperatures vary, along with heat dissipation from fermentation)
+'  * flour chemistry (enzyme activity, damaged starch, etc.)
+Private Function accountForIngredients(params As LeaveningParameters) As Double
+    Dim k_sugar As Double: k_sugar = sugarFactor(params.sugar)
+    Dim k_fat As Double: k_fat = fatFactor(params.fat)
+    Dim k_salt As Double: k_salt = saltFactor(params.salt)
+    Dim k_water As Double: k_water = waterFactor(params.hydration)
+    Dim k_chlorineDioxide As Double: k_chlorineDioxide = chlorineDioxideFactor(params.chlorineDioxide)
+    Dim k_airPressure: k_airPressure = airPressureFactor(params.atmosphericPressure)
+
+    accountForIngredients = k_sugar * k_fat * k_salt * k_water * k_chlorineDioxide * k_airPressure
+End Function
+
+' https://uwaterloo.ca/chem13-news-magazine/april-2015/activities/fermentation-sugars-using-yeast-discovery-experiment
+' Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009. (https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf)
+' Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology (http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555)
+' http://www.classofoods.com/page2_2.html
+Private Function sugarFactor(sugar As Double) As Double
+    ' 0 <= sugar <= 45.720%
+    Dim max_sugar As Double: max_sugar = Math.Exp(-0.3154 / 0.403)
+    sugarFactor = 1
+    If sugar < 0.03 Then
+        sugarFactor = 1 + (4.9 - 50 * sugar) * sugar
+    ElseIf sugar < max_sugar Then
+        sugarFactor = -0.3154 - 0.403 * Math.Log(sugar)
+    End If
+End Function
+
+' TODO high fat content inhibits leavening
+Private Function fatFactor(sugar As Double) As Double
+    ' 0 <= fat <= ??%
+    Dim max_fat As Double: max_fat = 0
+    '1+fat/300...?
+    fatFactor = 1
+End Function
+
+' Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64. (https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf)
+' Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.(https://aem.asm.org/content/aem/43/4/757.full.pdf)
+' http://www.classofoods.com/page2_2.html
+' López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2. (https://watermark.silverchair.com/0362-028x-70_2_456.pdf)
+Private Function saltFactor(salt As Double) As Double
+    '0 <= salt
+    saltFactor = 1.25 * (1 + 1 / Exp(3.46)) / (1 + 1 / Exp(3.46 - 112.6 * salt))
+End Function
+
+' https://buonapizza.forumfree.it/?t=75686746
+' Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018. (https://www.nature.com/articles/s41598-018-36786-2.pdf)
+' Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4. (http://www.fia.usv.ro/fiajournal/index.php/FENS/article/view/328/326)
+' http://www.classofoods.com/page2_2.html
+Private Function waterFactor(hydration As Double) As Double
+    ' 0 <= hydration <= 102.166%
+    Dim max_hydration As Double: max_hydration = (7.65 + Math.Sqr(7.65 ^ 2 - 4 * 6.25 * 1.292)) / (2 * 6.25)
+    waterFactor = IIf(hydration < max_hydration, _
+        -1.292 + (7.65 - 6.25 * hydration) * hydration, _
+        0)
+End Function
+
+Public Function getMaximumChlorineDioxide() As Double
+    getMaximumChlorineDioxide = 0.0931
+End Function
+
+' https://academic.oup.com/mutage/article/19/2/157/1076450
+' Buschini, Carboni, Furlini, Poli, Rossi. sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests [2004]
+Private Function chlorineDioxideFactor(chlorineDioxide As Double) As Double
+    chlorineDioxideFactor = 1 - getMaximumChlorineDioxide() * chlorineDioxide
+    If chlorineDioxideFactor < 0 Then
+        chlorineDioxideFactor = 0
+    End If
+End Function
+
+' Arao, Hara, Suzuki, Tamura. Effect of High-Pressure Gas on Yeast Growth. 2014. (https://www.tandfonline.com/doi/pdf/10.1271/bbb.69.1365)
+Private Function airPressureFactor(pressure As Double) As Double
+    airPressureFactor = 0
+    If pressure < getYeastMiminumInhibitoryPressure() Then
+       airPressureFactor = 1 - PRESSURE_FACTOR_K * (pressure / 10000 ^ 2) ^ PRESSURE_FACTOR_M
+    End If
+End Function
+
