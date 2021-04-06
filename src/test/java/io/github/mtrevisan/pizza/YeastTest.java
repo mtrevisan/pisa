@@ -28,6 +28,29 @@ class YeastTest{
 	}
 
 	@Test
+	void maximumSpecificGrowthRateTwoStages(){
+		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
+
+
+		double fy = yeast.backtrackStage(16.7, 21., 10., 26.);
+//		//last stage: 26 hours at 10 °C
+//		double fy = Math.pow(26 / 0.0665, 1. / -0.7327);
+//		double base = yeast.maximumSpecificGrowthRate(fy, 10.);
+//		//preceded
+//		double speed = yeast.maximumSpecificGrowthRate(fy, 16.7);
+//		//find hours at second-to-last stage temperature
+//		double t2 = 0.0665 * Math.pow(fy * speed / base, -0.7327);
+//		//add second-to-last stage duration
+//		t2 += 21;
+//		//find fy at t2
+//		fy = Math.pow(t2 / 0.0665, 1. / -0.7327);
+
+		final double factor = yeast.maximumSpecificGrowthRate(0.52, 32.86);
+
+		Assertions.assertEquals(0.449, factor, 0.000_1);
+	}
+
+	@Test
 	void maximumSpecificGrowthRateMax(){
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = yeast.maximumSpecificGrowthRate(0.52, 50.);

@@ -106,6 +106,38 @@ public class Yeast{
 		return 2.4 * ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
 	}
 
+	//https://planetcalc.com/5992/
+	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
+	//FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
+	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
+	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
+
+	//TODO
+	/**
+	 * @param temperature1	Temperature at first stage [°C].
+	 * @param duration1	Duration at first stage [hrs].
+	 * @param temperature2	Temperature at second stage [°C].
+	 * @param duration2	Duration at second stage [hrs].
+	 * @return	Yeast to use at first stage [%].
+	 */
+	public double backtrackStage(final double temperature1, final double duration1, final double temperature2, final double duration2){
+		//FY at stage 2 to obtain a leavening in `duration2` at temperature `temperature2`
+		double fy2 = Math.pow(duration2 / 0.0665, 1. / -0.7327);
+		final double baseSpeed = maximumSpecificGrowthRate(fy2, 25.);
+		final double speed2 = maximumSpecificGrowthRate(fy2, temperature2);
+		fy2 *= baseSpeed / speed2;
+
+		//find duration at `temperature1`
+		final double speed1 = maximumSpecificGrowthRate(fy2, temperature1);
+		fy2 *= speed2 / speed1;
+		//add second stage duration
+		final double totalDuration = 0.0665 * Math.pow(fy2, -0.7327) + duration1;
+
+		double fy = Math.pow(totalDuration / 0.0665, 1. / -0.7327);
+		fy *= baseSpeed / speed2;
+		return fy;
+	}
+
 	/**
 	 * Maximum specific growth rate of Saccharomyces Cerevisiae [hrs^-1]
 	 *
