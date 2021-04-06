@@ -135,13 +135,13 @@ public class Water{
 	 * @return	The density [g/l].
 	 */
 	public double brineDensity(final double pureWaterDensity, final double hydration, final double salinity, final double sugar, final double temperature){
-    	//molarity of sucrose: 342.29648 g/mol
+		//molarity of sucrose: 342.29648 g/mol
 		//molarity of salt: 58.44277 g/mol
 		//convert salt and sugar to [g/l]
 		return pureWaterDensity
-        + ((0.020391744 * salinity + 0.003443681 * sugar)
-        + (-0.000044231 * salinity + 0.0000004195 * sugar) * (temperature + ABSOLUTE_ZERO)
-        ) * 1000 / hydration;
+			+ ((0.020391744 * salinity + 0.003443681 * sugar)
+			+ (-0.000044231 * salinity + 0.0000004195 * sugar) * (temperature + ABSOLUTE_ZERO)
+			) * 1000 / hydration;
 	}
 
 
