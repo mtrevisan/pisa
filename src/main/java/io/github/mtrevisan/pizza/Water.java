@@ -75,6 +75,9 @@ public class Water{
 
 
 	/**
+	 * Validity: -2 < temperature < 40 °C; 0 < salinity < 42 g/kg.
+	 * Accuracy: ±0.01%.
+	 *
 	 * @see <a href="https://metgen.pagesperso-orange.fr/metrologieen19.htm">METROLOGY - ARTICLE N°18: Calculation of the density of water</a>
 	 * @see <a href="http://www.csgnetwork.com/water_density_calculator.html">Ocean water density calculator</a>
 	 * @see <a href="https://www.translatorscafe.com/unit-converter/en-US/calculator/salt-water-density/">Salt water density calculator</a>
@@ -96,6 +99,7 @@ public class Water{
 	 *
 	 * @param salinity	Salt quantity [%].
 	 * @param temperature	Temperature [°C].
+	 * @return	The density [g/l].
 	 */
 	private double pureWaterDensity(final double salinity, final double temperature){
 		final double a = Helper.evaluatePolynomial(PURE_WATER_DENSITY_A_COEFFICIENTS, temperature);
@@ -146,6 +150,9 @@ public class Water{
 
 
 	/**
+	 * Validity: 0 < temperature < 374 °C; 0 < salinity < 40 g/kg; 0.1 < pressure < 100 MPa.
+	 * Accuracy: ±4.62%.
+	 *
 	 * @see <a href="http://web.mit.edu/lienhard/www/Thermophysical_properties_of_seawater-DWT-16-354-2010.pdf">Thermophysical properties of seawater: a review of existing correlations and data</a>
 	 *
 	 * @param salinity	Salinity [g/kg].

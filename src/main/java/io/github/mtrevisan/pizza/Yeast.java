@@ -125,7 +125,8 @@ public class Yeast{
 			* ((yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()) * (temperature - yeastModel.getTemperatureOpt())
 			- (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMax())
 			* (yeastModel.getTemperatureOpt() + yeastModel.getTemperatureMin() - 2. * temperature));
-		//NOTE: the factor 5317.62132 is to ensure that at T_OPT the growth rate is MU_OPT
+		//FIXME
+		//NOTE: the factor 5317.62132 is to ensure that at `yeastModel.getTemperatureOpt()` the growth rate is `yeastModel.getMuOpt()`
 		final double maximumSpecificGrowthRate = d * Math.exp(-Math.exp(yeastModel.getMuOpt() * Math.exp(1.) * yeastModel.getLambda() / e + 1.))
 			* (yeastModel.getMuOpt() / 5317.62132);
 
