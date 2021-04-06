@@ -118,10 +118,21 @@ public class Yeast{
 
 	/**
 	 * Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @param temperature	Temperature [°C].
+	 * @param sugar	Sugar content [%].
+	 * @param fat	Fat content [%].
+	 * @param salinity	Salt content [%].
+	 * @param hydration	Hydration [%].
+	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
+	 * @param pressure	Ambient pressure [hPa].
 	 */
-	public double calculateMu(final LeaveningParameters params, final int index){
+	public double calculateMu(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
+			final double hydration, final double chlorineDioxide, final double pressure){
 		//FIXME the factor 2.4 is empirical
-		return 2.4 * accountForIngredients(params) * maximumSpecificGrowthRate(params.idy, params.temperature[index]);
+		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+		return 2.4 * ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
 	}
 
 	/**
@@ -169,14 +180,22 @@ public class Yeast{
 	 *    <li>flour chemistry (enzyme activity, damaged starch, etc.) (*)</li>
 	 * </ul>
 	 * </p>
+	 *
+	 * @param sugar	Sugar content [%].
+	 * @param fat	Fat content [%].
+	 * @param salinity	Salt content [%].
+	 * @param hydration	Hydration [%].
+	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
+	 * @param pressure	Ambient pressure [hPa].
 	 */
-	private double accountForIngredients(final LeaveningParameters params){
-		final double kSugar = sugarFactor(params.sugar);
-		final double kFat = fatFactor(params.fat);
-		final double kSalt = saltFactor(params.salt);
-		final double kWater = waterFactor(params.hydration);
-		final double kChlorineDioxide = chlorineDioxideFactor(params.chlorineDioxide);
-		final double kAirPressure = airPressureFactor(params.atmosphericPressure);
+	private double accountForIngredients(final double sugar, final double fat, final double salinity, final double hydration,
+			final double chlorineDioxide, final double pressure){
+		final double kSugar = sugarFactor(sugar);
+		final double kFat = fatFactor(fat);
+		final double kSalt = saltFactor(salinity);
+		final double kWater = waterFactor(hydration);
+		final double kChlorineDioxide = chlorineDioxideFactor(chlorineDioxide);
+		final double kAirPressure = airPressureFactor(pressure);
 		return kSugar * kFat * kSalt * kWater * kChlorineDioxide * kAirPressure;
 	}
 
@@ -214,11 +233,11 @@ public class Yeast{
 	 * Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.(https://aem.asm.org/content/aem/43/4/757.full.pdf)
 	 * López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2. (https://watermark.silverchair.com/0362-028x-70_2_456.pdf)
 	 *
-	 * @param salt	Salt quantity [%].
+	 * @param salinity	Salt quantity [%].
 	 * @return	Correction factor.
 	 */
-	double saltFactor(final double salt){
-		return Math.max(1.25 * (1. + 1. / Math.exp(3.46)) / (1. + 1. / Math.exp(3.46 - 112.6 * salt)), 0.);
+	double saltFactor(final double salinity){
+		return Math.max(1.25 * (1. + 1. / Math.exp(3.46)) / (1. + 1. / Math.exp(3.46 - 112.6 * salinity)), 0.);
 	}
 
 	/**
