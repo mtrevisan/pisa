@@ -1,5 +1,8 @@
 package io.github.mtrevisan.pizza;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 
 public class LeaveningParameters{
 
@@ -46,5 +49,54 @@ public class LeaveningParameters{
 	double[] volume;
 	//final volume ratio at the end of all the stages
 	double finalVolumeRatio;
+
+
+	public String validate(){
+		//FIXME
+//		targetVolume = getTargetVolume(params);
+
+		final Water water = new Water();
+		final double waterBoilingTemp = water.boilingTemperature(salt * 1000 / hydration, atmosphericPressure);
+
+		if(hydration < 0)
+			return "hydration [%] cannot be less than zero";
+		if(chlorineDioxide < 0)
+			return "chlorine dioxide [mg/l] cannot be less than zero";
+		if(salt < 0)
+			return "salt [%] cannot be less than zero";
+		if(fat < 0)
+			return "fat [%] cannot be less than zero";
+		if(sugar < 0)
+			return "sugar [%] cannot be less than zero";
+		if(idy < 0)
+			return "IDY [%] cannot be less than zero";
+		if(atmosphericPressure <= 0 || atmosphericPressure >= Yeast.MINIMUM_INHIBITORY_PRESSURE)
+			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Yeast.MINIMUM_INHIBITORY_PRESSURE, 0)
+				+ " hPa";
+		if(doughTemperature <= Yeast.TEMPERATURE_MIN || doughTemperature >= Yeast.TEMPERATURE_MAX)
+			return "Dough temperature [°C] must be between " + Helper.round(Yeast.TEMPERATURE_MIN, 1) + " °C and "
+				+ Helper.round(Yeast.TEMPERATURE_MAX, 1) + " °C";
+		if(bakingTemperature <= waterBoilingTemp)
+			return "Baking temperature [°C] must be greater than water boiling temperature (" + Helper.round(waterBoilingTemp, 1)
+				+ " °C)";
+		if(targetHeight <= 0)
+			return "targetHeight [cm] cannot be less than or equal to zero";
+		//FIXME
+//		if(targetVolume <= 0 || targetVolume > 1)
+//			return "targetVolume [%] cannot be less than or equal to zero or greater than or equal to one";
+
+		final int size = temperature.length;
+		if(size != leaveningTime.length)
+			return "temperature [°C] and leaveningTime [hrs] must have the same length";
+
+		for(int index = 0; index < size; index ++)
+			if(temperature[index] <= Yeast.TEMPERATURE_MIN || temperature[index] >= Yeast.TEMPERATURE_MAX)
+				return "temperature [°C] at stage " + index + " must be between " + Helper.round(Yeast.TEMPERATURE_MIN, 1)
+					+ " °C and " + Helper.round(Yeast.TEMPERATURE_MAX, 1) + " °C";
+		for(int index = 0; index < size; index ++)
+			if(leaveningTime[index] < 0)
+				return "leavening time at stage " + index + " cannot be less than zero";
+		return null;
+	}
 
 }

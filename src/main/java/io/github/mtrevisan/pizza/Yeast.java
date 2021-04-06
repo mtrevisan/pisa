@@ -30,11 +30,11 @@ public class Yeast{
 	//Saccharomyces cerevisiae (strain CECT 10131) constants:
 	//https://aem.asm.org/content/aem/77/7/2292.full.pdf
 	//maximum temperature [°C]
-	private static final double TEMPERATURE_MAX = 45.9;
+	public static final double TEMPERATURE_MAX = 45.9;
 	//optimum temperature [°C]
 	private static final double TEMPERATURE_OPTIMAL = 32.86;
 	//minimum temperature [°C]
-	private static final double TEMPERATURE_MIN = 0.74;
+	public static final double TEMPERATURE_MIN = 0.74;
 	//[hrs^-1]
 	private static final double MU_OPTIMAL = 0.449;
 	//[hrs] (calculated to obtain a maximum specific grow rate of MU_OPT at T_MAX)
@@ -81,6 +81,39 @@ public class Yeast{
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	//[hPa]
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
+
+
+	/**
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @return	The estimated lag [hrs].
+	 */
+	public double estimatedLag(final double idy){
+		//FIXME this formula is for 36 °C
+		return 0.0068 * Math.pow(idy, -0.937);
+	}
+
+	/**
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @return	The estimated exhaustion time [hrs].
+	 */
+	public double estimatedExhaustion(final double idy){
+		//FIXME this formula is for 36 °C
+		return 0.0596 * Math.pow(idy, -0.756);
+	}
+
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	The time to reach the plateau of maximum carbon dioxide production [hrs].
+	 */
+	//FIXME do something
+	//FIXME lag?
+	public double carbonDioxidePlateau(final double temperature){
+		final double ln = Math.log((temperature - TEMPERATURE_MIN) / (TEMPERATURE_MAX - TEMPERATURE_MIN));
+//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
+		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
+	}
 
 
 	/**
