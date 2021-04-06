@@ -59,21 +59,21 @@ public class LeaveningParameters{
 //		targetVolume = getTargetVolume(params);
 
 		final Water water = new Water();
-		final double waterBoilingTemp = water.boilingTemperature(salt * 1000 / hydration, atmosphericPressure);
+		final double waterBoilingTemp = water.boilingTemperature(salt * 1000. / hydration, atmosphericPressure);
 
-		if(hydration < 0)
+		if(hydration < 0.)
 			return "hydration [%] cannot be less than zero";
-		if(chlorineDioxide < 0)
+		if(chlorineDioxide < 0.)
 			return "chlorine dioxide [mg/l] cannot be less than zero";
-		if(salt < 0)
+		if(salt < 0.)
 			return "salt [%] cannot be less than zero";
-		if(fat < 0)
+		if(fat < 0.)
 			return "fat [%] cannot be less than zero";
-		if(sugar < 0)
+		if(sugar < 0.)
 			return "sugar [%] cannot be less than zero";
-		if(idy < 0)
+		if(idy < 0.)
 			return "IDY [%] cannot be less than zero";
-		if(atmosphericPressure <= 0 || atmosphericPressure >= Yeast.MINIMUM_INHIBITORY_PRESSURE)
+		if(atmosphericPressure <= 0. || atmosphericPressure >= Yeast.MINIMUM_INHIBITORY_PRESSURE)
 			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Yeast.MINIMUM_INHIBITORY_PRESSURE, 0)
 				+ " hPa";
 		if(doughTemperature <= yeastModel.getTemperatureMin() || doughTemperature >= yeastModel.getTemperatureMax())
@@ -82,10 +82,10 @@ public class LeaveningParameters{
 		if(bakingTemperature <= waterBoilingTemp)
 			return "Baking temperature [°C] must be greater than water boiling temperature (" + Helper.round(waterBoilingTemp, 1)
 				+ " °C)";
-		if(targetHeight <= 0)
+		if(targetHeight <= 0.)
 			return "targetHeight [cm] cannot be less than or equal to zero";
 		//FIXME
-//		if(targetVolume <= 0 || targetVolume > 1)
+//		if(targetVolume <= 0. || targetVolume > 1.)
 //			return "targetVolume [%] cannot be less than or equal to zero or greater than or equal to one";
 
 		final int size = temperature.length;
@@ -97,7 +97,7 @@ public class LeaveningParameters{
 				return "temperature [°C] at stage " + index + " must be between " + Helper.round(yeastModel.getTemperatureMin(), 1)
 					+ " °C and " + Helper.round(yeastModel.getTemperatureMax(), 1) + " °C";
 		for(int index = 0; index < size; index ++)
-			if(leaveningTime[index] < 0)
+			if(leaveningTime[index] < 0.)
 				return "leavening time at stage " + index + " cannot be less than zero";
 		return null;
 	}

@@ -47,11 +47,11 @@ public class Dough{
 	 */
 	public final double volume(final LeaveningParameters params){
 		//convert salt to [g/l]
-		//final double salt = params.salt * 1000 / params.hydration;
+		//final double salt = params.salt * 1000. / params.hydration;
 		//calculateDoughVolume = 1.41 - (0.0026 * params.water - 0.0064 * salt) - 0.0000676 * params.atmosphericPressure
 
 		//true formula should be the following, but the salt is accounted next, so here it is zero
-		//final double waterDensity = calculateWaterDensity(params.salt * 1000 / params.hydration, params.doughTemperature, params.atmosphericPressure);
+		//final double waterDensity = calculateWaterDensity(params.salt * 1000. / params.hydration, params.doughTemperature, params.atmosphericPressure);
 		final double waterDensity = water.density(0, params.doughTemperature, params.atmosphericPressure);
 		final double brineDensity = water.brineDensity(0, params.hydration, params.salt, params.sugar, params.doughTemperature);
 
@@ -59,7 +59,7 @@ public class Dough{
 		double doughDensity = 1.41 - (0.002611 * waterDensity * params.hydration - brineDensity) - 0.0000676 * params.atmosphericPressure;
 
 		//account for fats (convert fat to [g/l])
-		final double fat = params.fat * 1000 / params.hydration;
+		final double fat = params.fat * 1000. / params.hydration;
 		doughDensity = ((params.dough - fat) * doughDensity + fat / params.fatDensity) / params.dough;
 
 		return params.dough / doughDensity;

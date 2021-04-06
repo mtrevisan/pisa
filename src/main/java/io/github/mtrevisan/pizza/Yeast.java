@@ -33,9 +33,9 @@ public class Yeast{
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 
 	//[%]
-	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4 * 6.25 * 1.292)) / (2 * 6.25);
+	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 	//[%]
-	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4 * 6.25 * 1.292)) / (2 * 6.25);
+	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
 	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
 
@@ -125,12 +125,12 @@ public class Yeast{
 			* ((yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()) * (temperature - yeastModel.getTemperatureOpt())
 			- (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMax())
 			* (yeastModel.getTemperatureOpt() + yeastModel.getTemperatureMin() - 2. * temperature));
-		//NOTE: the factor (MU_OPT / 5317.62132) is to ensure that at T_OPT the growth rate is MU_OPT
+		//NOTE: the factor 5317.62132 is to ensure that at T_OPT the growth rate is MU_OPT
 		final double maximumSpecificGrowthRate = d * Math.exp(-Math.exp(yeastModel.getMuOpt() * Math.exp(1.) * yeastModel.getLambda() / e + 1.))
 			* (yeastModel.getMuOpt() / 5317.62132);
 
 		//account for yeast quantity (asymmetrical sigmoidal regression)
-		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189));
+		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189.));
 
 		return yeastFactor * maximumSpecificGrowthRate;
 	}

@@ -29,7 +29,7 @@ class WaterTest{
 	@Test
 	void boilingTemperatureHalfway(){
 		final Water water = new Water();
-		final double temperature = water.boilingTemperature(0.0052, ATMOSPHERE * 2);
+		final double temperature = water.boilingTemperature(0.0052, ATMOSPHERE * 2.);
 
 		Assertions.assertEquals(5_211.3, temperature, 0.1);
 	}
