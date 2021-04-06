@@ -25,48 +25,10 @@
 package io.github.mtrevisan.pizza;
 
 
+import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
+
+
 public class Yeast{
-
-	//Saccharomyces cerevisiae (strain CECT 10131) constants:
-	//https://aem.asm.org/content/aem/77/7/2292.full.pdf
-	//maximum temperature [°C]
-	public static final double TEMPERATURE_MAX = 45.9;
-	//optimum temperature [°C]
-	private static final double TEMPERATURE_OPTIMAL = 32.86;
-	//minimum temperature [°C]
-	public static final double TEMPERATURE_MIN = 0.74;
-	//[hrs^-1]
-	private static final double MU_OPTIMAL = 0.449;
-	//[hrs] (calculated to obtain a maximum specific grow rate of MU_OPT at T_MAX)
-	private static final double  LAMBDA = 11844.;
-
-//	//Saccharomyces cerevisiae (avg) constants:
-//	private static final double T_MAX = 45.39;
-//	private static final double T_OPT = 32.27;
-//	private static final double T_MIN = 2.84;
-//	private static final double MU_OPT = 0.368;
-//	private static final double LAMBDA = 14487;
-//
-//	//Saccharomyces bayanus var. uvarum constants:
-//	private static final double T_MAX = 45.39;
-//	private static final double T_OPT = 32.27;
-//	private static final double T_MIN = 2.84;
-//	private static final double MU_OPT = 0.295;
-//	private static final double LAMBDA = 18071;
-//
-//	//Lactobacillus sanfranciscensis:
-//	private static final double T_MAX = 41.0 +/-0.1;
-//	private static final double T_OPT = 32-33;
-//	private static final double T_MIN = 3.0 +/-0.6;
-//	private static final double MU_OPT = 0.71;
-//	private static final double LAMBDA = 8081;
-//
-//	//Candida milleri:
-//	private static final double T_MAX = 35.9 +/-0.3;
-//	private static final double T_OPT = 27;
-//	private static final double T_MIN = 8.0 +/-1;
-//	private static final double MU_OPT = 0.42;
-//	private static final double LAMBDA = 60702;
 
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 
@@ -82,6 +44,13 @@ public class Yeast{
 	//[hPa]
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
+
+	private YeastModelInterface yeastModel;
+
+
+	public Yeast(final YeastModelInterface yeastModel){
+		this.yeastModel = yeastModel;
+	}
 
 	/**
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
@@ -112,7 +81,7 @@ public class Yeast{
 	//FIXME do something
 	//FIXME lag?
 	public double carbonDioxidePlateau(final double temperature){
-		final double ln = Math.log((temperature - TEMPERATURE_MIN) / (TEMPERATURE_MAX - TEMPERATURE_MIN));
+		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
 //		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
 		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
@@ -148,13 +117,17 @@ public class Yeast{
 	 * @return	The maximum specific growth rate [hrs^-1].
 	 */
 	double maximumSpecificGrowthRate(final double yeast, final double temperature){
-		if(temperature <= TEMPERATURE_MIN || TEMPERATURE_MAX <= temperature)
+		if(temperature <= yeastModel.getTemperatureMin() || yeastModel.getTemperatureMax() <= temperature)
 			return 0.;
 
-		final double d = (TEMPERATURE_MAX - temperature) * Math.pow(temperature - TEMPERATURE_MIN, 2.);
-		final double e = (TEMPERATURE_OPTIMAL - TEMPERATURE_MIN) * ((TEMPERATURE_OPTIMAL - TEMPERATURE_MIN) * (temperature - TEMPERATURE_OPTIMAL) - (TEMPERATURE_OPTIMAL - TEMPERATURE_MAX) * (TEMPERATURE_OPTIMAL + TEMPERATURE_MIN - 2. * temperature));
+		final double d = (yeastModel.getTemperatureMax() - temperature) * Math.pow(temperature - yeastModel.getTemperatureMin(), 2.);
+		final double e = (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin())
+			* ((yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()) * (temperature - yeastModel.getTemperatureOpt())
+			- (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMax())
+			* (yeastModel.getTemperatureOpt() + yeastModel.getTemperatureMin() - 2. * temperature));
 		//NOTE: the factor (MU_OPT / 5317.62132) is to ensure that at T_OPT the growth rate is MU_OPT
-		final double maximumSpecificGrowthRate = d * Math.exp(-Math.exp(MU_OPTIMAL * Math.exp(1.) * LAMBDA / e + 1.)) * (MU_OPTIMAL / 5317.62132);
+		final double maximumSpecificGrowthRate = d * Math.exp(-Math.exp(yeastModel.getMuOpt() * Math.exp(1.) * yeastModel.getLambda() / e + 1.))
+			* (yeastModel.getMuOpt() / 5317.62132);
 
 		//account for yeast quantity (asymmetrical sigmoidal regression)
 		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189));

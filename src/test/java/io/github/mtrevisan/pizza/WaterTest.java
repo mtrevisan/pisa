@@ -11,7 +11,7 @@ class WaterTest{
 
 
 	@Test
-	void waterAmbient(){
+	void boilingTemperatureAmbient(){
 		final Water water = new Water();
 		final double temperature = water.boilingTemperature(0., ATMOSPHERE);
 
@@ -19,7 +19,7 @@ class WaterTest{
 	}
 
 	@Test
-	void waterAmbientWithSalt(){
+	void boilingTemperatureAmbientWithSalt(){
 		final Water water = new Water();
 		final double temperature = water.boilingTemperature(0.0524, ATMOSPHERE);
 
@@ -27,7 +27,7 @@ class WaterTest{
 	}
 
 	@Test
-	void waterHalfway(){
+	void boilingTemperatureHalfway(){
 		final Water water = new Water();
 		final double temperature = water.boilingTemperature(0.0052, ATMOSPHERE * 2);
 

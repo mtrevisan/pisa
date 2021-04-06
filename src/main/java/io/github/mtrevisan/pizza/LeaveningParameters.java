@@ -1,6 +1,10 @@
 package io.github.mtrevisan.pizza;
 
 
+import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
+import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
+
+
 public class LeaveningParameters{
 
 	//[%]
@@ -49,6 +53,8 @@ public class LeaveningParameters{
 
 
 	public String validate(){
+		final YeastModelInterface yeastModel = new SaccharomycesCerevisiaeCECT10131Yeast();
+
 		//FIXME
 //		targetVolume = getTargetVolume(params);
 
@@ -70,9 +76,9 @@ public class LeaveningParameters{
 		if(atmosphericPressure <= 0 || atmosphericPressure >= Yeast.MINIMUM_INHIBITORY_PRESSURE)
 			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Yeast.MINIMUM_INHIBITORY_PRESSURE, 0)
 				+ " hPa";
-		if(doughTemperature <= Yeast.TEMPERATURE_MIN || doughTemperature >= Yeast.TEMPERATURE_MAX)
-			return "Dough temperature [°C] must be between " + Helper.round(Yeast.TEMPERATURE_MIN, 1) + " °C and "
-				+ Helper.round(Yeast.TEMPERATURE_MAX, 1) + " °C";
+		if(doughTemperature <= yeastModel.getTemperatureMin() || doughTemperature >= yeastModel.getTemperatureMax())
+			return "Dough temperature [°C] must be between " + Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
+				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C";
 		if(bakingTemperature <= waterBoilingTemp)
 			return "Baking temperature [°C] must be greater than water boiling temperature (" + Helper.round(waterBoilingTemp, 1)
 				+ " °C)";
@@ -87,9 +93,9 @@ public class LeaveningParameters{
 			return "temperature [°C] and leaveningTime [hrs] must have the same length";
 
 		for(int index = 0; index < size; index ++)
-			if(temperature[index] <= Yeast.TEMPERATURE_MIN || temperature[index] >= Yeast.TEMPERATURE_MAX)
-				return "temperature [°C] at stage " + index + " must be between " + Helper.round(Yeast.TEMPERATURE_MIN, 1)
-					+ " °C and " + Helper.round(Yeast.TEMPERATURE_MAX, 1) + " °C";
+			if(temperature[index] <= yeastModel.getTemperatureMin() || temperature[index] >= yeastModel.getTemperatureMax())
+				return "temperature [°C] at stage " + index + " must be between " + Helper.round(yeastModel.getTemperatureMin(), 1)
+					+ " °C and " + Helper.round(yeastModel.getTemperatureMax(), 1) + " °C";
 		for(int index = 0; index < size; index ++)
 			if(leaveningTime[index] < 0)
 				return "leavening time at stage " + index + " cannot be less than zero";
