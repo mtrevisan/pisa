@@ -86,21 +86,23 @@ public class Yeast{
 	/**
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
+	 * @param yeast	Quantity of yeast [g].
 	 * @return	The estimated lag [hrs].
 	 */
-	public double estimatedLag(final double idy){
+	public double estimatedLag(final double yeast){
 		//FIXME this formula is for 36 °C
-		return 0.0068 * Math.pow(idy, -0.937);
+		return 0.0068 * Math.pow(yeast, -0.937);
 	}
 
 	/**
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
+	 * @param yeast	Quantity of yeast [g].
 	 * @return	The estimated exhaustion time [hrs].
 	 */
-	public double estimatedExhaustion(final double idy){
+	public double estimatedExhaustion(final double yeast){
 		//FIXME this formula is for 36 °C
-		return 0.0596 * Math.pow(idy, -0.756);
+		return 0.0596 * Math.pow(yeast, -0.756);
 	}
 
 	/**

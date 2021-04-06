@@ -157,7 +157,6 @@ public class Water{
 		final double a0 = Helper.evaluatePolynomial(SPECIFIC_HEAT_A0_COEFFICIENTS, temperature);
 		final double ap = Helper.evaluatePolynomial(SPECIFIC_HEAT_AP_COEFFICIENTS, temperature);
 		final double ap2 = Helper.evaluatePolynomial(SPECIFIC_HEAT_AP2_COEFFICIENTS, temperature);
-		final double a = a0 + (ap + ap2 * pressure) * pressure;
 		final double b0 = Helper.evaluatePolynomial(SPECIFIC_HEAT_B0_COEFFICIENTS, salinity);
 		final double bt = Helper.evaluatePolynomial(SPECIFIC_HEAT_BT_COEFFICIENTS, temperature);
 		final double bt2 = Helper.evaluatePolynomial(SPECIFIC_HEAT_BT2_COEFFICIENTS, temperature);

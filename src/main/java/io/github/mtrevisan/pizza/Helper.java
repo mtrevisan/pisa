@@ -11,9 +11,9 @@ public class Helper{
 	 *
 	 * @see <a href="https://en.wikipedia.org/wiki/Horner%27s_method">Horner's method</a>.
 	 *
-	 * @param c
-	 * @param x
-	 * @return
+	 * @param c	The array of constants (index 0 is the parameter for the 0-th power).
+	 * @param x	The value at which to calculate the polynomial.
+	 * @return	The polynomial value.
 	 */
 	public static double evaluatePolynomial(final double[] c, final double x) {
 		double y = 0;

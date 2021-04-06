@@ -1,8 +1,5 @@
 package io.github.mtrevisan.pizza;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 
 public class LeaveningParameters{
 

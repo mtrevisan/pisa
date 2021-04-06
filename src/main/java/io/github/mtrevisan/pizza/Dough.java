@@ -32,7 +32,7 @@ public class Dough{
 
 	/**
 	 * @param airRelativeHumidity	Relative humidity of air [%].
-	 * @return	Dough umidity [%].
+	 * @return	Dough humidity [%].
 	 */
 	public final double humidity(final double airRelativeHumidity){
 		return Math.pow(0.035 * airRelativeHumidity, 2.);
