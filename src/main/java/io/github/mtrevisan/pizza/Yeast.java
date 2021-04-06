@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+import io.github.mtrevisan.pizza.utils.Integrator;
 import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
-import org.apache.commons.math3.analysis.integration.RombergIntegrator;
-import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 
 
 public class Yeast{
@@ -44,6 +44,12 @@ public class Yeast{
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	//[hPa]
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
+
+	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
+
+	private static final double[] SALT_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
+
+	private static final double[] WATER_COEFFICIENTS = new double[]{-1.292, 7.65, -6.25};
 
 	//http://www.fao.org/3/a-ap815e.pdf
 	//Maximum volume expansion ratio
@@ -119,15 +125,14 @@ public class Yeast{
 	 * @return	The volume of gases produced [?].
 	 */
 	double gasProduction(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
-			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration){
+			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration) throws Exception{
 		//maximum relative volume expansion ratio (Vmax)
 		final double alpha = 10. * (yeast < 0.011? 1 + (297.6 - 10694. * yeast) * yeast: MAX_VOLUME_EXPANSION);
 		//lag time [hrs]
 		final double tLag = estimatedLag(yeast);
 		final double mu = calculateMu(yeast, temperature, sugar, fat, salinity, hydration, chlorineDioxide, pressure);
 
-		final UnivariateIntegrator integrator = new RombergIntegrator();
-		return integrator.integrate(Integer.MAX_VALUE, argument -> f(argument, mu, tLag, alpha), 0., leaveningDuration);
+		return Integrator.integrate(argument -> f(argument, mu, tLag, alpha), 0., leaveningDuration, 0.000_000_005, 100);
 	}
 
 	/**
@@ -166,9 +171,8 @@ public class Yeast{
 	 */
 	public double calculateMu(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
 		final double hydration, final double chlorineDioxide, final double pressure){
-		//FIXME the factor 2.4 is empirical
 		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
-		return 2.4 * ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
+		return ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
 	}
 
 	private double f(final double t, final double mu, final double tLag, final double alpha){
@@ -200,9 +204,10 @@ public class Yeast{
 			* (yeastModel.getMuOpt() / 5317.62132);
 
 		//account for yeast quantity (asymmetrical sigmoidal regression)
-		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189.));
+//		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189.));
 
-		return yeastFactor * maximumSpecificGrowthRate;
+//		return yeastFactor * maximumSpecificGrowthRate;
+		return maximumSpecificGrowthRate;
 	}
 
 	/**
@@ -254,7 +259,7 @@ public class Yeast{
 	 */
 	double sugarFactor(final double sugar){
 		if(sugar < 0.03)
-			return Math.min(1. + (4.9 - 50. * sugar) * sugar, 1.);
+			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, sugar), 1.);
 		if(sugar < SUGAR_MAX)
 			return -0.3154 - 0.403 * Math.log(sugar);
 		return 0.;
@@ -274,15 +279,15 @@ public class Yeast{
 	}
 
 	/**
-	 * Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64. (https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf)
-	 * Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.(https://aem.asm.org/content/aem/43/4/757.full.pdf)
-	 * López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2. (https://watermark.silverchair.com/0362-028x-70_2_456.pdf)
+	 * @see <a href="https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf">Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64.</a>
+	 * @see <a href="https://aem.asm.org/content/aem/43/4/757.full.pdf">Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.</a>
+	 * @see <a href="https://watermark.silverchair.com/0362-028x-70_2_456.pdf">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 *
 	 * @param salinity	Salt quantity [%].
 	 * @return	Correction factor.
 	 */
 	double saltFactor(final double salinity){
-		return Math.max(1.25 * (1. + 1. / Math.exp(3.46)) / (1. + 1. / Math.exp(3.46 - 112.6 * salinity)), 0.);
+		return Math.max(1. + Helper.evaluatePolynomial(SALT_COEFFICIENTS, salinity), 0.);
 	}
 
 	/**
@@ -294,7 +299,7 @@ public class Yeast{
 	 * @return	Correction factor.
 	 */
 	double waterFactor(final double hydration){
-		return (HYDRATION_MIN <= hydration && hydration < HYDRATION_MAX? -1.292 + (7.65 - 6.25 * hydration) * hydration: 0.);
+		return (HYDRATION_MIN <= hydration && hydration < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, hydration): 0.);
 	}
 
 	/**
