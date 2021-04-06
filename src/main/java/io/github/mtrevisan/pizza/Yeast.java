@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.pizza;
 
-
 import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
+import org.apache.commons.math3.analysis.integration.RombergIntegrator;
+import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 
 
 public class Yeast{
@@ -44,34 +45,18 @@ public class Yeast{
 	//[hPa]
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
+	//http://www.fao.org/3/a-ap815e.pdf
+	//Maximum volume expansion ratio
+	private static final double MAX_VOLUME_EXPANSION = 2.;
+	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
+	private static final double VOLUME_REDUCTION = 1. - 0.4187;
+
 
 	private YeastModelInterface yeastModel;
 
 
 	public Yeast(final YeastModelInterface yeastModel){
 		this.yeastModel = yeastModel;
-	}
-
-	/**
-	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
-	 *
-	 * @param yeast	Quantity of yeast [g].
-	 * @return	The estimated lag [hrs].
-	 */
-	public double estimatedLag(final double yeast){
-		//FIXME this formula is for 36 °C
-		return 0.0068 * Math.pow(yeast, -0.937);
-	}
-
-	/**
-	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
-	 *
-	 * @param yeast	Quantity of yeast [g].
-	 * @return	The estimated exhaustion time [hrs].
-	 */
-	public double estimatedExhaustion(final double yeast){
-		//FIXME this formula is for 36 °C
-		return 0.0596 * Math.pow(yeast, -0.756);
 	}
 
 	/**
@@ -86,25 +71,6 @@ public class Yeast{
 		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
 
-
-	/**
-	 * Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
-	 *
-	 * @param yeast	Quantity of yeast [g].
-	 * @param temperature	Temperature [°C].
-	 * @param sugar	Sugar content [%].
-	 * @param fat	Fat content [%].
-	 * @param salinity	Salt content [%].
-	 * @param hydration	Hydration [%].
-	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
-	 * @param pressure	Ambient pressure [hPa].
-	 */
-	public double calculateMu(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
-			final double hydration, final double chlorineDioxide, final double pressure){
-		//FIXME the factor 2.4 is empirical
-		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
-		return 2.4 * ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
-	}
 
 	//https://planetcalc.com/5992/
 	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
@@ -136,6 +102,77 @@ public class Yeast{
 		double fy = Math.pow(totalDuration / 0.0665, 1. / -0.7327);
 		fy *= baseSpeed / speed2;
 		return fy;
+	}
+
+	/**
+	 * Calculate area under the curve using Romberg's method.
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @param temperature	Temperature [°C].
+	 * @param sugar	Sugar content [%].
+	 * @param fat	Fat content [%].
+	 * @param salinity	Salt content [%].
+	 * @param hydration	Hydration [%].
+	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
+	 * @param pressure	Ambient pressure [hPa].
+	 * @param leaveningDuration	Leavening duration [hrs].
+	 * @return	The volume of gases produced [?].
+	 */
+	double gasProduction(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
+			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration){
+		//maximum relative volume expansion ratio (Vmax)
+		final double alpha = 10. * (yeast < 0.011? 1 + (297.6 - 10694. * yeast) * yeast: MAX_VOLUME_EXPANSION);
+		//lag time [hrs]
+		final double tLag = estimatedLag(yeast);
+		final double mu = calculateMu(yeast, temperature, sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+
+		final UnivariateIntegrator integrator = new RombergIntegrator();
+		return integrator.integrate(Integer.MAX_VALUE, argument -> f(argument, mu, tLag, alpha), 0., leaveningDuration);
+	}
+
+	/**
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @return	The estimated lag [hrs].
+	 */
+	public double estimatedLag(final double yeast){
+		//FIXME this formula is for 36 °C
+		return 0.0068 * Math.pow(yeast, -0.937);
+	}
+
+	/**
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @return	The estimated exhaustion time [hrs].
+	 */
+	public double estimatedExhaustion(final double yeast){
+		//FIXME this formula is for 36 °C
+		return 0.0596 * Math.pow(yeast, -0.756);
+	}
+
+	/**
+	 * Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @param temperature	Temperature [°C].
+	 * @param sugar	Sugar content [%].
+	 * @param fat	Fat content [%].
+	 * @param salinity	Salt content [%].
+	 * @param hydration	Hydration [%].
+	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
+	 * @param pressure	Ambient pressure [hPa].
+	 */
+	public double calculateMu(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
+		final double hydration, final double chlorineDioxide, final double pressure){
+		//FIXME the factor 2.4 is empirical
+		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+		return 2.4 * ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
+	}
+
+	private double f(final double t, final double mu, final double tLag, final double alpha){
+		return Math.exp(-Math.exp(-mu * Math.exp(1.) * (t - tLag) / alpha + 1));
 	}
 
 	/**
