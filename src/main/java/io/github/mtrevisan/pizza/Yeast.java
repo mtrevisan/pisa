@@ -50,9 +50,8 @@ public class Yeast{
 
 	private static final double[] WATER_COEFFICIENTS = new double[]{-1.292, 7.65, -6.25};
 
-	//http://www.fao.org/3/a-ap815e.pdf
-	//Maximum volume expansion ratio
-	private static final double MAX_VOLUME_EXPANSION = 2.;
+	//densities: http://www.fao.org/3/a-ap815e.pdf
+
 	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
 	private static final double VOLUME_REDUCTION = 1. - 0.4187;
 
@@ -114,12 +113,24 @@ public class Yeast{
 	 */
 	double volumeExpansionRatio(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
 			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration){
-		//maximum relative volume expansion ratio (Vmax)
-		final double alpha = 10. * (yeast < 0.011? 1 + (297.6 - 10694. * yeast) * yeast: MAX_VOLUME_EXPANSION);
-		//lag time [hrs]
+		final double alpha = estimatedMaximumRelativeVolumeExpansionRation(yeast);
 		final double lambda = estimatedLag(yeast);
 		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
 		return yeastModel.volumeExpansionRatio(leaveningDuration, lambda, alpha, temperature, ingredientsFactor);
+	}
+
+	/**
+	 * Maximum relative volume expansion ratio.
+	 *
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @param yeast	Quantity of yeast [g].
+	 * @return	The estimated lag [hrs].
+	 */
+	public double estimatedMaximumRelativeVolumeExpansionRation(final double yeast){
+		//FIXME this formula is for 36±1 °C
+		//vertex must be at 1.1%
+		return (yeast < 0.011? 24546. * (0.022 - yeast) * yeast: 2.97);
 	}
 
 	/**
@@ -129,18 +140,20 @@ public class Yeast{
 	 * @return	The estimated lag [hrs].
 	 */
 	public double estimatedLag(final double yeast){
-		//FIXME this formula is for 36 °C
+		//FIXME this formula is for 36±1 °C
 		return 0.0068 * Math.pow(yeast, -0.937);
 	}
 
 	/**
+	 * Tinf.
+	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
 	 * @param yeast	Quantity of yeast [g].
 	 * @return	The estimated exhaustion time [hrs].
 	 */
 	public double estimatedExhaustion(final double yeast){
-		//FIXME this formula is for 36 °C
+		//FIXME this formula is for 36±1 °C
 		return 0.0596 * Math.pow(yeast, -0.756);
 	}
 

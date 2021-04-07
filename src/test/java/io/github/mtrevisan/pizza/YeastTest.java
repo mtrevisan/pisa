@@ -15,7 +15,7 @@ class YeastTest{
 	void gasProduction() throws Exception{
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		//25 hrs?
-		final double gas = yeast.volumeExpansionRatio(0.0003, 25., 0., 0., 0., 0.60,
+		final double gas = yeast.volumeExpansionRatio(0.004, 25., 0., 0., 0., 0.60,
 			0., 1013.25, 6.);
 
 		Assertions.assertEquals(0.045_940, gas, 0.000_001);

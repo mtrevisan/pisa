@@ -30,7 +30,7 @@ public abstract class YeastModelAbstract{
 			final double ingredientsFactor){
 		final double tMin = getTemperatureMin();
 		final double tMax = getTemperatureMax();
-		if(temperature <= tMin || tMax <= temperature)
+		if(time == 0. || temperature <= tMin || tMax <= temperature)
 			return 0.;
 
 		final double tOpt = getTemperatureOpt();
