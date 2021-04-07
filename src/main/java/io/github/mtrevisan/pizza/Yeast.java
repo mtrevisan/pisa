@@ -58,6 +58,9 @@ public class Yeast{
 	private static final double VOLUME_REDUCTION = 1. - 0.4187;
 
 
+	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
+	private final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.06, 5);
+
 	private YeastModelAbstract yeastModel;
 
 
@@ -99,14 +102,12 @@ public class Yeast{
 		//find the yeast at stage 2 able to generate a volume of `targetValue` in time `stage2.duration` at temperature `stage2.temperature`
 		final UnivariateFunction f2 = yeast -> (volumeExpansionRatio(yeast, stage2.temperature, sugar, fat, salinity, hydration,
 			chlorineDioxide, pressure, stage2.duration) - targetValue);
-		final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
 		final double yeast2 = solverYeast.solve(100, f2, 0., maxYeast);
 
 		//find the duration at `stage1.temperature` able to generate a volume of `targetValue` with yeast quantity `yeast2` at
 		//temperature `stage1.temperature`
 		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, sugar, fat, salinity, hydration,
 			chlorineDioxide, pressure, duration) - targetValue);
-		final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.06, 5);
 		final double duration12 = solverDuration.solve(100, f12, 0., maxDuration);
 
 		//find the yeast at stage 1 able to generate a volume of `targetValue` in time `duration12 + stage1.duration` at temperature
