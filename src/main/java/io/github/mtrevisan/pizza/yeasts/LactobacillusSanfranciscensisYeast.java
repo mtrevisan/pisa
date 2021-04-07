@@ -3,7 +3,7 @@ package io.github.mtrevisan.pizza.yeasts;
 
 //Lactobacillus sanfranciscensis constants:
 //https://aem.asm.org/content/aem/77/7/2292.full.pdf
-public class LactobacillusSanfranciscensisYeast implements YeastModelInterface{
+public class LactobacillusSanfranciscensisYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMax(){
@@ -12,7 +12,7 @@ public class LactobacillusSanfranciscensisYeast implements YeastModelInterface{
 	}
 
 	@Override
-	public double getTemperatureOpt(){
+	double getTemperatureOpt(){
 		//± 0.5 °C
 		return 32.5;
 	}
@@ -24,12 +24,8 @@ public class LactobacillusSanfranciscensisYeast implements YeastModelInterface{
 	}
 
 	@Override
-	public double getMuOpt(){
+	double getMuOpt(){
 		return 0.71;
 	}
 
-	@Override
-	public double getLambda(){
-		return 8_081.;
-	}
 }

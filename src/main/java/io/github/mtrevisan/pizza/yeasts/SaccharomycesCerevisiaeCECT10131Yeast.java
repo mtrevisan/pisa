@@ -3,7 +3,7 @@ package io.github.mtrevisan.pizza.yeasts;
 
 //Saccharomyces cerevisiae (strain CECT 10131) constants:
 //https://aem.asm.org/content/aem/77/7/2292.full.pdf
-public class SaccharomycesCerevisiaeCECT10131Yeast implements YeastModelInterface{
+public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMax(){
@@ -11,7 +11,7 @@ public class SaccharomycesCerevisiaeCECT10131Yeast implements YeastModelInterfac
 	}
 
 	@Override
-	public double getTemperatureOpt(){
+	double getTemperatureOpt(){
 		return 32.8;
 	}
 
@@ -21,12 +21,8 @@ public class SaccharomycesCerevisiaeCECT10131Yeast implements YeastModelInterfac
 	}
 
 	@Override
-	public double getMuOpt(){
+	double getMuOpt(){
 		return 0.449;
 	}
 
-	@Override
-	public double getLambda(){
-		return 11_844.;
-	}
 }

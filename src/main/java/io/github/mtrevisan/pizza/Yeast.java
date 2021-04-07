@@ -25,8 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
-import io.github.mtrevisan.pizza.utils.Integrator;
-import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
+import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 
 public class Yeast{
@@ -58,25 +57,12 @@ public class Yeast{
 	private static final double VOLUME_REDUCTION = 1. - 0.4187;
 
 
-	private YeastModelInterface yeastModel;
+	private YeastModelAbstract yeastModel;
 
 
-	public Yeast(final YeastModelInterface yeastModel){
+	public Yeast(final YeastModelAbstract yeastModel){
 		this.yeastModel = yeastModel;
 	}
-
-	/**
-	 * @param temperature	Temperature [°C].
-	 * @return	The time to reach the plateau of maximum carbon dioxide production [hrs].
-	 */
-	//FIXME do something
-	//FIXME lag?
-	public double carbonDioxidePlateau(final double temperature){
-		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
-//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
-		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
-	}
-
 
 	//https://planetcalc.com/5992/
 	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
@@ -84,7 +70,6 @@ public class Yeast{
 	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
 
-	//TODO
 	/**
 	 * @param temperature1	Temperature at first stage [°C].
 	 * @param duration1	Duration at first stage [hrs].
@@ -93,25 +78,28 @@ public class Yeast{
 	 * @return	Yeast to use at first stage [%].
 	 */
 	public double backtrackStage(final double temperature1, final double duration1, final double temperature2, final double duration2){
+		//TODO
 		//FY at stage 2 to obtain a leavening in `duration2` at temperature `temperature2`
 		double fy2 = Math.pow(duration2 / 0.0665, 1. / -0.7327);
-		final double baseSpeed = maximumSpecificGrowthRate(fy2, 25.);
-		final double speed2 = maximumSpecificGrowthRate(fy2, temperature2);
-		fy2 *= baseSpeed / speed2;
+//		final double baseSpeed = maximumSpecificGrowthRate(fy2, 25.);
+//		final double speed2 = maximumSpecificGrowthRate(fy2, temperature2);
+//		fy2 *= baseSpeed / speed2;
 
 		//find duration at `temperature1`
-		final double speed1 = maximumSpecificGrowthRate(fy2, temperature1);
-		fy2 *= speed2 / speed1;
+//		final double speed1 = maximumSpecificGrowthRate(fy2, temperature1);
+//		fy2 *= speed2 / speed1;
 		//add second stage duration
 		final double totalDuration = 0.0665 * Math.pow(fy2, -0.7327) + duration1;
 
 		double fy = Math.pow(totalDuration / 0.0665, 1. / -0.7327);
-		fy *= baseSpeed / speed2;
+//		fy *= baseSpeed / speed2;
 		return fy;
 	}
 
 	/**
-	 * Calculate area under the curve using Romberg's method.
+	 * Calculate the volume expansion ratio.
+	 *
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007.</a>
 	 *
 	 * @param yeast	Quantity of yeast [g].
 	 * @param temperature	Temperature [°C].
@@ -122,17 +110,16 @@ public class Yeast{
 	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
 	 * @param pressure	Ambient pressure [hPa].
 	 * @param leaveningDuration	Leavening duration [hrs].
-	 * @return	The volume of gases produced [?].
+	 * @return	The volume expansion ratio.
 	 */
-	double gasProduction(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
-			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration) throws Exception{
+	double volumeExpansionRatio(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
+			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration){
 		//maximum relative volume expansion ratio (Vmax)
 		final double alpha = 10. * (yeast < 0.011? 1 + (297.6 - 10694. * yeast) * yeast: MAX_VOLUME_EXPANSION);
 		//lag time [hrs]
-		final double tLag = estimatedLag(yeast);
-		final double mu = calculateMu(yeast, temperature, sugar, fat, salinity, hydration, chlorineDioxide, pressure);
-
-		return Integrator.integrate(argument -> f(argument, mu, tLag, alpha), 0., leaveningDuration, 0.000_000_005, 100);
+		final double lambda = estimatedLag(yeast);
+		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+		return yeastModel.volumeExpansionRatio(leaveningDuration, lambda, alpha, temperature, ingredientsFactor);
 	}
 
 	/**
@@ -158,56 +145,15 @@ public class Yeast{
 	}
 
 	/**
-	 * Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
-	 *
-	 * @param yeast	Quantity of yeast [g].
 	 * @param temperature	Temperature [°C].
-	 * @param sugar	Sugar content [%].
-	 * @param fat	Fat content [%].
-	 * @param salinity	Salt content [%].
-	 * @param hydration	Hydration [%].
-	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
-	 * @param pressure	Ambient pressure [hPa].
+	 * @return	The time to reach the plateau of maximum carbon dioxide production [hrs].
 	 */
-	public double calculateMu(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
-		final double hydration, final double chlorineDioxide, final double pressure){
-		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
-		return ingredientsFactor * maximumSpecificGrowthRate(yeast, temperature);
-	}
-
-	private double f(final double t, final double mu, final double tLag, final double alpha){
-		return Math.exp(-Math.exp(-mu * Math.exp(1.) * (t - tLag) / alpha + 1));
-	}
-
-	/**
-	 * Maximum specific growth rate of Saccharomyces Cerevisiae [hrs^-1]
-	 *
-	 * Salvadó, Arroyo-López, Guillamón, Salazar, Querol, Barrio. Temperature adaptation markedly determines evolution within the genus Saccharomyces. 2011. (https://aem.asm.org/content/aem/77/7/2292.full.pdf)
-	 * Tjørve. The use of Gompertz models in growth analyses, and new Gompertz-model approach: An addition to the Unified-Richards family. 2017. (https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0178691&type=printable)
-	 *
-	 * @param yeast	Quantity of yeast [g].
-	 * @param temperature	Temperature [°C].
-	 * @return	The maximum specific growth rate [hrs^-1].
-	 */
-	double maximumSpecificGrowthRate(final double yeast, final double temperature){
-		if(temperature <= yeastModel.getTemperatureMin() || yeastModel.getTemperatureMax() <= temperature)
-			return 0.;
-
-		final double d = (yeastModel.getTemperatureMax() - temperature) * Math.pow(temperature - yeastModel.getTemperatureMin(), 2.);
-		final double e = (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin())
-			* ((yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()) * (temperature - yeastModel.getTemperatureOpt())
-			- (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMax())
-			* (yeastModel.getTemperatureOpt() + yeastModel.getTemperatureMin() - 2. * temperature));
-		//FIXME
-		//NOTE: the factor 5317.62132 is to ensure that at `yeastModel.getTemperatureOpt()` the growth rate is `yeastModel.getMuOpt()`
-		final double maximumSpecificGrowthRate = d * Math.exp(-Math.exp(yeastModel.getMuOpt() * Math.exp(1.) * yeastModel.getLambda() / e + 1.))
-			* (yeastModel.getMuOpt() / 5317.62132);
-
-		//account for yeast quantity (asymmetrical sigmoidal regression)
-//		final double yeastFactor = 1. + (0.01967462 - 4.639907) / (4.639907 * Math.pow(1. + Math.pow(yeast / 838.5129, 1.371698), 3129189.));
-
-//		return yeastFactor * maximumSpecificGrowthRate;
-		return maximumSpecificGrowthRate;
+	//FIXME do something
+	//FIXME lag?
+	public double carbonDioxidePlateau(final double temperature){
+		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
+		//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
+		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
 
 	/**

@@ -3,7 +3,7 @@ package io.github.mtrevisan.pizza.yeasts;
 
 //Saccharomyces bayanus var. uvarum constants:
 //https://aem.asm.org/content/aem/77/7/2292.full.pdf
-public class SaccharomycesBayanusUvarumYeast implements YeastModelInterface{
+public class SaccharomycesBayanusUvarumYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMax(){
@@ -11,7 +11,7 @@ public class SaccharomycesBayanusUvarumYeast implements YeastModelInterface{
 	}
 
 	@Override
-	public double getTemperatureOpt(){
+	double getTemperatureOpt(){
 		return 32.27;
 	}
 
@@ -21,12 +21,8 @@ public class SaccharomycesBayanusUvarumYeast implements YeastModelInterface{
 	}
 
 	@Override
-	public double getMuOpt(){
+	double getMuOpt(){
 		return 0.295;
 	}
 
-	@Override
-	public double getLambda(){
-		return 18_071.;
-	}
 }

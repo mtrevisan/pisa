@@ -15,58 +15,10 @@ class YeastTest{
 	void gasProduction() throws Exception{
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		//25 hrs?
-		final double gas = yeast.gasProduction(0.0003, 25., 0., 0., 0., 0.60,
+		final double gas = yeast.volumeExpansionRatio(0.0003, 25., 0., 0., 0., 0.60,
 			0., 1013.25, 6.);
 
-		Assertions.assertEquals(0., gas, 0.000_001);
-	}
-
-
-	@Test
-	void maximumSpecificGrowthRateMin(){
-		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final double factor = yeast.maximumSpecificGrowthRate(0.52, 0.);
-
-		Assertions.assertEquals(0., factor, 0.000_001);
-	}
-
-	@Test
-	void maximumSpecificGrowthRateHalfway(){
-		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final double factor = yeast.maximumSpecificGrowthRate(0.52, 32.86);
-
-		Assertions.assertEquals(0.449, factor, 0.000_1);
-	}
-
-	@Test
-	void maximumSpecificGrowthRateTwoStages(){
-		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
-
-
-		double fy = yeast.backtrackStage(16.7, 21., 10., 26.);
-//		//last stage: 26 hours at 10 °C
-//		double fy = Math.pow(26 / 0.0665, 1. / -0.7327);
-//		double base = yeast.maximumSpecificGrowthRate(fy, 10.);
-//		//preceded
-//		double speed = yeast.maximumSpecificGrowthRate(fy, 16.7);
-//		//find hours at second-to-last stage temperature
-//		double t2 = 0.0665 * Math.pow(fy * speed / base, -0.7327);
-//		//add second-to-last stage duration
-//		t2 += 21;
-//		//find fy at t2
-//		fy = Math.pow(t2 / 0.0665, 1. / -0.7327);
-
-		final double factor = yeast.maximumSpecificGrowthRate(0.52, 32.86);
-
-		Assertions.assertEquals(0.449, factor, 0.000_1);
-	}
-
-	@Test
-	void maximumSpecificGrowthRateMax(){
-		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final double factor = yeast.maximumSpecificGrowthRate(0.52, 50.);
-
-		Assertions.assertEquals(0., factor, 0.000_001);
+		Assertions.assertEquals(0.045_940, gas, 0.000_001);
 	}
 
 
@@ -100,7 +52,7 @@ class YeastTest{
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = yeast.saltFactor(0.);
 
-		Assertions.assertEquals(1.25, factor, 0.000_001);
+		Assertions.assertEquals(0.95, factor, 0.000_001);
 	}
 
 	@Test
@@ -108,7 +60,7 @@ class YeastTest{
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = yeast.saltFactor(0.05);
 
-		Assertions.assertEquals(0.132_122, factor, 0.000_001);
+		Assertions.assertEquals(0., factor, 0.000_001);
 	}
 
 	@Test
@@ -116,7 +68,7 @@ class YeastTest{
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = yeast.saltFactor(0.1);
 
-		Assertions.assertEquals(0.000_528, factor, 0.000_001);
+		Assertions.assertEquals(0., factor, 0.000_001);
 	}
 
 

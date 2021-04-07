@@ -3,7 +3,7 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
-import io.github.mtrevisan.pizza.yeasts.YeastModelInterface;
+import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 
 public class LeaveningParameters{
@@ -54,7 +54,7 @@ public class LeaveningParameters{
 
 
 	public String validate(){
-		final YeastModelInterface yeastModel = new SaccharomycesCerevisiaeCECT10131Yeast();
+		final YeastModelAbstract yeastModel = new SaccharomycesCerevisiaeCECT10131Yeast();
 
 		//FIXME
 //		targetVolume = getTargetVolume(params);
