@@ -133,7 +133,7 @@ public class Water{
 	/**
 	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
 	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
-	 * @see <a href="file:///C:/Users/mauro/Downloads/Year2015Vol21Issue1Pages41-52copy.pdf">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
+	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
 	 *
 	 * @param hydration	Hydration [%].
 	 * @param salinity	Salt quantity [%].

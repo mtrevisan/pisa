@@ -58,9 +58,6 @@ public abstract class YeastModelAbstract{
 	 */
 	public double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){
-		if(time == 0.)
-			return 0.;
-
 		final double mu = maximumSpecificGrowth(temperature, ingredientsFactor);
 		return alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.));
 	}
