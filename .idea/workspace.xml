@@ -13,19 +13,12 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="package-info" />
         <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
   </component>
-  <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
   <component name="ProjectId" id="1qlItpMzBBYJ7GiY5dTgjzlAdkP" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -33,62 +26,51 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="fileTemplates" />
   </component>
-  <component name="RecentsManager">
-    <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="io.github.mtrevisan.pizza.yeasts" />
-      <recent name="io.github.mtrevisan.pizza" />
-    </key>
-  </component>
-  <component name="RunManager" selected="JUnit.YeastTest.maximumSpecificGrowthRateTwoStages">
-    <configuration name="All in Pi (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Pi" />
+  <component name="RunManager" selected="JUnit.WaterTest.boilingTemperatureAmbient">
+    <configuration name="All in pizza (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="pizza" />
       <option name="PACKAGE_NAME" value="" />
       <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="All in Pi (3)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Pi" />
+    <configuration name="All in pizza (2)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="pizza" />
       <option name="PACKAGE_NAME" value="" />
       <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="All in Pi (4)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Pi" />
+    <configuration name="All in pizza" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="pizza" />
       <option name="PACKAGE_NAME" value="" />
       <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="All in Pi (5)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Pi" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="TEST_OBJECT" value="package" />
+    <configuration name="WaterTest.boilingTemperatureAmbient" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="pizza" />
+      <option name="PACKAGE_NAME" value="io.github.mtrevisan.pizza" />
+      <option name="MAIN_CLASS_NAME" value="io.github.mtrevisan.pizza.WaterTest" />
+      <option name="METHOD_NAME" value="boilingTemperatureAmbient" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="YeastTest.maximumSpecificGrowthRateTwoStages" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Pi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="io.github.mtrevisan.pizza.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
+    <configuration name="YeastTest.gasProduction" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="pizza" />
       <option name="PACKAGE_NAME" value="io.github.mtrevisan.pizza" />
       <option name="MAIN_CLASS_NAME" value="io.github.mtrevisan.pizza.YeastTest" />
-      <option name="METHOD_NAME" value="maximumSpecificGrowthRateTwoStages" />
+      <option name="METHOD_NAME" value="gasProduction" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -96,11 +78,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.YeastTest.maximumSpecificGrowthRateTwoStages" />
-        <item itemvalue="JUnit.All in Pi (1)" />
-        <item itemvalue="JUnit.All in Pi (5)" />
-        <item itemvalue="JUnit.All in Pi (4)" />
-        <item itemvalue="JUnit.All in Pi (3)" />
+        <item itemvalue="JUnit.WaterTest.boilingTemperatureAmbient" />
+        <item itemvalue="JUnit.YeastTest.gasProduction" />
+        <item itemvalue="JUnit.All in pizza (2)" />
+        <item itemvalue="JUnit.All in pizza (1)" />
+        <item itemvalue="JUnit.All in pizza" />
       </list>
     </recent_temporary>
   </component>
@@ -112,33 +94,24 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1617647967169</updated>
-      <workItem from="1617690776576" duration="20402000" />
-      <workItem from="1617715155892" duration="1442000" />
-      <workItem from="1617716605171" duration="6789000" />
-      <workItem from="1617724883942" duration="2000" />
     </task>
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/test/java/io/github/mtrevisan/pizza/YeastTest.java</url>
-          <line>47</line>
+          <line>17</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/test/java/io/github/mtrevisan/pizza/YeastTest.java</url>
-          <line>34</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/io/github/mtrevisan/pizza/Yeast.java</url>
-          <line>130</line>
-          <option name="timeStamp" value="4" />
+          <line>134</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

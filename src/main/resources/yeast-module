@@ -171,11 +171,6 @@ Public Function doughVolumeForStage(params As LeaveningParameters, index As Inte
     End If
 End Function
 
-' Calculate IDY(t)
-Private Function f(T As Double, mu As Double, t_lag As Double, alpha As Double) As Double
-    f = Math.Exp(-Math.Exp(-mu * Math.Exp(1) * (T - t_lag) / alpha + 1))
-End Function
-
 ' UNUSED
 ' Calculate area under the curve using Romberg's method
 ' https://github.com/jrvarma/MSExcel-Numerical-Integration/blob/master/QuadratureForm.frm

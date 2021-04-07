@@ -12,6 +12,17 @@ class YeastTest{
 
 
 	@Test
+	void gasProduction() throws Exception{
+		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
+		//25 hrs?
+		final double gas = yeast.gasProduction(0.0003, 25., 0., 0., 0., 0.60,
+			0., 1013.25, 6.);
+
+		Assertions.assertEquals(0., gas, 0.000_001);
+	}
+
+
+	@Test
 	void maximumSpecificGrowthRateMin(){
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = yeast.maximumSpecificGrowthRate(0.52, 0.);
