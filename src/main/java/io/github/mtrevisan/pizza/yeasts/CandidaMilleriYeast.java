@@ -26,7 +26,7 @@ public class CandidaMilleriYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	double getMuOpt(){
+	double getMaximumSpecificGrowthRate(){
 		return 0.42;
 	}
 

@@ -24,7 +24,7 @@ public class SaccharomycesCerevisiaeAverageYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	double getMuOpt(){
+	double getMaximumSpecificGrowthRate(){
 		return 0.368;
 	}
 

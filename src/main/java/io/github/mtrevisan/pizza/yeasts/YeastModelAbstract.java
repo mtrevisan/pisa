@@ -3,6 +3,9 @@ package io.github.mtrevisan.pizza.yeasts;
 
 public abstract class YeastModelAbstract{
 
+	private static final double EXP = Math.exp(1.);
+
+
 	//Temperature above which no growth occurs [°C]
 	public abstract double getTemperatureMax();
 
@@ -13,7 +16,7 @@ public abstract class YeastModelAbstract{
 	public abstract double getTemperatureMin();
 
 	//Maximum specific growth rate [hrs^-1]
-	abstract double getMuOpt();
+	abstract double getMaximumSpecificGrowthRate();
 
 
 	/**
@@ -38,9 +41,9 @@ public abstract class YeastModelAbstract{
 		final double tOpt = getTemperatureOpt();
 		final double d = (temperature - tMax) * Math.pow(temperature - tMin, 2.);
 		final double e = (tOpt - tMin) * ((tOpt - tMin) * (temperature - tOpt) - (tOpt - tMax) * (tOpt + tMin - 2. * temperature));
-		final double mu = ingredientsFactor * getMuOpt() * (d / e);
+		final double mu = ingredientsFactor * getMaximumSpecificGrowthRate() * (d / e);
 
-		return alpha * Math.exp(-Math.exp(mu * Math.exp(1.) * (lambda - time) / alpha + 1.));
+		return alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.));
 	}
 
 }

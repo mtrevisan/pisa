@@ -24,7 +24,7 @@ public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	double getMuOpt(){
+	double getMaximumSpecificGrowthRate(){
 		return 0.449;
 	}
 
