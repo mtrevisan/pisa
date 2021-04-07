@@ -1,6 +1,5 @@
 package io.github.mtrevisan.pizza;
 
-
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;

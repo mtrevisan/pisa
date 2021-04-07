@@ -26,6 +26,8 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 
 
 public class Yeast{
@@ -70,29 +72,50 @@ public class Yeast{
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
 
 	/**
-	 * @param temperature1	Temperature at first stage [°C].
-	 * @param duration1	Duration at first stage [hrs].
-	 * @param temperature2	Temperature at second stage [°C].
-	 * @param duration2	Duration at second stage [hrs].
+	 * Find the yeast able to obtain a given volume expansion ratio after two consecutive stages at a given duration at temperature.
+	 *
+	 * @param sugar	Sugar content [%].
+	 * @param fat	Fat content [%].
+	 * @param salinity	Salt content [%].
+	 * @param hydration	Hydration [%].
+	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
+	 * @param pressure	Ambient pressure [hPa].
+	 * @param stage1	Data for stage 1.
+	 * @param stage2	Data for stage 2.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStage(final double temperature1, final double duration1, final double temperature2, final double duration2){
-		//TODO
-		//FY at stage 2 to obtain a leavening in `duration2` at temperature `temperature2`
-		double fy2 = Math.pow(duration2 / 0.0665, 1. / -0.7327);
-//		final double baseSpeed = maximumSpecificGrowthRate(fy2, 25.);
-//		final double speed2 = maximumSpecificGrowthRate(fy2, temperature2);
-//		fy2 *= baseSpeed / speed2;
+	public double backtrackStage(final double sugar, final double fat, final double salinity, final double hydration,
+			final double chlorineDioxide, final double pressure, final LeaveningStage stage1, final LeaveningStage stage2){
+		//[%]
+		final double maxYeast = 1.;
+		final double maxTargetValue = 2.;
+		//[hrs]
+		final double maxDuration = 100.;
 
-		//find duration at `temperature1`
-//		final double speed1 = maximumSpecificGrowthRate(fy2, temperature1);
-//		fy2 *= speed2 / speed1;
-		//add second stage duration
-		final double totalDuration = 0.0665 * Math.pow(fy2, -0.7327) + duration1;
+		//find the maximum volume expansion ratio
+		final double targetValue = Math.min(0.9 * volumeExpansionRatio(maxYeast, stage2.temperature, sugar, fat, salinity, hydration,
+			chlorineDioxide, pressure, stage2.duration), maxTargetValue);
 
-		double fy = Math.pow(totalDuration / 0.0665, 1. / -0.7327);
-//		fy *= baseSpeed / speed2;
-		return fy;
+		//find the yeast at stage 2 able to generate a volume of `targetValue` in time `stage2.duration` at temperature `stage2.temperature`
+		final UnivariateFunction f2 = yeast -> (volumeExpansionRatio(yeast, stage2.temperature, sugar, fat, salinity, hydration,
+			chlorineDioxide, pressure, stage2.duration) - targetValue);
+		final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
+		final double yeast2 = solverYeast.solve(100, f2, 0., maxYeast);
+
+		//find the duration at `stage1.temperature` able to generate a volume of `targetValue` with yeast quantity `yeast2` at
+		//temperature `stage1.temperature`
+		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, sugar, fat, salinity, hydration,
+			chlorineDioxide, pressure, duration) - targetValue);
+		final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.06, 5);
+		final double duration12 = solverDuration.solve(100, f12, 0., maxDuration);
+
+		//find the yeast at stage 1 able to generate a volume of `targetValue` in time `duration12 + stage1.duration` at temperature
+		//`stage1.temperature`
+		final UnivariateFunction f1 = yeast -> (volumeExpansionRatio(yeast, stage1.temperature, sugar, fat, salinity, hydration,
+			chlorineDioxide, pressure, duration12 + stage1.duration) - targetValue);
+		final double yeast1 = solverYeast.solve(100, f1, 0., maxYeast);
+
+		return yeast1;
 	}
 
 	/**
@@ -100,7 +123,7 @@ public class Yeast{
 	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007.</a>
 	 *
-	 * @param yeast	Quantity of yeast [g].
+	 * @param yeast	Quantity of yeast [%].
 	 * @param temperature	Temperature [°C].
 	 * @param sugar	Sugar content [%].
 	 * @param fat	Fat content [%].
@@ -125,7 +148,7 @@ public class Yeast{
 	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
-	 * @param yeast	Quantity of yeast [g].
+	 * @param yeast	Quantity of yeast [%].
 	 * @return	The estimated lag [hrs].
 	 */
 	public double maximumRelativeVolumeExpansionRatio(final double yeast){
@@ -137,7 +160,7 @@ public class Yeast{
 	/**
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
-	 * @param yeast	Quantity of yeast [g].
+	 * @param yeast	Quantity of yeast [%].
 	 * @return	The estimated lag [hrs].
 	 */
 	public double estimatedLag(final double yeast){
@@ -150,7 +173,7 @@ public class Yeast{
 	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
-	 * @param yeast	Quantity of yeast [g].
+	 * @param yeast	Quantity of yeast [%].
 	 * @return	The estimated exhaustion time [hrs].
 	 */
 	public double estimatedExhaustion(final double yeast){
@@ -164,7 +187,8 @@ public class Yeast{
 	 */
 	//FIXME do something
 	public double carbonDioxidePlateau(final double temperature){
-		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
+		final double tMin = yeastModel.getTemperatureMin();
+		final double ln = Math.log((temperature - tMin) / (yeastModel.getTemperatureMax() - tMin));
 //		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
 		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
@@ -209,9 +233,9 @@ public class Yeast{
 	}
 
 	/**
-	 * https://uwaterloo.ca/chem13-news-magazine/april-2015/activities/fermentation-sugars-using-yeast-discovery-experiment
-	 * Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009. (https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf)
-	 * Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology (http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555)
+	 * @see <a href="https://uwaterloo.ca/chem13-news-magazine/april-2015/activities/fermentation-sugars-using-yeast-discovery-experiment">The fermentation of sugars using yeast: A discovery experiment</a>
+	 * @see <a href="https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009.</a>
+	 * @see <a href="http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555">Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology</a>
 	 *
 	 * @param sugar	Sugar quantity [%].
 	 * @return	Correction factor.
@@ -279,7 +303,8 @@ public class Yeast{
 	 * @return	Correction factor.
 	 */
 	double airPressureFactor(final double pressure){
-		return (pressure < MINIMUM_INHIBITORY_PRESSURE? 1. - PRESSURE_FACTOR_K * Math.pow(pressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
+		return (pressure < MINIMUM_INHIBITORY_PRESSURE? 1. - PRESSURE_FACTOR_K * Math.pow(pressure / Math.pow(10_000., 2.),
+			PRESSURE_FACTOR_M): 0.);
 	}
 
 }

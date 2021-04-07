@@ -146,10 +146,6 @@ Private Sub calculateLeaveningTime(params As LeaveningParameters, index As Integ
     Wend
 End Sub
 
-Private Function changedSign(a As Double, b As Double, ref As Double) As Boolean
-    changedSign = ((ref - a) * (ref - b) < 0)
-End Function
-
 ' TODO? use density function `0.135+(1.187-0.135)/(1+(time[min]/20.8)^1.82)`
 ' Calculate volume in percent over maximum volume
 ' Shafaghat, Najafpour, Rezaei, Sharifzadeh. Optimal growth of Saccharomyces cerevisiaea on pretreated molasses for the ethanol production. 2010. (http://www.doiserbia.nb.rs/img/doi/1451-9372/2010/1451-93721000029S.pdf)

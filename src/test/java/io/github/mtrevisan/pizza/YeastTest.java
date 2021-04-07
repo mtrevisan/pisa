@@ -12,6 +12,14 @@ class YeastTest{
 
 
 	@Test
+	void test(){
+		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
+		yeast.backtrackStage(0., 0., 0., 0.6, 0., 1013.25,
+			LeaveningStage.create(35., 1.), LeaveningStage.create(25., 5.));
+	}
+
+
+	@Test
 	void gasProduction(){
 		final Yeast yeast = new Yeast(new SaccharomycesCerevisiaeCECT10131Yeast());
 		//25 hrs?
