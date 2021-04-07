@@ -42,7 +42,7 @@ public class Yeast{
 	private static final double PRESSURE_FACTOR_K = 1.46;
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	//[hPa]
-	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
+	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 
@@ -116,6 +116,7 @@ public class Yeast{
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		final double lambda = estimatedLag(yeast);
 		final double ingredientsFactor = ingredientsFactor(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+
 		return yeastModel.volumeExpansionRatio(leaveningDuration, lambda, alpha, temperature, ingredientsFactor);
 	}
 
@@ -130,7 +131,7 @@ public class Yeast{
 	public double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
-		return (yeast < 0.011? 24546. * (0.022 - yeast) * yeast: 2.97);
+		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
 	}
 
 	/**
@@ -162,7 +163,6 @@ public class Yeast{
 	 * @return	The time to reach the plateau of maximum carbon dioxide production [hrs].
 	 */
 	//FIXME do something
-	//FIXME lag?
 	public double carbonDioxidePlateau(final double temperature){
 		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
 //		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
@@ -279,7 +279,7 @@ public class Yeast{
 	 * @return	Correction factor.
 	 */
 	double airPressureFactor(final double pressure){
-		return (pressure < MINIMUM_INHIBITORY_PRESSURE? 1. - PRESSURE_FACTOR_K * Math.pow(pressure / Math.pow(10000., 2.), PRESSURE_FACTOR_M): 0.);
+		return (pressure < MINIMUM_INHIBITORY_PRESSURE? 1. - PRESSURE_FACTOR_K * Math.pow(pressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}
 
 }

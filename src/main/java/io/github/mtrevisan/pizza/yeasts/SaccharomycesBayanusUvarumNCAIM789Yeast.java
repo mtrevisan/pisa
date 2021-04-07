@@ -6,7 +6,7 @@ package io.github.mtrevisan.pizza.yeasts;
  *
  * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
  */
-public class SaccharomycesBayanusUvarumYeast extends YeastModelAbstract{
+public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMax(){
