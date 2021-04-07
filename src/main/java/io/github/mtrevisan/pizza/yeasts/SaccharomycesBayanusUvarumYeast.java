@@ -1,8 +1,11 @@
 package io.github.mtrevisan.pizza.yeasts;
 
 
-//Saccharomyces bayanus var. uvarum constants:
-//https://aem.asm.org/content/aem/77/7/2292.full.pdf
+/**
+ * Saccharomyces bayanus var. uvarum constants
+ *
+ * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
+ */
 public class SaccharomycesBayanusUvarumYeast extends YeastModelAbstract{
 
 	@Override

@@ -113,9 +113,9 @@ public class Yeast{
 	 */
 	double volumeExpansionRatio(final double yeast, final double temperature, final double sugar, final double fat, final double salinity,
 			final double hydration, final double chlorineDioxide, final double pressure, final double leaveningDuration){
-		final double alpha = estimatedMaximumRelativeVolumeExpansionRation(yeast);
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		final double lambda = estimatedLag(yeast);
-		final double ingredientsFactor = accountForIngredients(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
+		final double ingredientsFactor = ingredientsFactor(sugar, fat, salinity, hydration, chlorineDioxide, pressure);
 		return yeastModel.volumeExpansionRatio(leaveningDuration, lambda, alpha, temperature, ingredientsFactor);
 	}
 
@@ -127,7 +127,7 @@ public class Yeast{
 	 * @param yeast	Quantity of yeast [g].
 	 * @return	The estimated lag [hrs].
 	 */
-	public double estimatedMaximumRelativeVolumeExpansionRation(final double yeast){
+	public double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24546. * (0.022 - yeast) * yeast: 2.97);
@@ -165,7 +165,7 @@ public class Yeast{
 	//FIXME lag?
 	public double carbonDioxidePlateau(final double temperature){
 		final double ln = Math.log((temperature - yeastModel.getTemperatureMin()) / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()));
-		//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
+//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
 		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
 
@@ -197,7 +197,7 @@ public class Yeast{
 	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
 	 * @param pressure	Ambient pressure [hPa].
 	 */
-	private double accountForIngredients(final double sugar, final double fat, final double salinity, final double hydration,
+	private double ingredientsFactor(final double sugar, final double fat, final double salinity, final double hydration,
 			final double chlorineDioxide, final double pressure){
 		final double kSugar = sugarFactor(sugar);
 		final double kFat = fatFactor(fat);

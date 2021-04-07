@@ -1,8 +1,11 @@
 package io.github.mtrevisan.pizza.yeasts;
 
 
-//Saccharomyces cerevisiae (strain CECT 10131) constants:
-//https://aem.asm.org/content/aem/77/7/2292.full.pdf
+/**
+ * Saccharomyces cerevisiae (strain CECT 10131) constants
+ *
+ * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
+ */
 public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 
 	@Override
