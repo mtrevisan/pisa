@@ -35,16 +35,23 @@ public class Dough{
 	/**
 	 * @see #sugarFactor()
 	 */
-	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
+	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 	/**
 	 * @see #sugarFactor()
+	 * @see #SUGAR_COEFFICIENTS
 	 */
-	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
+	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 
 	/**
-	 * @see #salinityFactor()
+	 * @see #saltFactor()
+	 * @see #SALT_MAX
 	 */
-	private static final double[] SALINITY_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
+	private static final double[] SALT_COEFFICIENTS = new double[]{1., -0.05, -45., -1187.5};
+	/**
+	 * @see #saltFactor()
+	 * @see #SALT_COEFFICIENTS
+	 */
+	public static final double SALT_MAX = 0.08321;
 
 	/**
 	 * @see #waterFactor()
@@ -73,23 +80,23 @@ public class Dough{
 	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
 
 	/**
-	 * @see #airPressureFactor()
-	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 * @see #atmosphericPressureFactor()
+	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
 	private static final double PRESSURE_FACTOR_K = 1.46;
 	/**
-	 * @see #airPressureFactor()
-	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 * @see #atmosphericPressureFactor()
+	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	/**
-	 * [hPa]
+	 * Minimum inhibitory pressure [hPa].
 	 *
-	 * @see #airPressureFactor()
+	 * @see #atmosphericPressureFactor()
 	 * @see #PRESSURE_FACTOR_K
 	 * @see #PRESSURE_FACTOR_M
 	 */
-	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
+	public static final double ATMOSPHERIC_PRESSURE_MAX = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
 	/**
 	 * [%]
@@ -112,7 +119,7 @@ public class Dough{
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 
 	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
-	private static final double VOLUME_REDUCTION = 1. - 0.4187;
+	private static final double STRETCH_AND_FOLD_VOLUME_REDUCTION = 1. - 0.4187;
 
 
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
@@ -125,7 +132,7 @@ public class Dough{
 	//[%]
 	private double fat;
 	//[%]
-	private double salinity;
+	private double salt;
 	//[%]
 	private double hydration;
 	//[mg/l]
@@ -134,17 +141,17 @@ public class Dough{
 	private double atmosphericPressure;
 
 
-	public static Dough create(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salinity,
+	public static Dough create(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt,
 			final double hydration, final double chlorineDioxide, final double atmosphericPressure){
-		return new Dough(yeastModel, sugar, fat, salinity, hydration, chlorineDioxide, atmosphericPressure);
+		return new Dough(yeastModel, sugar, fat, salt, hydration, chlorineDioxide, atmosphericPressure);
 	}
 
-	private Dough(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salinity, final double hydration,
+	private Dough(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt, final double hydration,
 			final double chlorineDioxide, final double atmosphericPressure){
 		this.yeastModel = yeastModel;
 		this.sugar = sugar;
 		this.fat = fat;
-		this.salinity = salinity;
+		this.salt = salt;
 		this.hydration = hydration;
 		this.chlorineDioxide = chlorineDioxide;
 		this.atmosphericPressure = atmosphericPressure;
@@ -153,19 +160,21 @@ public class Dough{
 	public void validate() throws DoughException{
 		if(yeastModel == null)
 			throw DoughException.create("A yeast model must be provided");
-		if(hydration < 0.)
-			throw DoughException.create("hydration [%] cannot be less than zero");
-		if(chlorineDioxide < 0.)
-			throw DoughException.create("chlorine dioxide [mg/l] cannot be less than zero");
-		if(salinity < 0.)
-			throw DoughException.create("salt [%] cannot be less than zero");
-		if(fat < 0.)
-			throw DoughException.create("fat [%] cannot be less than zero");
 		if(sugar < 0.)
-			throw DoughException.create("sugar [%] cannot be less than zero");
-		if(atmosphericPressure <= 0. || atmosphericPressure >= Dough.MINIMUM_INHIBITORY_PRESSURE)
+			throw DoughException.create("Sugar [%] cannot be less than zero");
+		if(fat < 0.)
+			throw DoughException.create("Fat [%] cannot be less than zero");
+		if(salt < 0. || salt >= SALT_MAX)
+			throw DoughException.create("Salt [%] must be between 0 and "
+				+ Helper.round(SALT_MAX * 100., 3) + " [%]");
+		if(hydration < 0.)
+			throw DoughException.create("Hydration [%] cannot be less than zero");
+		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
+			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and "
+				+ Helper.round(CHLORINE_DIOXIDE_MAX, 2) + " [mg/l]");
+		if(atmosphericPressure <= 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
-				+ Helper.round(Dough.MINIMUM_INHIBITORY_PRESSURE, 0) + " hPa");
+				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
 	}
 
 	//https://planetcalc.com/5992/
@@ -315,7 +324,7 @@ public class Dough{
 	 *    <li>yeast age (*)</li>
 	 *    <li>dough ball size (*)</li>
 	 *    <li>gluten development (*)</li>
-	 *    <li>altitude (air pressure)</li>
+	 *    <li>altitude (atmospheric pressure)</li>
 	 *    <li>water chemistry (level of chlorination especially)</li>
 	 *    <li>container material and thickness (conductivity if ambient and dough temperatures vary, along with heat dissipation from fermentation) (*)</li>
 	 *    <li>flour chemistry (enzyme activity, damaged starch, etc.) (*)</li>
@@ -327,11 +336,11 @@ public class Dough{
 	private double ingredientsFactor(){
 		final double kSugar = sugarFactor();
 		final double kFat = fatFactor();
-		final double kSalt = salinityFactor();
+		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
 		final double kChlorineDioxide = chlorineDioxideFactor();
-		final double kAirPressure = airPressureFactor();
-		return kSugar * kFat * kSalt * kWater * kChlorineDioxide * kAirPressure;
+		final double kAtmosphericPressure = atmosphericPressureFactor();
+		return kSugar * kFat * kSalt * kWater * kChlorineDioxide * kAtmosphericPressure;
 	}
 
 	/**
@@ -368,8 +377,8 @@ public class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double salinityFactor(){
-		return Math.max(1. + Helper.evaluatePolynomial(SALINITY_COEFFICIENTS, salinity), 0.);
+	double saltFactor(){
+		return Math.max(Helper.evaluatePolynomial(SALT_COEFFICIENTS, salt), 0.);
 	}
 
 	/**
@@ -398,10 +407,9 @@ public class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double airPressureFactor(){
-		return (atmosphericPressure < MINIMUM_INHIBITORY_PRESSURE?
-			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.),
-			PRESSURE_FACTOR_M): 0.);
+	double atmosphericPressureFactor(){
+		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
+			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}
 
 }

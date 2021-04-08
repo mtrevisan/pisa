@@ -19,7 +19,7 @@ class DoughTest{
 		final LeaveningStage stage2 = LeaveningStage.create(25., 5.);
 		final double yeast = dough.backtrackStages(stage1, stage2);
 
-		Assertions.assertEquals(0.004_71, yeast, 0.000_01);
+		Assertions.assertEquals(0.004_87, yeast, 0.000_01);
 	}
 
 	@Test
@@ -29,7 +29,7 @@ class DoughTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
 		final double yeast = dough.backtrackStages(stage1);
 
-		Assertions.assertEquals(0.037_696, yeast, 0.000_01);
+		Assertions.assertEquals(0.038_9, yeast, 0.000_01);
 	}
 
 
@@ -39,7 +39,7 @@ class DoughTest{
 			0., 0., 0., 0.6, 0., ATMOSPHERE);
 		final double gas = dough.volumeExpansionRatio(0.004, 25., 6.);
 
-		Assertions.assertEquals(1.477_229, gas, 0.000_001);
+		Assertions.assertEquals(1.512_967, gas, 0.000_001);
 	}
 
 
@@ -75,27 +75,27 @@ class DoughTest{
 	void saltFactorMin(){
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast(),
 			0., 0., 0., 0.6, 0., ATMOSPHERE);
-		final double factor = dough.salinityFactor();
+		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.95, factor, 0.000_001);
+		Assertions.assertEquals(1., factor, 0.000_001);
 	}
 
 	@Test
 	void saltFactorHalfway(){
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast(),
-			0., 0., 0.5, 0.6, 0., ATMOSPHERE);
-		final double factor = dough.salinityFactor();
+			0., 0., Dough.SALT_MAX / 2., 0.6, 0., ATMOSPHERE);
+		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0., factor, 0.000_001);
+		Assertions.assertEquals(0.834_505, factor, 0.000_001);
 	}
 
 	@Test
 	void saltFactorMax(){
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast(),
-			0., 0., 0.1, 0.6, 0., ATMOSPHERE);
-		final double factor = dough.salinityFactor();
+			0., 0., Dough.SALT_MAX, 0.6, 0., ATMOSPHERE);
+		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0., factor, 0.000_001);
+		Assertions.assertEquals(0.000_1, factor, 0.000_001);
 	}
 
 
@@ -159,7 +159,7 @@ class DoughTest{
 	void airPressureFactor1atm(){
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast(),
 			0., 0., 0., 0.6, 0., ATMOSPHERE);
-		final double factor = dough.airPressureFactor();
+		final double factor = dough.atmosphericPressureFactor();
 
 		Assertions.assertEquals(1., factor, 0.000_001);
 	}
@@ -168,7 +168,7 @@ class DoughTest{
 	void airPressureFactor10000atm(){
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast(),
 			0., 0., 0., 0.6, 0., ATMOSPHERE * 10_000.);
-		final double factor = dough.airPressureFactor();
+		final double factor = dough.atmosphericPressureFactor();
 
 		Assertions.assertEquals(0.986_037, factor, 0.000_001);
 	}
