@@ -6,6 +6,9 @@ import java.math.RoundingMode;
 
 public class Helper{
 
+	private Helper(){}
+
+
 	/**
 	 * Evaluate polynomial using Horner's method.
 	 *

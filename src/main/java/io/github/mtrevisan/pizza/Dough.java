@@ -33,21 +33,21 @@ import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 public class Dough{
 
 	/**
-	 * @see #sugarFactor(double)
+	 * @see #sugarFactor()
 	 */
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 	/**
-	 * @see #sugarFactor(double)
+	 * @see #sugarFactor()
 	 */
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 
 	/**
-	 * @see #saltFactor(double)
+	 * @see #salinityFactor()
 	 */
 	private static final double[] SALINITY_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
 
 	/**
-	 * @see #waterFactor(double)
+	 * @see #waterFactor()
 	 * @see #HYDRATION_MIN
 	 * @see #HYDRATION_MAX
 	 */
@@ -56,36 +56,36 @@ public class Dough{
 	 * [%]
 	 *
 	 * @see #WATER_COEFFICIENTS
-	 * @see #waterFactor(double)
+	 * @see #waterFactor()
 	 */
 	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 	/**
 	 * [%]
 	 *
 	 * @see #WATER_COEFFICIENTS
-	 * @see #waterFactor(double)
+	 * @see #waterFactor()
 	 */
 	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
 	/**
-	 * @see #chlorineDioxideFactor(double)
+	 * @see #chlorineDioxideFactor()
 	 */
 	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
 
 	/**
-	 * @see #airPressureFactor(double)
+	 * @see #airPressureFactor()
 	 * @see #MINIMUM_INHIBITORY_PRESSURE
 	 */
 	private static final double PRESSURE_FACTOR_K = 1.46;
 	/**
-	 * @see #airPressureFactor(double)
+	 * @see #airPressureFactor()
 	 * @see #MINIMUM_INHIBITORY_PRESSURE
 	 */
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	/**
 	 * [hPa]
 	 *
-	 * @see #airPressureFactor(double)
+	 * @see #airPressureFactor()
 	 * @see #PRESSURE_FACTOR_K
 	 * @see #PRESSURE_FACTOR_M
 	 */
@@ -94,18 +94,18 @@ public class Dough{
 	/**
 	 * [%]
 	 *
-	 * @see #backtrackStages(DoughParameters, LeaveningStage...)
-	 * @see #calculateEquivalentDuration(DoughParameters, double, LeaveningStage, LeaveningStage, double)
+	 * @see #backtrackStages(LeaveningStage...)
+	 * @see #calculateEquivalentDuration(double, LeaveningStage, LeaveningStage, double)
 	 */
 	private static final double MAX_YEAST = 1.;
 	/**
-	 * @see #backtrackStages(DoughParameters, LeaveningStage...)
+	 * @see #backtrackStages(LeaveningStage...)
 	 */
-	private static final double MAX_TARGET_VALUE = 2.;
+	private static final double MAX_TARGET_VOLUME_EXPANSION_RATIO = 2.;
 	/**
 	 * [hrs]
 	 *
-	 * @see #calculateEquivalentDuration(DoughParameters, double, LeaveningStage, LeaveningStage, double)
+	 * @see #calculateEquivalentDuration(double, LeaveningStage, LeaveningStage, double)
 	 */
 	private static final double MAX_DURATION = 100.;
 
@@ -120,9 +120,52 @@ public class Dough{
 
 	private YeastModelAbstract yeastModel;
 
+	//[%]
+	private double sugar;
+	//[%]
+	private double fat;
+	//[%]
+	private double salinity;
+	//[%]
+	private double hydration;
+	//[mg/l]
+	private double chlorineDioxide;
+	//[hPa]
+	private double atmosphericPressure;
 
-	public Dough(final YeastModelAbstract yeastModel){
+
+	public static Dough create(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salinity,
+			final double hydration, final double chlorineDioxide, final double atmosphericPressure){
+		return new Dough(yeastModel, sugar, fat, salinity, hydration, chlorineDioxide, atmosphericPressure);
+	}
+
+	private Dough(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salinity, final double hydration,
+			final double chlorineDioxide, final double atmosphericPressure){
 		this.yeastModel = yeastModel;
+		this.sugar = sugar;
+		this.fat = fat;
+		this.salinity = salinity;
+		this.hydration = hydration;
+		this.chlorineDioxide = chlorineDioxide;
+		this.atmosphericPressure = atmosphericPressure;
+	}
+
+	public void validate() throws DoughException{
+		if(yeastModel == null)
+			throw DoughException.create("A yeast model must be provided");
+		if(hydration < 0.)
+			throw DoughException.create("hydration [%] cannot be less than zero");
+		if(chlorineDioxide < 0.)
+			throw DoughException.create("chlorine dioxide [mg/l] cannot be less than zero");
+		if(salinity < 0.)
+			throw DoughException.create("salt [%] cannot be less than zero");
+		if(fat < 0.)
+			throw DoughException.create("fat [%] cannot be less than zero");
+		if(sugar < 0.)
+			throw DoughException.create("sugar [%] cannot be less than zero");
+		if(atmosphericPressure <= 0. || atmosphericPressure >= Dough.MINIMUM_INHIBITORY_PRESSURE)
+			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
+				+ Helper.round(Dough.MINIMUM_INHIBITORY_PRESSURE, 0) + " hPa");
 	}
 
 	//https://planetcalc.com/5992/
@@ -135,19 +178,19 @@ public class Dough{
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
 	 *
-	 * @param params	Dough parameters.
 	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	double backtrackStages(final DoughParameters params, final LeaveningStage... stages){
+	double backtrackStages(final LeaveningStage... stages){
 		final LeaveningStage lastStage = stages[stages.length - 1];
 		//find the maximum volume expansion ratio
-		final double targetVolumeExpansionRatio = Math.min(0.9 * volumeExpansionRatio(MAX_YEAST, lastStage.temperature, params,
-			lastStage.duration), MAX_TARGET_VALUE);
+		//FIXME 0.9? MAX_TARGET_VOLUME_EXPANSION_RATIO?
+		final double targetVolumeExpansionRatio = Math.min(0.9 * volumeExpansionRatio(MAX_YEAST, lastStage.temperature, lastStage.duration),
+			MAX_TARGET_VOLUME_EXPANSION_RATIO);
 
 		double previousEquivalentDuration = 0.;
 		for(int i = stages.length - 1; i > 0; i --){
-			final double duration23 = calculateEquivalentDuration(params, targetVolumeExpansionRatio, stages[i - 1], stages[i],
+			final double duration23 = calculateEquivalentDuration(targetVolumeExpansionRatio, stages[i - 1], stages[i],
 				previousEquivalentDuration);
 			previousEquivalentDuration += duration23;
 		}
@@ -156,7 +199,7 @@ public class Dough{
 		//at temperature `stage1.temperature`
 		final LeaveningStage firstStage = stages[0];
 		final double totalEquivalentDuration = firstStage.duration + previousEquivalentDuration;
-		return calculateEquivalentYeast(params, targetVolumeExpansionRatio, firstStage, totalEquivalentDuration);
+		return calculateEquivalentYeast(targetVolumeExpansionRatio, firstStage, totalEquivalentDuration);
 	}
 
 	/**
@@ -166,14 +209,13 @@ public class Dough{
 	 *
 	 * @param yeast	Quantity of yeast [%].
 	 * @param temperature	Temperature [°C].
-	 * @param params	Dough parameters.
 	 * @param leaveningDuration	Leavening duration [hrs].
 	 * @return	The volume expansion ratio.
 	 */
-	double volumeExpansionRatio(final double yeast, final double temperature, final DoughParameters params, final double leaveningDuration){
+	double volumeExpansionRatio(final double yeast, final double temperature, final double leaveningDuration){
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		final double lambda = estimatedLag(yeast);
-		final double ingredientsFactor = ingredientsFactor(params);
+		final double ingredientsFactor = ingredientsFactor();
 
 		return yeastModel.volumeExpansionRatio(leaveningDuration, lambda, alpha, temperature, ingredientsFactor);
 	}
@@ -231,36 +273,31 @@ public class Dough{
 	/**
 	 * Return the equivalent total duration able to generate a given volume expansion ratio at stage 1 temperature.
 	 *
-	 * @param params	Dough parameters.
 	 * @param targetVolumeExpansionRatio	Target maximum volume expansion ratio.
 	 * @param stage1	Data for stage 1.
 	 * @param stage2	Data for stage 2.
 	 * @param previousEquivalentDuration	Previous equivalent duration [hrs].
 	 * @return	Duration at first stage [hrs].
 	 */
-	private double calculateEquivalentDuration(final DoughParameters params, final double targetVolumeExpansionRatio,
-			final LeaveningStage stage1, final LeaveningStage stage2, final double previousEquivalentDuration){
-		final double yeast2 = calculateEquivalentYeast(params, targetVolumeExpansionRatio, stage2,
+	private double calculateEquivalentDuration(final double targetVolumeExpansionRatio, final LeaveningStage stage1,
+			final LeaveningStage stage2, final double previousEquivalentDuration){
+		final double yeast2 = calculateEquivalentYeast(targetVolumeExpansionRatio, stage2,
 			stage2.duration + previousEquivalentDuration);
 
-		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, params, duration)
-			- targetVolumeExpansionRatio);
+		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, duration) - targetVolumeExpansionRatio);
 		return solverDuration.solve(100, f12, 0., MAX_DURATION);
 	}
 
 	/**
 	 * Return the equivalent yeast able to generate a given volume expansion ratio at stage 1 temperature in a given duration.
 	 *
-	 * @param params	Dough parameters.
 	 * @param targetVolumeExpansionRatio	Target maximum volume expansion ratio.
 	 * @param stage	Data for stage.
 	 * @param duration	Duration [hrs].
 	 * @return	Yeast quantity [%].
 	 */
-	private double calculateEquivalentYeast(final DoughParameters params, final double targetVolumeExpansionRatio,
-			final LeaveningStage stage, final double duration){
-		final UnivariateFunction f = yeast -> (volumeExpansionRatio(yeast, stage.temperature, params, duration)
-			- targetVolumeExpansionRatio);
+	private double calculateEquivalentYeast(final double targetVolumeExpansionRatio, final LeaveningStage stage, final double duration){
+		final UnivariateFunction f = yeast -> (volumeExpansionRatio(yeast, stage.temperature, duration) - targetVolumeExpansionRatio);
 		return solverYeast.solve(100, f, 0., MAX_YEAST);
 	}
 
@@ -285,16 +322,15 @@ public class Dough{
 	 * </ul>
 	 * </p>
 	 *
-	 * @param params	Dough parameters.
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
-	private double ingredientsFactor(final DoughParameters params){
-		final double kSugar = sugarFactor(params.sugar);
-		final double kFat = fatFactor(params.fat);
-		final double kSalt = saltFactor(params.salinity);
-		final double kWater = waterFactor(params.hydration);
-		final double kChlorineDioxide = chlorineDioxideFactor(params.chlorineDioxide);
-		final double kAirPressure = airPressureFactor(params.atmosphericPressure);
+	private double ingredientsFactor(){
+		final double kSugar = sugarFactor();
+		final double kFat = fatFactor();
+		final double kSalt = salinityFactor();
+		final double kWater = waterFactor();
+		final double kChlorineDioxide = chlorineDioxideFactor();
+		final double kAirPressure = airPressureFactor();
 		return kSugar * kFat * kSalt * kWater * kChlorineDioxide * kAirPressure;
 	}
 
@@ -303,10 +339,9 @@ public class Dough{
 	 * @see <a href="https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009.</a>
 	 * @see <a href="http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555">Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology</a>
 	 *
-	 * @param sugar	Sugar quantity [%].
 	 * @return	Correction factor.
 	 */
-	double sugarFactor(final double sugar){
+	double sugarFactor(){
 		if(sugar < 0.03)
 			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, sugar), 1.);
 		if(sugar < SUGAR_MAX)
@@ -317,10 +352,9 @@ public class Dough{
 	/**
 	 * TODO high fat content inhibits leavening
 	 *
-	 * @param fat	Fat quantity [%].
 	 * @return	Correction factor.
 	 */
-	double fatFactor(final double fat){
+	double fatFactor(){
 		//0 <= fat <= ??%
 		final double maxFat = 0.;
 		//1+fat/300...?
@@ -332,10 +366,9 @@ public class Dough{
 	 * @see <a href="https://aem.asm.org/content/aem/43/4/757.full.pdf">Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.</a>
 	 * @see <a href="https://watermark.silverchair.com/0362-028x-70_2_456.pdf">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 *
-	 * @param salinity	Salt quantity [%].
 	 * @return	Correction factor.
 	 */
-	double saltFactor(final double salinity){
+	double salinityFactor(){
 		return Math.max(1. + Helper.evaluatePolynomial(SALINITY_COEFFICIENTS, salinity), 0.);
 	}
 
@@ -344,10 +377,9 @@ public class Dough{
 	 * Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018. (https://www.nature.com/articles/s41598-018-36786-2.pdf)
 	 * Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4. (http://fens.usv.ro/index.php/FENS/article/download/328/326)
 	 *
-	 * @param hydration	Hydration quantity [%].
 	 * @return	Correction factor.
 	 */
-	double waterFactor(final double hydration){
+	double waterFactor(){
 		return (HYDRATION_MIN <= hydration && hydration < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, hydration): 0.);
 	}
 
@@ -355,21 +387,20 @@ public class Dough{
 	 * https://academic.oup.com/mutage/article/19/2/157/1076450
 	 * Buschini, Carboni, Furlini, Poli, Rossi. sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests [2004]
 	 *
-	 * @param chlorineDioxide	Chlorine dioxide quantity [mg/l].
 	 * @return	Correction factor.
 	 */
-	double chlorineDioxideFactor(final double chlorineDioxide){
+	double chlorineDioxideFactor(){
 		return Math.max(1. - chlorineDioxide / CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
 	/**
 	 * Arao, Hara, Suzuki, Tamura. Effect of High-Pressure Gas on io.github.mtrevisan.pizza.Yeast Growth. 2014. (https://www.tandfonline.com/doi/pdf/10.1271/bbb.69.1365)
 	 *
-	 * @param pressure	Ambient pressure [hPa].
 	 * @return	Correction factor.
 	 */
-	double airPressureFactor(final double pressure){
-		return (pressure < MINIMUM_INHIBITORY_PRESSURE? 1. - PRESSURE_FACTOR_K * Math.pow(pressure / Math.pow(10_000., 2.),
+	double airPressureFactor(){
+		return (atmosphericPressure < MINIMUM_INHIBITORY_PRESSURE?
+			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.),
 			PRESSURE_FACTOR_M): 0.);
 	}
 
