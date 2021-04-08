@@ -19,6 +19,21 @@ public class DoughParameters{
 	double atmosphericPressure;
 
 
+	public static DoughParameters create(final double sugar, final double fat, final double salinity, final double hydration,
+			final double chlorineDioxide, final double atmosphericPressure){
+		return new DoughParameters(sugar, fat, salinity, hydration, chlorineDioxide, atmosphericPressure);
+	}
+
+	private DoughParameters(final double sugar, final double fat, final double salinity, final double hydration,
+			final double chlorineDioxide, final double atmosphericPressure){
+		this.sugar = sugar;
+		this.fat = fat;
+		this.salinity = salinity;
+		this.hydration = hydration;
+		this.chlorineDioxide = chlorineDioxide;
+		this.atmosphericPressure = atmosphericPressure;
+	}
+
 	public String validate(){
 		if(hydration < 0.)
 			return "hydration [%] cannot be less than zero";

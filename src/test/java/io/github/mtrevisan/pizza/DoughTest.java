@@ -14,13 +14,7 @@ class DoughTest{
 	@Test
 	void test(){
 		final Dough dough = new Dough(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final DoughParameters params = new DoughParameters();
-		params.sugar = 0.;
-		params.fat = 0.;
-		params.salinity = 0.;
-		params.hydration = 0.6;
-		params.chlorineDioxide = 0.;
-		params.atmosphericPressure = 1013.25;
+		final DoughParameters params = DoughParameters.create(0., 0., 0., 0.6, 0., 1013.25);
 		dough.backtrackStage(params, LeaveningStage.create(35., 1.), LeaveningStage.create(25., 5.));
 	}
 
@@ -28,17 +22,11 @@ class DoughTest{
 	@Test
 	void gasProduction(){
 		final Dough dough = new Dough(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final DoughParameters params = new DoughParameters();
-		params.sugar = 0.;
-		params.fat = 0.;
-		params.salinity = 0.;
-		params.hydration = 0.6;
-		params.chlorineDioxide = 0.;
-		params.atmosphericPressure = 1013.25;
+		final DoughParameters params = DoughParameters.create(0., 0., 0., 0.6, 0., 1013.25);
 		//25 hrs?
 		final double gas = dough.volumeExpansionRatio(0.004, 25., params, 6.);
 
-		Assertions.assertEquals(0.045_940, gas, 0.000_001);
+		Assertions.assertEquals(1.477_229, gas, 0.000_001);
 	}
 
 

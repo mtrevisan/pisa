@@ -32,25 +32,64 @@ import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 
 public class Dough{
 
-	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
-
-	//[%]
-	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
-	//[%]
-	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
-
-	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
-
+	/**
+	 * @see #airPressureFactor(double)
+	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 */
 	private static final double PRESSURE_FACTOR_K = 1.46;
+	/**
+	 * @see #airPressureFactor(double)
+	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 */
 	private static final double PRESSURE_FACTOR_M = 2.031;
-	//[hPa]
+	/**
+	 * [hPa]
+	 *
+	 * @see #airPressureFactor(double)
+	 * @see #PRESSURE_FACTOR_K
+	 * @see #PRESSURE_FACTOR_M
+	 */
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
+	/**
+	 * @see #sugarFactor(double)
+	 */
+	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
+	/**
+	 * @see #sugarFactor(double)
+	 */
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 
+	/**
+	 * @see #saltFactor(double)
+	 */
 	private static final double[] SALT_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
 
+	/**
+	 * @see #waterFactor(double)
+	 * @see #HYDRATION_MIN
+	 * @see #HYDRATION_MAX
+	 */
 	private static final double[] WATER_COEFFICIENTS = new double[]{-1.292, 7.65, -6.25};
+	/**
+	 * [%]
+	 *
+	 * @see #WATER_COEFFICIENTS
+	 * @see #waterFactor(double)
+	 */
+	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
+	/**
+	 * [%]
+	 *
+	 * @see #WATER_COEFFICIENTS
+	 * @see #waterFactor(double)
+	 */
+	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
+
+	/**
+	 * @see #chlorineDioxideFactor(double)
+	 */
+	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 
