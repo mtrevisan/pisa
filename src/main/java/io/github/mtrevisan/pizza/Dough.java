@@ -117,12 +117,15 @@ public class Dough{
 	private static final double MAX_DURATION = 100.;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
+	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
 
-	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
+	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - STRETCH_AND_FOLD_VOLUME_REDUCTION)) [%]
 	private static final double STRETCH_AND_FOLD_VOLUME_REDUCTION = 1. - 0.4187;
 
 
+	//accuracy is ±0.001%
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
+	//accuracy is ±1.2 min
 	private final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.02, 5);
 
 
@@ -192,7 +195,7 @@ public class Dough{
 	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	double backtrackStages(final LeaveningStage... stages){
+	public double backtrackStages(final LeaveningStage... stages){
 		final LeaveningStage lastStage = stages[stages.length - 1];
 		//find the maximum volume expansion ratio
 		//FIXME 0.9? MAX_TARGET_VOLUME_EXPANSION_RATIO?
@@ -217,6 +220,7 @@ public class Dough{
 	 * Calculate the volume expansion ratio.
 	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007.</a>
+	 * @see <a href="http://www.doiserbia.nb.rs/img/doi/1451-9372/2010/1451-93721000029S.pdf">Shafaghat, Najafpour, Rezaei, Sharifzadeh. Optimal growth of Saccharomyces cerevisiaea on pretreated molasses for the ethanol production. 2010.</a>
 	 *
 	 * @param yeast	Quantity of yeast [%].
 	 * @param temperature	Temperature [°C].
@@ -254,31 +258,6 @@ public class Dough{
 	public double estimatedLag(final double yeast){
 		//FIXME this formula is for 36±1 °C
 		return 0.0068 * Math.pow(yeast, -0.937);
-	}
-
-	/**
-	 * Tinf.
-	 *
-	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
-	 *
-	 * @param yeast	Quantity of yeast [%].
-	 * @return	The estimated exhaustion time [hrs].
-	 */
-	public double estimatedExhaustion(final double yeast){
-		//FIXME this formula is for 36±1 °C
-		return 0.0596 * Math.pow(yeast, -0.756);
-	}
-
-	/**
-	 * @param temperature	Temperature [°C].
-	 * @return	The time to reach the plateau of maximum carbon dioxide production [hrs].
-	 */
-	//FIXME do something
-	public double carbonDioxidePlateau(final double temperature){
-		final double tMin = yeastModel.getTemperatureMin();
-		final double ln = Math.log((temperature - tMin) / (yeastModel.getTemperatureMax() - tMin));
-//		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
-		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
 	}
 
 	/**
@@ -385,8 +364,8 @@ public class Dough{
 
 	/**
 	 * https://buonapizza.forumfree.it/?t=75686746
-	 * Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018. (https://www.nature.com/articles/s41598-018-36786-2.pdf)
-	 * Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4. (http://fens.usv.ro/index.php/FENS/article/download/328/326)
+	 * @see <a href="https://www.nature.com/articles/s41598-018-36786-2.pdf">Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018.</a>
+	 * @see <a href="http://fens.usv.ro/index.php/FENS/article/download/328/326">Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4.</a>
 	 *
 	 * @return	Correction factor.
 	 */
@@ -405,7 +384,7 @@ public class Dough{
 	}
 
 	/**
-	 * Arao, Hara, Suzuki, Tamura. Effect of High-Pressure Gas on io.github.mtrevisan.pizza.Yeast Growth. 2014. (https://www.tandfonline.com/doi/pdf/10.1271/bbb.69.1365)
+	 * @see <a href="https://www.tandfonline.com/doi/pdf/10.1271/bbb.69.1365">Arao, Hara, Suzuki, Tamura. Effect of High-Pressure Gas on io.github.mtrevisan.pizza.Yeast Growth. 2014.</a>
 	 *
 	 * @return	Correction factor.
 	 */
