@@ -15,7 +15,7 @@ class DoughTest{
 	void test(){
 		final Dough dough = new Dough(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final DoughParameters params = DoughParameters.create(0., 0., 0., 0.6, 0., 1013.25);
-		dough.backtrackStage(params, LeaveningStage.create(35., 1.), LeaveningStage.create(25., 5.));
+		dough.backtrackStages(params, LeaveningStage.create(35., 1.), LeaveningStage.create(25., 5.));
 	}
 
 

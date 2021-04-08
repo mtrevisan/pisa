@@ -91,16 +91,28 @@ public class Dough{
 	 */
 	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
+	/**
+	 * [%]
+	 *
+	 * @see #backtrackStages(DoughParameters, LeaveningStage...)
+	 * @see #calculateEquivalentDuration(DoughParameters, double, LeaveningStage, LeaveningStage, double)
+	 */
+	private static final double MAX_YEAST = 1.;
+	/**
+	 * @see #backtrackStages(DoughParameters, LeaveningStage...)
+	 */
+	private static final double MAX_TARGET_VALUE = 2.;
+	/**
+	 * [hrs]
+	 *
+	 * @see #calculateEquivalentDuration(DoughParameters, double, LeaveningStage, LeaveningStage, double)
+	 */
+	private static final double MAX_DURATION = 100.;
+
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 
 	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - VOLUME_REDUCTION)) [%]
 	private static final double VOLUME_REDUCTION = 1. - 0.4187;
-
-	//[%]
-	private static final double MAX_YEAST = 1.;
-	private static final double MAX_TARGET_VALUE = 2.;
-	//[hrs]
-	private static final double MAX_DURATION = 100.;
 
 
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
@@ -120,33 +132,31 @@ public class Dough{
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
 
 	/**
-	 * Find the yeast able to obtain a given volume expansion ratio after two consecutive stages at a given duration at temperature.
+	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
+	 * temperature.
 	 *
 	 * @param params	Dough parameters.
-	 * @param stage1	Data for stage 1.
-	 * @param stage2	Data for stage 2.
+	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStage(final DoughParameters params, final LeaveningStage stage1, final LeaveningStage stage2){
+	double backtrackStages(final DoughParameters params, final LeaveningStage... stages){
+		final LeaveningStage lastStage = stages[stages.length - 1];
 		//find the maximum volume expansion ratio
-		final double targetValue = Math.min(0.9 * volumeExpansionRatio(MAX_YEAST, stage2.temperature, params, stage2.duration), MAX_TARGET_VALUE);
+		final double targetVolumeExpansionRatio = Math.min(0.9 * volumeExpansionRatio(MAX_YEAST, lastStage.temperature, params,
+			lastStage.duration), MAX_TARGET_VALUE);
 
-		//find the yeast at stage 2 able to generate a volume of `targetValue` in time `stage2.duration` at temperature `stage2.temperature`
-		final UnivariateFunction f2 = yeast -> (volumeExpansionRatio(yeast, stage2.temperature, params, stage2.duration) - targetValue);
-		final double yeast2 = solverYeast.solve(100, f2, 0., MAX_YEAST);
+		double previousEquivalentDuration = 0.;
+		for(int i = stages.length - 1; i > 0; i --){
+			final double duration23 = calculateEquivalentDuration(params, targetVolumeExpansionRatio, stages[i - 1], stages[i],
+				previousEquivalentDuration);
+			previousEquivalentDuration += duration23;
+		}
 
-		//find the duration at `stage1.temperature` able to generate a volume of `targetValue` with yeast quantity `yeast2` at
-		//temperature `stage1.temperature`
-		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, params, duration) - targetValue);
-		final double duration12 = solverDuration.solve(100, f12, 0., MAX_DURATION);
-
-		//find the yeast at stage 1 able to generate a volume of `targetValue` in time `duration12 + stage1.duration` at temperature
-		//`stage1.temperature`
-		final UnivariateFunction f1 = yeast -> (volumeExpansionRatio(yeast, stage1.temperature, params,
-			duration12 + stage1.duration) - targetValue);
-		final double yeast1 = solverYeast.solve(100, f1, 0., MAX_YEAST);
-
-		return yeast1;
+		//find the yeast at stage 1 able to generate a volume of `targetVolumeExpansionRatio` in time `duration12 + stage1.duration`
+		//at temperature `stage1.temperature`
+		final LeaveningStage firstStage = stages[0];
+		final double totalEquivalentDuration = firstStage.duration + previousEquivalentDuration;
+		return calculateEquivalentYeast(params, targetVolumeExpansionRatio, firstStage, totalEquivalentDuration);
 	}
 
 	/**
@@ -216,6 +226,42 @@ public class Dough{
 		final double ln = Math.log((temperature - tMin) / (yeastModel.getTemperatureMax() - tMin));
 //		final double lag = -(15.5 + (4.6 + 50.63 * ln) * ln) * ln;
 		return -(91.34 + (29 + 20.64 * ln) * ln) * ln / 60.;
+	}
+
+	/**
+	 * Return the equivalent total duration able to generate a given volume expansion ratio at stage 1 temperature.
+	 *
+	 * @param params	Dough parameters.
+	 * @param targetVolumeExpansionRatio	Target maximum volume expansion ratio.
+	 * @param stage1	Data for stage 1.
+	 * @param stage2	Data for stage 2.
+	 * @param previousEquivalentDuration	Previous equivalent duration [hrs].
+	 * @return	Duration at first stage [hrs].
+	 */
+	private double calculateEquivalentDuration(final DoughParameters params, final double targetVolumeExpansionRatio,
+			final LeaveningStage stage1, final LeaveningStage stage2, final double previousEquivalentDuration){
+		final double yeast2 = calculateEquivalentYeast(params, targetVolumeExpansionRatio, stage2,
+			stage2.duration + previousEquivalentDuration);
+
+		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, params, duration)
+			- targetVolumeExpansionRatio);
+		return solverDuration.solve(100, f12, 0., MAX_DURATION);
+	}
+
+	/**
+	 * Return the equivalent yeast able to generate a given volume expansion ratio at stage 1 temperature in a given duration.
+	 *
+	 * @param params	Dough parameters.
+	 * @param targetVolumeExpansionRatio	Target maximum volume expansion ratio.
+	 * @param stage	Data for stage.
+	 * @param duration	Duration [hrs].
+	 * @return	Yeast quantity [%].
+	 */
+	private double calculateEquivalentYeast(final DoughParameters params, final double targetVolumeExpansionRatio,
+			final LeaveningStage stage, final double duration){
+		final UnivariateFunction f = yeast -> (volumeExpansionRatio(yeast, stage.temperature, params, duration)
+			- targetVolumeExpansionRatio);
+		return solverYeast.solve(100, f, 0., MAX_YEAST);
 	}
 
 	/**
