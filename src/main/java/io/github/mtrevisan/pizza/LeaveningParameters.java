@@ -73,8 +73,8 @@ public class LeaveningParameters{
 			return "sugar [%] cannot be less than zero";
 		if(idy < 0.)
 			return "IDY [%] cannot be less than zero";
-		if(atmosphericPressure <= 0. || atmosphericPressure >= Yeast.MINIMUM_INHIBITORY_PRESSURE)
-			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Yeast.MINIMUM_INHIBITORY_PRESSURE, 0)
+		if(atmosphericPressure <= 0. || atmosphericPressure >= Dough.MINIMUM_INHIBITORY_PRESSURE)
+			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Dough.MINIMUM_INHIBITORY_PRESSURE, 0)
 				+ " hPa";
 		if(doughTemperature <= yeastModel.getTemperatureMin() || doughTemperature >= yeastModel.getTemperatureMax())
 			return "Dough temperature [°C] must be between " + Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "

@@ -80,7 +80,7 @@ Private Function estimateSpecificHeat(protein As Double, fat As Double, carbohyd
     estimateSpecificHeat = (cp_protein * protein + cp_fat * fat + cp_carbohydrate * carbohydrate + cp_fiber * fiber + cp_ash * ash) / 100
 End Function
 
-' Use bisection method to calculate the yeast able to generate a given final volume after a given time
+' Use bisection method to calculate the dough able to generate a given final volume after a given time
 Private Function calculateIDYSingle(params As LeaveningParameters, index As Integer) As Double
     Dim idy_min As Double
     Dim idy_max As Double: idy_max = 0
@@ -117,7 +117,7 @@ Private Function calculateIDYSingle(params As LeaveningParameters, index As Inte
     calculateIDYSingle = (idy_min + idy_max) / 2
 End Function
 
-' Use bisection method to calculate the time necessary to reach a given final volume using a given yeast quantity
+' Use bisection method to calculate the time necessary to reach a given final volume using a given dough quantity
 Private Sub calculateLeaveningTime(params As LeaveningParameters, index As Integer)
     Dim leaveningTimeMin As Double
     Dim leaveningTimeMax As Double: leaveningTimeMax = 0
@@ -152,7 +152,7 @@ End Sub
 ' Romano, Toraldo, Cavella, Masi. Description of leavening of bread dough with mathematical modelling. 2007. (https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf)
 Public Function doughVolumeForStage(params As LeaveningParameters, index As Integer) As Double
     If params.idy = 0 Or params.leaveningTime(index) = 0 Then
-        ' no yeast or no leavening time implies no expansion
+        ' no dough or no leavening time implies no expansion
         doughVolumeForStage = 0
     Else
         ' maximum relative volume expansion ratio (Vmax)
@@ -173,7 +173,7 @@ End Function
 ' http://www.namirshammas.com/NEW/Romberg.pdf
 Private Function gasProductionForStage(params As LeaveningParameters, index As Integer, Optional eps As Double = 0.00000001) As Double
     If params.idy = 0 Or params.leaveningTime(index) = 0 Then
-        ' no yeast or no leavening time implies no expansion
+        ' no dough or no leavening time implies no expansion
         gasProductionForStage = 0
     Else
         ' maximum relative volume expansion ratio (Vmax)
