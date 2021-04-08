@@ -33,25 +33,6 @@ import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 public class Dough{
 
 	/**
-	 * @see #airPressureFactor(double)
-	 * @see #MINIMUM_INHIBITORY_PRESSURE
-	 */
-	private static final double PRESSURE_FACTOR_K = 1.46;
-	/**
-	 * @see #airPressureFactor(double)
-	 * @see #MINIMUM_INHIBITORY_PRESSURE
-	 */
-	private static final double PRESSURE_FACTOR_M = 2.031;
-	/**
-	 * [hPa]
-	 *
-	 * @see #airPressureFactor(double)
-	 * @see #PRESSURE_FACTOR_K
-	 * @see #PRESSURE_FACTOR_M
-	 */
-	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
-
-	/**
 	 * @see #sugarFactor(double)
 	 */
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
@@ -63,7 +44,7 @@ public class Dough{
 	/**
 	 * @see #saltFactor(double)
 	 */
-	private static final double[] SALT_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
+	private static final double[] SALINITY_COEFFICIENTS = new double[]{-0.05, -45., -1187.5};
 
 	/**
 	 * @see #waterFactor(double)
@@ -90,6 +71,25 @@ public class Dough{
 	 * @see #chlorineDioxideFactor(double)
 	 */
 	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
+
+	/**
+	 * @see #airPressureFactor(double)
+	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 */
+	private static final double PRESSURE_FACTOR_K = 1.46;
+	/**
+	 * @see #airPressureFactor(double)
+	 * @see #MINIMUM_INHIBITORY_PRESSURE
+	 */
+	private static final double PRESSURE_FACTOR_M = 2.031;
+	/**
+	 * [hPa]
+	 *
+	 * @see #airPressureFactor(double)
+	 * @see #PRESSURE_FACTOR_K
+	 * @see #PRESSURE_FACTOR_M
+	 */
+	public static final double MINIMUM_INHIBITORY_PRESSURE = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 
@@ -290,7 +290,7 @@ public class Dough{
 	 * @return	Correction factor.
 	 */
 	double saltFactor(final double salinity){
-		return Math.max(1. + Helper.evaluatePolynomial(SALT_COEFFICIENTS, salinity), 0.);
+		return Math.max(1. + Helper.evaluatePolynomial(SALINITY_COEFFICIENTS, salinity), 0.);
 	}
 
 	/**
