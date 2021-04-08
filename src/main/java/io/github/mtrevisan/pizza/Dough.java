@@ -32,6 +32,9 @@ import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 
 public class Dough{
 
+	//standard atmosphere [hPa]
+	public static final double ONE_ATMOSPHERE = 1013.25;
+
 	/**
 	 * @see #sugarFactor()
 	 */
@@ -129,7 +132,7 @@ public class Dough{
 	private final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.02, 5);
 
 
-	private YeastModelAbstract yeastModel;
+	private final YeastModelAbstract yeastModel;
 	//[%]
 	private double sugar;
 	//[%]
@@ -141,42 +144,62 @@ public class Dough{
 	//[mg/l]
 	private double chlorineDioxide;
 	//[hPa]
-	private double atmosphericPressure;
+	private double atmosphericPressure = ONE_ATMOSPHERE;
 
 
-	public static Dough create(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt,
-			final double hydration, final double chlorineDioxide, final double atmosphericPressure) throws DoughException{
-		return new Dough(yeastModel, sugar, fat, salt, hydration, chlorineDioxide, atmosphericPressure);
+	public static Dough create(final YeastModelAbstract yeastModel){
+		return new Dough(yeastModel);
 	}
 
-	private Dough(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt, final double hydration,
-			final double chlorineDioxide, final double atmosphericPressure) throws DoughException{
+	private Dough(final YeastModelAbstract yeastModel){
 		this.yeastModel = yeastModel;
-		this.sugar = sugar;
-		this.fat = fat;
-		this.salt = salt;
-		this.hydration = hydration;
-		this.chlorineDioxide = chlorineDioxide;
-		this.atmosphericPressure = atmosphericPressure;
-
-		validate();
 	}
 
-	private void validate() throws DoughException{
+	public void addSugar(final double sugar, final double sugarContent, final double waterContent){
+		this.sugar += sugar * sugarContent;
+		hydration += sugar * waterContent;
+	}
+
+	public void addFat(final double fat, final double fatContent, final double waterContent, final double saltContent){
+		this.fat += fat * fatContent;
+		hydration += fat * waterContent;
+		salt += fat * saltContent;
+	}
+
+	public void addSalt(final double salt){
+		this.salt += salt;
+	}
+
+	public void addHydration(final double hydration){
+		this.hydration += hydration;
+	}
+
+	public void withChlorineDioxide(final double chlorineDioxide){
+		this.chlorineDioxide = chlorineDioxide;
+	}
+
+	public void withAtmosphericPressure(final double atmosphericPressure){
+		this.atmosphericPressure = atmosphericPressure;
+	}
+
+	public void validate() throws DoughException{
 		if(yeastModel == null)
 			throw DoughException.create("A yeast model must be provided");
-		if(sugar < 0.)
-			throw DoughException.create("Sugar [%] cannot be less than zero");
+		if(sugar < 0. || sugar > SUGAR_MAX)
+			throw DoughException.create("Sugar [%] must be between 0 and "
+				+ Helper.round(SUGAR_MAX * 100., 1) + "%");
 		if(fat < 0.)
 			throw DoughException.create("Fat [%] cannot be less than zero");
 		if(salt < 0. || salt >= SALT_MAX)
 			throw DoughException.create("Salt [%] must be between 0 and "
-				+ Helper.round(SALT_MAX * 100., 3) + " [%]");
-		if(hydration < 0.)
-			throw DoughException.create("Hydration [%] cannot be less than zero");
+				+ Helper.round(SALT_MAX * 100., 3) + "%");
+		if(hydration < HYDRATION_MIN || hydration > HYDRATION_MAX)
+			throw DoughException.create("Hydration [%] cannot be between "
+				+ Helper.round(HYDRATION_MIN * 100., 1)
+				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
 		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and "
-				+ Helper.round(CHLORINE_DIOXIDE_MAX, 2) + " [mg/l]");
+				+ Helper.round(CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
 		if(atmosphericPressure <= 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
 				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
@@ -341,6 +364,7 @@ public class Dough{
 
 	/**
 	 * TODO high fat content inhibits leavening
+	 * 0.1-0.2% is desirable
 	 *
 	 * @return	Correction factor.
 	 */
@@ -392,5 +416,37 @@ public class Dough{
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}
+
+
+//	/**
+//	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
+//	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
+//	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
+//	 * @see <a href="https://www.engineeringtoolbox.com/slurry-density-calculate-d_1188.html">Calculate density of a slurry</a>
+//	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
+//	 *
+//	 * @param dough	Final dough weight [g].
+//	 * @param doughTemperature	Final dough temperature [°C].
+//	 */
+//	public double calculateDoughVolume(final double dough, final double doughTemperature, final double fatDensity){
+//		//convert salt to [g/l]
+//		//Dim salt As Double: salt = params.salt * 1000 / params.hydration
+//		//calculateDoughVolume = 1.41 - (0.0026 * params.water - 0.0064 * salt) - 0.0000676 * params.atmosphericPressure
+//
+//		//true formula should be the following, but the salt is accounted next, so here it is zero
+//		//final double waterDensity = calculateWaterDensity(salt * 1000 / hydration, params.doughTemperature, atmosphericPressure)
+//		final Water water = new Water();
+//		final double waterDensity = water.density(0., doughTemperature, atmosphericPressure);
+//		final double brineDensity = water.brineDensity(0., hydration, salt, sugar, doughTemperature);
+//
+//		//density of flour + water + salt + sugar
+//		double doughDensity = 1.41 - (0.002611 * waterDensity * hydration - brineDensity) - 0.0000676 * atmosphericPressure;
+//
+//		//account for fats (convert fat to [g/l])
+//		final double fatToWater = fat * 1000. / hydration;
+//		doughDensity = ((dough - fatToWater) * doughDensity + fatToWater / fatDensity) / dough;
+//
+//		return dough / doughDensity;
+//	}
 
 }
