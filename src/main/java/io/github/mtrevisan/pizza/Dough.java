@@ -122,11 +122,11 @@ public class Dough{
 	private static final double STRETCH_AND_FOLD_VOLUME_REDUCTION = 1. - 0.4187;
 
 
-	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_1, 5);
-	private final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.06, 5);
+	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
+	private final BracketingNthOrderBrentSolver solverDuration = new BracketingNthOrderBrentSolver(0.02, 5);
+
 
 	private YeastModelAbstract yeastModel;
-
 	//[%]
 	private double sugar;
 	//[%]
@@ -142,12 +142,12 @@ public class Dough{
 
 
 	public static Dough create(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt,
-			final double hydration, final double chlorineDioxide, final double atmosphericPressure){
+			final double hydration, final double chlorineDioxide, final double atmosphericPressure) throws DoughException{
 		return new Dough(yeastModel, sugar, fat, salt, hydration, chlorineDioxide, atmosphericPressure);
 	}
 
 	private Dough(final YeastModelAbstract yeastModel, final double sugar, final double fat, final double salt, final double hydration,
-			final double chlorineDioxide, final double atmosphericPressure){
+			final double chlorineDioxide, final double atmosphericPressure) throws DoughException{
 		this.yeastModel = yeastModel;
 		this.sugar = sugar;
 		this.fat = fat;
@@ -155,9 +155,11 @@ public class Dough{
 		this.hydration = hydration;
 		this.chlorineDioxide = chlorineDioxide;
 		this.atmosphericPressure = atmosphericPressure;
+
+		validate();
 	}
 
-	public void validate() throws DoughException{
+	private void validate() throws DoughException{
 		if(yeastModel == null)
 			throw DoughException.create("A yeast model must be provided");
 		if(sugar < 0.)
