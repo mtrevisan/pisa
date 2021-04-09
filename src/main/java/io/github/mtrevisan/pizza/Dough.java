@@ -147,6 +147,13 @@ public class Dough{
 	private double atmosphericPressure = ONE_ATMOSPHERE;
 
 
+	//https://planetcalc.com/5992/
+	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
+	//FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
+	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
+	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
+
+
 	public static Dough create(final YeastModelAbstract yeastModel){
 		return new Dough(yeastModel);
 	}
@@ -205,12 +212,6 @@ public class Dough{
 				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
 	}
 
-	//https://planetcalc.com/5992/
-	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
-	//FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
-	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
-	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
-
 	/**
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
@@ -266,7 +267,7 @@ public class Dough{
 	 * @param yeast	Quantity of yeast [%].
 	 * @return	The estimated lag [hrs].
 	 */
-	public double maximumRelativeVolumeExpansionRatio(final double yeast){
+	double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
@@ -418,35 +419,23 @@ public class Dough{
 	}
 
 
-//	/**
-//	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
-//	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
-//	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
-//	 * @see <a href="https://www.engineeringtoolbox.com/slurry-density-calculate-d_1188.html">Calculate density of a slurry</a>
-//	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
-//	 *
-//	 * @param dough	Final dough weight [g].
-//	 * @param doughTemperature	Final dough temperature [°C].
-//	 */
-//	public double calculateDoughVolume(final double dough, final double doughTemperature, final double fatDensity){
-//		//convert salt to [g/l]
-//		//Dim salt As Double: salt = params.salt * 1000 / params.hydration
-//		//calculateDoughVolume = 1.41 - (0.0026 * params.water - 0.0064 * salt) - 0.0000676 * params.atmosphericPressure
-//
-//		//true formula should be the following, but the salt is accounted next, so here it is zero
-//		//final double waterDensity = calculateWaterDensity(salt * 1000 / hydration, params.doughTemperature, atmosphericPressure)
-//		final Water water = new Water();
-//		final double waterDensity = water.density(0., doughTemperature, atmosphericPressure);
-//		final double brineDensity = water.brineDensity(0., hydration, salt, sugar, doughTemperature);
-//
-//		//density of flour + water + salt + sugar
-//		double doughDensity = 1.41 - (0.002611 * waterDensity * hydration - brineDensity) - 0.0000676 * atmosphericPressure;
-//
-//		//account for fats (convert fat to [g/l])
-//		final double fatToWater = fat * 1000. / hydration;
-//		doughDensity = ((dough - fatToWater) * doughDensity + fatToWater / fatDensity) / dough;
-//
-//		return dough / doughDensity;
-//	}
+	/**
+	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
+	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>	 *
+	 *
+	 * @param dough	Final dough weight [g].
+	 */
+	public double calculateDoughVolume(final double dough, final double fatDensity){
+		//density of flour + water + salt
+		double doughDensity = 1.41 - 0.00006762 * atmosphericPressure + 0.00640 * salt - 0.00260 * hydration;
+
+		//account for fat
+		final double fraction = fat / dough;
+		doughDensity = 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
+
+		//TODO account for sugar
+
+		return dough / doughDensity;
+	}
 
 }

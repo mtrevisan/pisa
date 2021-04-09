@@ -134,17 +134,19 @@ public class Water{
 	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
 	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
 	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
+	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
 	 *
 	 * @param hydration	Hydration [%].
 	 * @param salinity	Salt quantity [%].
 	 * @param sugar	Sugar quantity [%].
 	 * @param temperature	Temperature [°C].
-	 * @return	The density [g/l].
+	 * @return	The density [g/cm^3].
 	 */
 	public double brineDensity(final double pureWaterDensity, final double hydration, final double salinity, final double sugar,
 			final double temperature){
-		//molarity of sucrose: 342.29648 g/mol
-		//molarity of salt: 58.44277 g/mol
+		//molar mass of glucose: 180.156 g/mol
+		//molar mass of sucrose/maltose: 342.29648 g/mol
+		//molar mass of salt: 58.44277 g/mol
 		//convert salt and sugar to [g/l]
 		return pureWaterDensity
 			+ ((0.020391744 * salinity + 0.003443681 * sugar)
