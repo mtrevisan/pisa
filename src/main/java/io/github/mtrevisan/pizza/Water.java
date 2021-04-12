@@ -78,80 +78,24 @@ public class Water{
 
 
 	/**
-	 * Validity: -2 < temperature < 40 °C; 0 < salinity < 42 g/kg.
-	 * Accuracy: ±0.01%.
-	 *
-	 * @see <a href="https://metgen.pagesperso-orange.fr/metrologieen19.htm">METROLOGY - ARTICLE N°18: Calculation of the density of water</a>
-	 * @see <a href="http://www.csgnetwork.com/water_density_calculator.html">Ocean water density calculator</a>
-	 * @see <a href="https://www.translatorscafe.com/unit-converter/en-US/calculator/salt-water-density/">Salt water density calculator</a>
-	 *
-	 * @param salinity	Salt quantity [%].
-	 * @param temperature	Temperature [°C].
-	 * @param pressure	Pressure [hPa].
-	 */
-	public double density(final double salinity, final double temperature, final double pressure){
-		final double rho0 = pureWaterDensity(salinity, temperature);
-
-		//account for pressure
-		final double bulkModulus = secantBulkModulus(salinity, temperature, pressure);
-		return rho0 / (1000. - pressure / bulkModulus);
-	}
-
-	/**
-	 * @see <a href="https://www.niot.res.in/COAT/coat_pdf/CHAP%20III%20-%20Equation%20of%20State.pdf">Chapter 3 - Equation of state</a>
-	 *
-	 * @param salinity	Salt quantity [%].
-	 * @param temperature	Temperature [°C].
-	 * @return	The density [g/l].
-	 */
-	private double pureWaterDensity(final double salinity, final double temperature){
-		final double a = Helper.evaluatePolynomial(PURE_WATER_DENSITY_A_COEFFICIENTS, temperature);
-		final double b = Helper.evaluatePolynomial(PURE_WATER_DENSITY_B_COEFFICIENTS, temperature);
-		final double rho0 = Helper.evaluatePolynomial(PURE_WATER_DENSITY_RHO0_COEFFICIENTS, temperature);
-		return rho0 + (a + b * Math.sqrt(salinity) + 0.00048314 * salinity) * salinity;
-	}
-
-	/**
-	 * @see <a href="https://www.niot.res.in/COAT/coat_pdf/CHAP%20III%20-%20Equation%20of%20State.pdf">Chapter 3 - Equation of state</a>
-	 *
-	 * @param salinity	Salt quantity [%].
-	 * @param temperature	Temperature [°C].
-	 * @param pressure	Pressure [hPa].
-	 */
-	private double secantBulkModulus(final double salinity, final double temperature, final double pressure){
-		final double aw = Helper.evaluatePolynomial(SECANT_BULK_MODULUS_AW_COEFFICIENTS, temperature);
-		final double a = aw + (Helper.evaluatePolynomial(SECANT_BULK_MODULUS_A_COEFFICIENTS, temperature)
-			+ 0.000191075 * Math.sqrt(salinity)) * salinity;
-		final double bw = Helper.evaluatePolynomial(SECANT_BULK_MODULUS_BW_COEFFICIENTS, temperature);
-		final double b = bw + Helper.evaluatePolynomial(SECANT_BULK_MODULUS_B_COEFFICIENTS, temperature) * salinity;
-		final double kw = Helper.evaluatePolynomial(SECANT_BULK_MODULUS_KW_COEFFICIENTS, temperature);
-		final double k0 = kw + (Helper.evaluatePolynomial(SECANT_BULK_MODULUS_K0_1_COEFFICIENTS, temperature)
-			+ Helper.evaluatePolynomial(SECANT_BULK_MODULUS_K0_2_COEFFICIENTS, temperature) * Math.sqrt(salinity)) * salinity;
-		return k0 + (a + b * pressure) * pressure;
-	}
-
-	/**
-	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
-	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
 	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
-	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
 	 *
 	 * @param hydration	Hydration [%].
-	 * @param salinity	Salt quantity [%].
+	 * @param salt	Salt quantity [%].
 	 * @param sugar	Sugar quantity [%].
 	 * @param temperature	Temperature [°C].
-	 * @return	The density [g/cm^3].
+	 * @return	The density [kg/l].
 	 */
-	public double brineDensity(final double pureWaterDensity, final double hydration, final double salinity, final double sugar,
+	public double brineDensity(final double pureWaterDensity, final double hydration, final double salt, final double sugar,
 			final double temperature){
 		//molar mass of glucose: 180.156 g/mol
 		//molar mass of sucrose/maltose: 342.29648 g/mol
 		//molar mass of salt: 58.44277 g/mol
 		//convert salt and sugar to [g/l]
 		return pureWaterDensity
-			+ ((0.020391744 * salinity + 0.003443681 * sugar)
-			+ (-0.000044231 * salinity + 0.0000004195 * sugar) * (temperature + ABSOLUTE_ZERO)
-			) * 1000 / hydration;
+			+ ((0.020391744 * salt + 0.003443681 * sugar)
+			+ (-0.000044231 * salt + 0.0000004195 * sugar) * (temperature + ABSOLUTE_ZERO)
+			) * 1000. / hydration;
 	}
 
 

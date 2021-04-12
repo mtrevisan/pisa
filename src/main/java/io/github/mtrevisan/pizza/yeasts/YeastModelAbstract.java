@@ -30,14 +30,14 @@ public abstract class YeastModelAbstract{
 	private static final double EXP = Math.exp(1.);
 
 
-	//Temperature above which no growth occurs [°C]
-	public abstract double getTemperatureMax();
+	//Temperature below which no growth occurs [°C]
+	public abstract double getTemperatureMin();
 
 	//Temperature at which the maximum specific growth rate equals its optimal value [°C]
 	abstract double getTemperatureOpt();
 
-	//Temperature below which no growth occurs [°C]
-	public abstract double getTemperatureMin();
+	//Temperature above which no growth occurs [°C]
+	public abstract double getTemperatureMax();
 
 	//Maximum specific growth rate [hrs^-1]
 	abstract double getMaximumSpecificGrowthRate();
@@ -82,7 +82,7 @@ public abstract class YeastModelAbstract{
 	public double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){
 		final double mu = ingredientsFactor * maximumSpecificGrowth(temperature);
-		return alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.));
+		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.)): 1.);
 	}
 
 }

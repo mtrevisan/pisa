@@ -58,21 +58,4 @@ class WaterTest{
 		Assertions.assertEquals(5_211.3, temperature, 0.1);
 	}
 
-
-	@Test
-	void densityPureAmbient(){
-		final Water water = new Water();
-		final double density = water.density(0., 50., ATMOSPHERE);
-
-		Assertions.assertEquals(0.988_1, density, 0.000_1);
-	}
-
-	@Test
-	void densityAmbient(){
-		final Water water = new Water();
-		final double density = water.density(0.52, 50., ATMOSPHERE);
-
-		Assertions.assertEquals(0.988_5, density, 0.000_1);
-	}
-
 }

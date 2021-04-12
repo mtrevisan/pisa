@@ -33,9 +33,9 @@ package io.github.mtrevisan.pizza.yeasts;
 public class CandidaMilleriYeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMax(){
-		//± 0.3 °C
-		return 35.9;
+	public double getTemperatureMin(){
+		//± 1 °C
+		return 8.;
 	}
 
 	@Override
@@ -44,9 +44,9 @@ public class CandidaMilleriYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	public double getTemperatureMin(){
-		//± 1 °C
-		return 8.;
+	public double getTemperatureMax(){
+		//± 0.3 °C
+		return 35.9;
 	}
 
 	@Override

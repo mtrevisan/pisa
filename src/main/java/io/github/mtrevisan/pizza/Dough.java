@@ -28,12 +28,16 @@ import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
+import org.apache.commons.math3.exception.NoBracketingException;
+import org.apache.commons.math3.exception.TooManyEvaluationsException;
 
 
 public class Dough{
 
-	//standard atmosphere [hPa]
+	/** Standard atmosphere [hPa]. */
 	public static final double ONE_ATMOSPHERE = 1013.25;
+	/** Absolute zero [°C]. */
+	public static final double ABSOLUTE_ZERO = 273.15;
 
 	/**
 	 * @see #sugarFactor()
@@ -133,17 +137,17 @@ public class Dough{
 
 
 	private final YeastModelAbstract yeastModel;
-	//[%]
+	/** Sugar quantity w.r.t. flour [%]. */
 	private double sugar;
-	//[%]
+	/** Fat quantity w.r.t. flour [%]. */
 	private double fat;
-	//[%]
+	/** Salt quantity w.r.t. flour [%]. */
 	private double salt;
-	//[%]
+	/** Water quantity w.r.t. flour [%]. */
 	private double hydration;
-	//[mg/l]
+	/** Chlorine dioxide in water [mg/l]. */
 	private double chlorineDioxide;
-	//[hPa]
+	/** Atmospheric pressure [hPa]. */
 	private double atmosphericPressure = ONE_ATMOSPHERE;
 
 
@@ -154,11 +158,14 @@ public class Dough{
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
 
 
-	public static Dough create(final YeastModelAbstract yeastModel){
+	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
 		return new Dough(yeastModel);
 	}
 
-	private Dough(final YeastModelAbstract yeastModel){
+	private Dough(final YeastModelAbstract yeastModel) throws DoughException{
+		if(yeastModel == null)
+			throw DoughException.create("A yeast model must be provided");
+
 		this.yeastModel = yeastModel;
 	}
 
@@ -190,8 +197,6 @@ public class Dough{
 	}
 
 	public void validate() throws DoughException{
-		if(yeastModel == null)
-			throw DoughException.create("A yeast model must be provided");
 		if(sugar < 0. || sugar > SUGAR_MAX)
 			throw DoughException.create("Sugar [%] must be between 0 and "
 				+ Helper.round(SUGAR_MAX * 100., 1) + "%");
@@ -219,25 +224,24 @@ public class Dough{
 	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final LeaveningStage... stages){
-		final LeaveningStage lastStage = stages[stages.length - 1];
-		//find the maximum volume expansion ratio
-		//FIXME 0.9? MAX_TARGET_VOLUME_EXPANSION_RATIO?
-		final double targetVolumeExpansionRatio = Math.min(0.9 * volumeExpansionRatio(MAX_YEAST, lastStage.temperature, lastStage.duration),
-			MAX_TARGET_VOLUME_EXPANSION_RATIO);
+	public double backtrackStages(final LeaveningStage... stages) throws DoughException, TooManyEvaluationsException{
+		try{
+			double previousEquivalentDuration = 0.;
+			for(int i = stages.length - 1; i > 0; i --){
+				final double duration23 = calculateEquivalentDuration(MAX_TARGET_VOLUME_EXPANSION_RATIO, stages[i - 1], stages[i],
+					previousEquivalentDuration);
+				previousEquivalentDuration += duration23;
+			}
 
-		double previousEquivalentDuration = 0.;
-		for(int i = stages.length - 1; i > 0; i --){
-			final double duration23 = calculateEquivalentDuration(targetVolumeExpansionRatio, stages[i - 1], stages[i],
-				previousEquivalentDuration);
-			previousEquivalentDuration += duration23;
+			//find the yeast at stage 1 able to generate a volume of `targetVolumeExpansionRatio` in time `duration12 + stage1.duration`
+			//at temperature `stage1.temperature`
+			final LeaveningStage firstStage = stages[0];
+			final double totalEquivalentDuration = firstStage.duration + previousEquivalentDuration;
+			return calculateEquivalentYeast(MAX_TARGET_VOLUME_EXPANSION_RATIO, firstStage.temperature, totalEquivalentDuration);
 		}
-
-		//find the yeast at stage 1 able to generate a volume of `targetVolumeExpansionRatio` in time `duration12 + stage1.duration`
-		//at temperature `stage1.temperature`
-		final LeaveningStage firstStage = stages[0];
-		final double totalEquivalentDuration = firstStage.duration + previousEquivalentDuration;
-		return calculateEquivalentYeast(targetVolumeExpansionRatio, firstStage, totalEquivalentDuration);
+		catch(final NoBracketingException e){
+			throw DoughException.create("No yeast quantity will ever be able to produce the given expansion ratio in such a short time");
+		}
 	}
 
 	/**
@@ -281,7 +285,7 @@ public class Dough{
 	 */
 	public double estimatedLag(final double yeast){
 		//FIXME this formula is for 36±1 °C
-		return 0.0068 * Math.pow(yeast, -0.937);
+		return (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
 	}
 
 	/**
@@ -294,11 +298,16 @@ public class Dough{
 	 * @return	Duration at first stage [hrs].
 	 */
 	private double calculateEquivalentDuration(final double targetVolumeExpansionRatio, final LeaveningStage stage1,
-			final LeaveningStage stage2, final double previousEquivalentDuration){
-		final double yeast2 = calculateEquivalentYeast(targetVolumeExpansionRatio, stage2,
+			final LeaveningStage stage2, final double previousEquivalentDuration) throws TooManyEvaluationsException, NoBracketingException{
+		final double targetRatioYeast = Math.min(volumeExpansionRatio(MAX_YEAST, stage2.temperature,
+			stage2.duration + previousEquivalentDuration), MAX_TARGET_VOLUME_EXPANSION_RATIO);
+		final double yeast2 = calculateEquivalentYeast(targetRatioYeast, stage2.temperature,
 			stage2.duration + previousEquivalentDuration);
 
-		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, duration) - targetVolumeExpansionRatio);
+//		final double targetRatioDuration = Math.min(volumeExpansionRatio(yeast2, stage1.temperature,
+//			stage2.duration + previousEquivalentDuration), MAX_TARGET_VOLUME_EXPANSION_RATIO);
+		final double targetRatioDuration = MAX_TARGET_VOLUME_EXPANSION_RATIO;
+		final UnivariateFunction f12 = duration -> (volumeExpansionRatio(yeast2, stage1.temperature, duration) - targetRatioDuration);
 		return solverDuration.solve(100, f12, 0., MAX_DURATION);
 	}
 
@@ -306,12 +315,13 @@ public class Dough{
 	 * Return the equivalent yeast able to generate a given volume expansion ratio at stage 1 temperature in a given duration.
 	 *
 	 * @param targetVolumeExpansionRatio	Target maximum volume expansion ratio.
-	 * @param stage	Data for stage.
+	 * @param temperature	Temperature [°C].
 	 * @param duration	Duration [hrs].
 	 * @return	Yeast quantity [%].
 	 */
-	private double calculateEquivalentYeast(final double targetVolumeExpansionRatio, final LeaveningStage stage, final double duration){
-		final UnivariateFunction f = yeast -> (volumeExpansionRatio(yeast, stage.temperature, duration) - targetVolumeExpansionRatio);
+	private double calculateEquivalentYeast(final double targetVolumeExpansionRatio, final double temperature, final double duration)
+			throws TooManyEvaluationsException, NoBracketingException{
+		final UnivariateFunction f = yeast -> (volumeExpansionRatio(yeast, temperature, duration) - targetVolumeExpansionRatio);
 		return solverYeast.solve(100, f, 0., MAX_YEAST);
 	}
 
@@ -421,19 +431,28 @@ public class Dough{
 
 	/**
 	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
+	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
 	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>	 *
+	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
+	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
 	 *
+	 * @param flour	Flour weight [g].
 	 * @param dough	Final dough weight [g].
+	 * @param fatDensity	Density of the fat [kg/l].
+	 * @param doughTemperature	Temperature of the dough [°C].
 	 */
-	public double calculateDoughVolume(final double dough, final double fatDensity){
-		//density of flour + water + salt
-		double doughDensity = 1.41 - 0.00006762 * atmosphericPressure + 0.00640 * salt - 0.00260 * hydration;
+	public double doughVolume(final double flour, final double dough, final double fatDensity, final double doughTemperature){
+		//density of flour + salt + sugar + water
+		double doughDensity = 1.41
+			- 0.00006762 * atmosphericPressure
+			+ 0.00640 * salt
+//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
+//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
+			- 0.00260 * hydration;
 
 		//account for fat
-		final double fraction = fat / dough;
+		final double fraction = fat * flour / dough;
 		doughDensity = 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
-
-		//TODO account for sugar
 
 		return dough / doughDensity;
 	}

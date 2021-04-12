@@ -32,29 +32,38 @@ import org.junit.jupiter.api.Test;
 class DoughTest{
 
 	@Test
-	void stages(){
+	void stages() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
-		final LeaveningStage stage2 = LeaveningStage.create(25., 5.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
+		final LeaveningStage stage2 = LeaveningStage.create(30., 1.);
 		final double yeast = dough.backtrackStages(stage1, stage2);
 
 		Assertions.assertEquals(0.004_87, yeast, 0.000_01);
 	}
 
 	@Test
-	void singleStage(){
+	void singleStageNoYeastPossible() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
+		Assertions.assertThrows(DoughException.class, () -> dough.backtrackStages(stage1),
+			"No yeast quantity will ever be able to produce the given expansion ratio in such a short time");
+	}
+
+	@Test
+	void singleStage() throws DoughException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addHydration(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final double yeast = dough.backtrackStages(stage1);
 
-		Assertions.assertEquals(0.038_9, yeast, 0.000_01);
+		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
 	}
 
 
 	@Test
-	void gasProduction(){
+	void gasProduction() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final double gas = dough.volumeExpansionRatio(0.004, 25., 6.);
@@ -64,7 +73,7 @@ class DoughTest{
 
 
 	@Test
-	void sugarFactorMin(){
+	void sugarFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = dough.sugarFactor();
 
@@ -72,7 +81,7 @@ class DoughTest{
 	}
 
 	@Test
-	void sugarFactorHalfway(){
+	void sugarFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSugar(Dough.SUGAR_MAX / 2., 1., 0.);
 		final double factor = dough.sugarFactor();
@@ -81,7 +90,7 @@ class DoughTest{
 	}
 
 	@Test
-	void sugarFactorMax(){
+	void sugarFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSugar(Dough.SUGAR_MAX, 1., 0.);
 		final double factor = dough.sugarFactor();
@@ -91,7 +100,7 @@ class DoughTest{
 
 
 	@Test
-	void saltFactorMin(){
+	void saltFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = dough.saltFactor();
 
@@ -99,7 +108,7 @@ class DoughTest{
 	}
 
 	@Test
-	void saltFactorHalfway(){
+	void saltFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSalt(Dough.SALT_MAX / 2.);
 		final double factor = dough.saltFactor();
@@ -108,7 +117,7 @@ class DoughTest{
 	}
 
 	@Test
-	void saltFactorMax(){
+	void saltFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSalt(Dough.SALT_MAX * 0.99);
 		final double factor = dough.saltFactor();
@@ -118,7 +127,7 @@ class DoughTest{
 
 
 	@Test
-	void waterFactorMin(){
+	void waterFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(Dough.HYDRATION_MIN);
 		final double factor = dough.waterFactor();
@@ -127,7 +136,7 @@ class DoughTest{
 	}
 
 	@Test
-	void waterFactorHalfway(){
+	void waterFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration((Dough.HYDRATION_MIN + Dough.HYDRATION_MAX) / 2.);
 		final double factor = dough.waterFactor();
@@ -136,7 +145,7 @@ class DoughTest{
 	}
 
 	@Test
-	void waterFactorMax(){
+	void waterFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(Dough.HYDRATION_MAX);
 		final double factor = dough.waterFactor();
@@ -146,7 +155,7 @@ class DoughTest{
 
 
 	@Test
-	void chlorineDioxideFactorMin(){
+	void chlorineDioxideFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = dough.chlorineDioxideFactor();
 
@@ -154,7 +163,7 @@ class DoughTest{
 	}
 
 	@Test
-	void chlorineDioxideFactorHalfway(){
+	void chlorineDioxideFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.withChlorineDioxide(Dough.CHLORINE_DIOXIDE_MAX / 2.);
 		final double factor = dough.chlorineDioxideFactor();
@@ -163,7 +172,7 @@ class DoughTest{
 	}
 
 	@Test
-	void chlorineDioxideFactorMax(){
+	void chlorineDioxideFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.withChlorineDioxide(Dough.CHLORINE_DIOXIDE_MAX * 0.99);
 		final double factor = dough.chlorineDioxideFactor();
@@ -173,7 +182,7 @@ class DoughTest{
 
 
 	@Test
-	void airPressureFactor1atm(){
+	void airPressureFactor1atm() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = dough.atmosphericPressureFactor();
 
@@ -181,7 +190,7 @@ class DoughTest{
 	}
 
 	@Test
-	void airPressureFactor10000atm(){
+	void airPressureFactor10000atm() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.withAtmosphericPressure(Dough.ONE_ATMOSPHERE * 10_000.);
 		final double factor = dough.atmosphericPressureFactor();

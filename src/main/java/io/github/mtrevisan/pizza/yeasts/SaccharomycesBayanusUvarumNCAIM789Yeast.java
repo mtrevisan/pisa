@@ -33,8 +33,8 @@ package io.github.mtrevisan.pizza.yeasts;
 public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMax(){
-		return 45.39;
+	public double getTemperatureMin(){
+		return 2.84;
 	}
 
 	@Override
@@ -43,8 +43,8 @@ public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	public double getTemperatureMin(){
-		return 2.84;
+	public double getTemperatureMax(){
+		return 45.39;
 	}
 
 	@Override

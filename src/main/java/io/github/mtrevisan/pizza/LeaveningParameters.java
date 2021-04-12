@@ -41,7 +41,7 @@ public class LeaveningParameters /*extends DoughParameters*/{
 	double fat;
 	//can be one of ['olive oil', 'lard']
 	String fatType;
-	//fat density [g/cm^3]
+	//fat density [kg/l]
 	double fatDensity;
 	//[%]
 	double salinity;

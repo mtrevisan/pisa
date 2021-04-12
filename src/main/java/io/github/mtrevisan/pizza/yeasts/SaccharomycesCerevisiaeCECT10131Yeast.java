@@ -33,8 +33,8 @@ package io.github.mtrevisan.pizza.yeasts;
 public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMax(){
-		return 45.9;
+	public double getTemperatureMin(){
+		return 0.74;
 	}
 
 	@Override
@@ -43,8 +43,8 @@ public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	public double getTemperatureMin(){
-		return 0.74;
+	public double getTemperatureMax(){
+		return 45.9;
 	}
 
 	@Override
