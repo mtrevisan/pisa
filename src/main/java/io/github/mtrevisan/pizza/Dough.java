@@ -128,7 +128,8 @@ public class Dough{
 	 *
 	 * @see #backtrackStages(LeaveningStage[], double, int, StretchAndFoldStage[])
 	 */
-	private static final double MAX_YEAST = 1.;
+	private static final double YEAST_MAX = 1.;
+	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
@@ -243,7 +244,7 @@ public class Dough{
 	 * @return	This instance.
 	 * @throws DoughException	If chlorine dioxide is too low or too high.
 	 */
-	public Dough withChlorineDioxide(final double chlorineDioxide) throws DoughException{
+	public Dough withWaterChlorineDioxide(final double chlorineDioxide) throws DoughException{
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and "
 				+ Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
@@ -258,7 +259,7 @@ public class Dough{
 	 * @return	This instance.
 	 * @throws DoughException	If fixed residue is too low or too high.
 	 */
-	public Dough withFixedResidue(final double fixedResidue) throws DoughException{
+	public Dough withWaterFixedResidue(final double fixedResidue) throws DoughException{
 		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
 			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and "
 				+ Helper.round(WATER_FIXED_RESIDUE_MAX, 2) + " mg/l");
@@ -334,9 +335,9 @@ public class Dough{
 				LeaveningStage currentStage = leaveningStages[0];
 				double volumeExpansionRatio = 0.;
 				double duration = 0.;
-				int stretchAndFoldIndex = 0;
-				double stretchAndFoldDuration = 0.;
-				if(targetVolumeExpansionRatioAtLeaveningStage > 0)
+				if(targetVolumeExpansionRatioAtLeaveningStage > 0){
+					int stretchAndFoldIndex = 0;
+					double stretchAndFoldDuration = 0.;
 					for(int i = 1; i < leaveningStages.length; i ++){
 						final LeaveningStage previousStage = leaveningStages[i - 1];
 						duration += previousStage.duration;
@@ -375,6 +376,7 @@ public class Dough{
 						if(i == targetVolumeExpansionRatioAtLeaveningStage)
 							break;
 					}
+				}
 
 				//NOTE: last `volumeDecrease` is NOT taken into consideration!
 				//FIXME should it be?
@@ -382,7 +384,7 @@ public class Dough{
 					currentStage.temperature, ingredientsFactor);
 				return volumeExpansionRatio - targetVolumeExpansionRatio;
 			};
-			return solverYeast.solve(100, f, 0., MAX_YEAST);
+			return solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., YEAST_MAX);
 		}
 		catch(final NoBracketingException e){
 			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio");
@@ -516,6 +518,12 @@ public class Dough{
 	 */
 	double fixedResidueFactor(){
 		//TODO
+		/*
+		Se la durezza dell’acqua è troppo elevata la fermentazione subisce rallentamenti a causa della formazione di una struttura glutinica
+		troppo rigida. In tal caso, l’utilizzo di più lievito o l’aggiunta di malto in pasta o farina maltata ad un impasto, possono
+		contribuire a correggere questa condizione di tenacità. In caso contrario, dove la durezza dell’acqua risulta essere troppo scarsa,
+		l’impasto si presenta assai appiccicoso e poco manipolabile. In questo frangente sarà utile abbassare l’idratazione.
+		*/
 		return 1.;
 	}
 

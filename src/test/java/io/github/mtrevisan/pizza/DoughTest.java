@@ -213,7 +213,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.withChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX / 2.);
+		dough.withWaterChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX / 2.);
 		final double factor = dough.chlorineDioxideFactor();
 
 		Assertions.assertEquals(0.5, factor, 0.000_001);
@@ -222,7 +222,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.withChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX * 0.99);
+		dough.withWaterChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX * 0.99);
 		final double factor = dough.chlorineDioxideFactor();
 
 		Assertions.assertEquals(0.01, factor, 0.000_001);
