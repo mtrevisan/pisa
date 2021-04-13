@@ -77,12 +77,18 @@ public abstract class YeastModelAbstract{
 	 * @param alpha	Maximum relative volume expansion ratio.
 	 * @param temperature	Temperature [°C].
 	 * @param ingredientsFactor	Factor to account for other ingredients effects.
-	 * @return	Volume expansion ratio.
+	 * @return	Volume expansion ratio (∆V / V).
 	 */
 	public double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){
 		final double mu = ingredientsFactor * maximumSpecificGrowth(temperature);
-		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.)): 1.);
+		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.)): 0.);
+	}
+
+	@Override
+	public String toString(){
+		return getClass().getSimpleName() + "{Tmin: " + getTemperatureMin() + ", Topt: " + getTemperatureOpt()
+			+ ", Tmax: " + getTemperatureMax() + ", μ: " + getMaximumSpecificGrowthRate() + "}";
 	}
 
 }

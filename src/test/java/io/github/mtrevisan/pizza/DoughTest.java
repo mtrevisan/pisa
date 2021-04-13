@@ -32,14 +32,25 @@ import org.junit.jupiter.api.Test;
 class DoughTest{
 
 	@Test
-	void stages() throws DoughException{
+	void twoStages() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(30., 1.);
+		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
 		final double yeast = dough.backtrackStages(stage1, stage2);
 
-		Assertions.assertEquals(0.004_87, yeast, 0.000_01);
+		Assertions.assertEquals(0.006_38, yeast, 0.000_01);
+	}
+
+	@Test
+	void twoStagesSameTemperature() throws DoughException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addHydration(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
+		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
+		final double yeast = dough.backtrackStages(stage1, stage2);
+
+		Assertions.assertEquals(0.006_14, yeast, 0.000_01);
 	}
 
 	@Test
@@ -59,16 +70,6 @@ class DoughTest{
 		final double yeast = dough.backtrackStages(stage1);
 
 		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
-	}
-
-
-	@Test
-	void gasProduction() throws DoughException{
-		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
-		final double gas = dough.volumeExpansionRatio(0.004, 25., 6.);
-
-		Assertions.assertEquals(1.512_967, gas, 0.000_001);
 	}
 
 

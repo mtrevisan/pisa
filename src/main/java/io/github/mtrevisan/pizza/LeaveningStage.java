@@ -42,4 +42,9 @@ public class LeaveningStage{
 		this.duration = duration;
 	}
 
+	@Override
+	public String toString(){
+		return getClass().getSimpleName() + "{" + temperature + " °C for " + duration + " hrs}";
+	}
+
 }
