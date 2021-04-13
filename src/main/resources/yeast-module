@@ -1,58 +1,6 @@
-' Maximum volume expansion ratio
-Const MAX_VOLUME_EXPANSION As Double = 2.87
-
-
-' [%]
-Private Function getTargetVolume(params As LeaveningParameters) As Double
-    Dim doughVolume As Double: doughVolume = calculateDoughVolume(params)
-    Dim minimumHeight As Double: minimumHeight = doughVolume / params.targetArea
-    ' FIXME
-    getTargetVolume = 0.98 * (params.targetHeight - minimumHeight) / (2.5 - minimumHeight)
-    '1.41687 = 3.3
-    '0.98 = 2.5
-
-    'targetVolume = params.targetHeight * 0.98 / (2.5 - minimumHeight) - 0.98 * minimumHeight / (2.5 - minimumHeight)
-
 'TODO account for baking temperature
 'initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
 'volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
-End Function
-
-
-Public Sub calculateIDY(params As LeaveningParameters)
-    Dim index As Integer
-    Dim size As Integer: size = UBound(params.temperature)
-    Dim T As Double: T = params.leaveningTime(0)
-
-    Dim finalVolume As Double: finalVolume = 0
-    ReDim params.volume(size - LBound(params.temperature))
-    For index = LBound(params.temperature) To size
-        If params.leaveningTime(index) > 0 Then
-            If index > 0 And params.idy > 0 Then
-                ' save value for subsequent restore after `calculateLeaveningTime` changed it
-                T = params.leaveningTime(index)
-
-                Call calculateLeaveningTime(params, index)
-
-                ' prepare for next iteration
-                params.leaveningTime(index) = params.leaveningTime(index) + T
-            End If
-
-            Dim volume As Double: volume = calculateIDYSingle(params, index)
-
-            ' account for volume reduction caused by re-kneading
-            If index < size Then
-                finalVolume = finalVolume - volume * STRETCH_AND_FOLD_VOLUME_REDUCTION
-            Else
-                params.finalVolumeRatio = MAX_VOLUME_EXPANSION * (finalVolume + volume)
-            End If
-
-            ' restore original value (for `index` > 0)
-            params.leaveningTime(index) = T
-        End If
-    Next index
-End Sub
-
 Private Function calculateCharlesGayLussacVolumeExpansion(initialTemperature As Double, finalTemperature As Double) As Double
     calculateCharlesGayLussacVolumeExpansion = (finalTemperature + ABSOLUTE_ZERO) / (initialTemperature + ABSOLUTE_ZERO)
 End Function

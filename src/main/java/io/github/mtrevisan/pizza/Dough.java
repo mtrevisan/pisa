@@ -368,7 +368,8 @@ public class Dough{
 
 							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
 								+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
-							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
+							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
+								* stretchAndFoldStage.volumeDecrease;
 						}
 						volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
 
@@ -378,11 +379,10 @@ public class Dough{
 					}
 				}
 
-				//NOTE: last `volumeDecrease` is NOT taken into consideration!
-				//FIXME should it be?
+				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
 					currentStage.temperature, ingredientsFactor);
-				return volumeExpansionRatio - targetVolumeExpansionRatio;
+				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - targetVolumeExpansionRatio;
 			};
 			return solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., YEAST_MAX);
 		}
