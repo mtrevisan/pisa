@@ -30,6 +30,17 @@ import java.math.RoundingMode;
 
 public class Helper{
 
+	static{
+		try{
+			//check whether an optional SLF4J binding is available
+			Class.forName("org.slf4j.impl.StaticLoggerBinder");
+		}
+		catch(final LinkageError | ClassNotFoundException ignored){
+			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
+		}
+	}
+
+
 	private Helper(){}
 
 

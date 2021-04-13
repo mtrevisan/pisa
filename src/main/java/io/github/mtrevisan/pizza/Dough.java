@@ -30,9 +30,13 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Dough{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
 
 	/** Standard atmosphere [hPa]. */
 	public static final double ONE_ATMOSPHERE = 1013.25;
@@ -88,9 +92,17 @@ public class Dough{
 	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
 	/**
+	 * [mg/l]
+	 *
 	 * @see #chlorineDioxideFactor()
 	 */
-	public static final double CHLORINE_DIOXIDE_MAX = 0.0931;
+	public static final double WATER_CHLORINE_DIOXIDE_MAX = 0.0931;
+	/**
+	 * [mg/l]
+	 *
+	 * @see #fixedResidueFactor()
+	 */
+	public static final double WATER_FIXED_RESIDUE_MAX = 100.;
 
 	/**
 	 * @see #atmosphericPressureFactor()
@@ -114,13 +126,9 @@ public class Dough{
 	/**
 	 * [%]
 	 *
-	 * @see #backtrackStages(LeaveningStage...)
+	 * @see #backtrackStages(LeaveningStage[], double, int, StretchAndFoldStage[])
 	 */
 	private static final double MAX_YEAST = 1.;
-	/**
-	 * @see #backtrackStages(LeaveningStage...)
-	 */
-	private static final double MAX_TARGET_VOLUME_EXPANSION_RATIO = 2.;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
@@ -138,9 +146,12 @@ public class Dough{
 	/** Salt quantity w.r.t. flour [%]. */
 	private double salt;
 	/** Water quantity w.r.t. flour [%]. */
-	private double hydration;
+	private double water;
 	/** Chlorine dioxide in water [mg/l]. */
-	private double chlorineDioxide;
+	private double waterChlorineDioxide;
+	/** Fixed residue in water [mg/l]. */
+	//TODO
+	private double waterFixedResidue;
 	/** Atmospheric pressure [hPa]. */
 	private double atmosphericPressure = ONE_ATMOSPHERE;
 
@@ -162,9 +173,16 @@ public class Dough{
 		this.yeastModel = yeastModel;
 	}
 
+	/**
+	 * @param sugar	Sugar quantity w.r.t. flour [%].
+	 * @param sugarContent	Sucrose content [%].
+	 * @param waterContent	Water content [%].
+	 * @return	This instance.
+	 * @throws DoughException	If sugar is too low or too high.
+	 */
 	public Dough addSugar(final double sugar, final double sugarContent, final double waterContent) throws DoughException{
 		this.sugar += sugar * sugarContent;
-		addHydration(sugar * waterContent);
+		addWater(sugar * waterContent);
 
 		if(sugar < 0. || this.sugar > SUGAR_MAX)
 			throw DoughException.create("Sugar [%] must be between 0 and " + Helper.round(SUGAR_MAX * 100., 1) + "%");
@@ -172,10 +190,18 @@ public class Dough{
 		return this;
 	}
 
+	/**
+	 * @param fat	Fat quantity w.r.t. flour [%].
+	 * @param fatContent	Sucrose content [%].
+	 * @param waterContent	Water content [%].
+	 * @param saltContent	Salt content [%].
+	 * @return	This instance.
+	 * @throws DoughException	If fat is too low or too high.
+	 */
 	public Dough addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
 			throws DoughException{
 		this.fat += fat * fatContent;
-		addHydration(fat * waterContent);
+		addWater(fat * waterContent);
 		addSalt(fat * saltContent);
 
 		if(fat < 0. || this.fat > FAT_MAX)
@@ -184,6 +210,11 @@ public class Dough{
 		return this;
 	}
 
+	/**
+	 * @param salt	Salt quantity w.r.t. flour [%].
+	 * @return	This instance.
+	 * @throws DoughException	If salt is too low or too high.
+	 */
 	public Dough addSalt(final double salt) throws DoughException{
 		this.salt += salt;
 
@@ -193,21 +224,46 @@ public class Dough{
 		return this;
 	}
 
-	public Dough addHydration(final double hydration) throws DoughException{
-		if(hydration < 0.)
+	/**
+	 * @param water	Water quantity w.r.t. flour [%].
+	 * @return	This instance.
+	 * @throws DoughException	If water is too low.
+	 */
+	public Dough addWater(final double water) throws DoughException{
+		if(water < 0.)
 			throw DoughException.create("Hydration [%] cannot be less than zero");
 
-		this.hydration += hydration;
+		this.water += water;
 
 		return this;
 	}
 
+	/**
+	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
+	 * @return	This instance.
+	 * @throws DoughException	If chlorine dioxide is too low or too high.
+	 */
 	public Dough withChlorineDioxide(final double chlorineDioxide) throws DoughException{
-		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
-			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and " + Helper.round(CHLORINE_DIOXIDE_MAX, 2)
-				+ " mg/l");
+		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
+			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and "
+				+ Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
 
-		this.chlorineDioxide = chlorineDioxide;
+		this.waterChlorineDioxide = chlorineDioxide;
+
+		return this;
+	}
+
+	/**
+	 * @param fixedResidue	Fixed residue in water [mg/l].
+	 * @return	This instance.
+	 * @throws DoughException	If fixed residue is too low or too high.
+	 */
+	public Dough withFixedResidue(final double fixedResidue) throws DoughException{
+		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
+			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and "
+				+ Helper.round(WATER_FIXED_RESIDUE_MAX, 2) + " mg/l");
+
+		this.waterFixedResidue = fixedResidue;
 
 		return this;
 	}
@@ -223,7 +279,7 @@ public class Dough{
 	}
 
 	private void validate() throws DoughException{
-		if(hydration < HYDRATION_MIN || hydration > HYDRATION_MAX)
+		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
 			throw DoughException.create("Hydration [%] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
 				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
 	}
@@ -232,75 +288,99 @@ public class Dough{
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
 	 *
-	 * @param stages	Data for stages.
+	 * @param leaveningStages   Data for stages.
+	 * @param targetVolumeExpansionRatio   Maximum target volume expansion ratio to reach.
+	 * @param targetVolumeExpansionRatioAtLeaveningStage   Leavening stage in which to reach the given volume expansion ratio.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final LeaveningStage... stages) throws DoughException, YeastException{
-		return backtrackStages(null, stages);
+	public double backtrackStages(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
+			final int targetVolumeExpansionRatioAtLeaveningStage) throws DoughException, YeastException{
+		return backtrackStages(leaveningStages, targetVolumeExpansionRatio, targetVolumeExpansionRatioAtLeaveningStage, null);
 	}
 
 	/**
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
 	 *
-	 * @param stretchAndFoldStages	Stretch & Fold stages.
-	 * @param stages	Data for stages.
+	 * @param leaveningStages   Data for stages.
+	 * @param targetVolumeExpansionRatio   Maximum target volume expansion ratio to reach.
+	 * @param targetVolumeExpansionRatioAtLeaveningStage   Leavening stage in which to reach the given volume expansion ratio.
+	 * @param stretchAndFoldStages   Stretch & Fold stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final StretchAndFoldStage[] stretchAndFoldStages, final LeaveningStage... stages) throws DoughException,
+	public double backtrackStages(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
+			final int targetVolumeExpansionRatioAtLeaveningStage, final StretchAndFoldStage[] stretchAndFoldStages) throws DoughException,
 			YeastException{
 		validate();
+		if(targetVolumeExpansionRatioAtLeaveningStage < 0 || targetVolumeExpansionRatioAtLeaveningStage >= leaveningStages.length)
+			throw DoughException.create("targetVolumeExpansionRatioAtLeaveningStage msu be between 0 and " + (leaveningStages.length - 1));
+		if(stretchAndFoldStages != null){
+			double totalLeaveningDuration = 0.;
+			for(final LeaveningStage leaveningStage : leaveningStages)
+				totalLeaveningDuration += leaveningStage.duration;
+			double totalStretchAndFoldDuration = 0.;
+			for(final StretchAndFoldStage stretchAndFoldStage : stretchAndFoldStages)
+				totalStretchAndFoldDuration += stretchAndFoldStage.lapse;
+			if(totalStretchAndFoldDuration > totalLeaveningDuration)
+				LOGGER.warn("Duration of overall stretch & fold phases is longer than duration of leavening stages by "
+					+ Helper.round(totalStretchAndFoldDuration - totalLeaveningDuration, 2) + " hrs");
+		}
 
 		try{
 			final double ingredientsFactor = ingredientsFactor();
 			final UnivariateFunction f = yeast -> {
 				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 				double lambda = estimatedLag(yeast);
-				LeaveningStage currentStage = stages[0];
+				LeaveningStage currentStage = leaveningStages[0];
 				double volumeExpansionRatio = 0.;
 				double duration = 0.;
 				int stretchAndFoldIndex = 0;
 				double stretchAndFoldDuration = 0.;
-				for(int i = 1; i < stages.length; i ++){
-					final LeaveningStage previousStage = stages[i - 1];
-					duration += previousStage.duration;
-					currentStage = stages[i];
+				if(targetVolumeExpansionRatioAtLeaveningStage > 0)
+					for(int i = 1; i < leaveningStages.length; i ++){
+						final LeaveningStage previousStage = leaveningStages[i - 1];
+						duration += previousStage.duration;
+						currentStage = leaveningStages[i];
 
-					//avoid modifying `lambda` if the temperature is the same
-					double currentVolume = 0.;
-					if(previousStage.temperature != currentStage.temperature){
-						final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
-							ingredientsFactor);
-						lambda = Math.max(lambda - previousStage.duration, 0.);
-						currentVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, currentStage.temperature, ingredientsFactor);
+						//avoid modifying `lambda` if the temperature is the same
+						double currentVolume = 0.;
+						if(previousStage.temperature != currentStage.temperature){
+							final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
+								ingredientsFactor);
+							lambda = Math.max(lambda - previousStage.duration, 0.);
+							currentVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, currentStage.temperature, ingredientsFactor);
 
-						volumeExpansionRatio += previousVolume - currentVolume;
-					}
-					//account for stage volume decrease
-					volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
+							volumeExpansionRatio += previousVolume - currentVolume;
+						}
+						//account for stage volume decrease
+						volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
 
-					//apply stretch&fold volume reduction:
-					double stretchAndFoldVolumeDecrease = 0.;
-					while(stretchAndFoldStages != null && stretchAndFoldIndex < stretchAndFoldStages.length){
-						final StretchAndFoldStage stretchAndFoldStage = stretchAndFoldStages[stretchAndFoldIndex];
-						if(stretchAndFoldDuration + stretchAndFoldStage.lapse > duration)
+						//apply stretch&fold volume reduction:
+						double stretchAndFoldVolumeDecrease = 0.;
+						while(stretchAndFoldStages != null && stretchAndFoldIndex < stretchAndFoldStages.length){
+							final StretchAndFoldStage stretchAndFoldStage = stretchAndFoldStages[stretchAndFoldIndex];
+							if(stretchAndFoldDuration + stretchAndFoldStage.lapse > duration)
+								break;
+
+							stretchAndFoldIndex ++;
+							stretchAndFoldDuration += stretchAndFoldStage.lapse;
+
+							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
+								+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
+							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
+						}
+						volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
+
+						//early exit if target volume expansion ratio references an inner stage
+						if(i == targetVolumeExpansionRatioAtLeaveningStage)
 							break;
-
-						stretchAndFoldIndex ++;
-						stretchAndFoldDuration += stretchAndFoldStage.lapse;
-
-						final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
-							+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
-						stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
 					}
-					volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
-				}
 
 				//NOTE: last `volumeDecrease` is NOT taken into consideration!
 				//FIXME should it be?
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
 					currentStage.temperature, ingredientsFactor);
-				return volumeExpansionRatio - MAX_TARGET_VOLUME_EXPANSION_RATIO;
+				return volumeExpansionRatio - targetVolumeExpansionRatio;
 			};
 			return solverYeast.solve(100, f, 0., MAX_YEAST);
 		}
@@ -365,9 +445,11 @@ public class Dough{
 		final double kFat = fatFactor();
 		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
-		final double kChlorineDioxide = chlorineDioxideFactor();
+		final double kWaterChlorineDioxide = chlorineDioxideFactor();
+		final double kWaterFixedResidue = fixedResidueFactor();
+		final double kHydration = kWater * kWaterChlorineDioxide * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor();
-		return kSugar * kFat * kSalt * kWater * kChlorineDioxide * kAtmosphericPressure;
+		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
 	}
 
 	/**
@@ -416,7 +498,7 @@ public class Dough{
 	 * @return	Correction factor.
 	 */
 	double waterFactor(){
-		return (HYDRATION_MIN <= hydration && hydration < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, hydration): 0.);
+		return (HYDRATION_MIN <= water && water < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, water): 0.);
 	}
 
 	/**
@@ -426,7 +508,15 @@ public class Dough{
 	 * @return	Correction factor.
 	 */
 	double chlorineDioxideFactor(){
-		return Math.max(1. - chlorineDioxide / CHLORINE_DIOXIDE_MAX, 0.);
+		return Math.max(1. - waterChlorineDioxide / WATER_CHLORINE_DIOXIDE_MAX, 0.);
+	}
+
+	/**
+	 * @return	Correction factor.
+	 */
+	double fixedResidueFactor(){
+		//TODO
+		return 1.;
 	}
 
 	/**
@@ -459,7 +549,7 @@ public class Dough{
 			+ 0.00640 * salt
 //			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
 //			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
-			- 0.00260 * hydration;
+			- 0.00260 * water;
 
 		//account for fat
 		final double fraction = fat * flour / dough;

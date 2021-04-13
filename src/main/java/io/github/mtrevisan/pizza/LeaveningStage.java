@@ -29,14 +29,14 @@ import io.github.mtrevisan.pizza.utils.Helper;
 
 public class LeaveningStage{
 
-	//V_after = V_prior * (1 - VOLUME_DECRESE_CUT) [%]
+	//V_after = V_prior * (1 - VOLUME_DECREASE_CUT) [%]
 	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;
 
 
 	/** Leavening temperature [°C]. */
-	double temperature;
+	final double temperature;
 	/** Leavening duration [hrs]. */
-	double duration;
+	final double duration;
 	/** Volume decrease after leavening stage [%]. */
 	double volumeDecrease;
 

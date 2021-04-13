@@ -27,10 +27,12 @@ package io.github.mtrevisan.pizza;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 
 
 public final class YeastException extends Exception{
 
+	@Serial
 	private static final long serialVersionUID = 8939884843074645087L;
 
 
@@ -60,11 +62,13 @@ public final class YeastException extends Exception{
 
 
 	@SuppressWarnings("unused")
+	@Serial
 	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
 		throw new NotSerializableException(getClass().getName());
 	}
 
 	@SuppressWarnings("unused")
+	@Serial
 	private void readObject(final ObjectInputStream is) throws NotSerializableException{
 		throw new NotSerializableException(getClass().getName());
 	}

@@ -34,18 +34,18 @@ class DoughTest{
 	@Test
 	void singleStageNoYeastPossible() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
-		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(stage1),
+		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0),
 			"No yeast quantity will ever be able to produce the given expansion ratio");
 	}
 
 	@Test
 	void singleStage() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final double yeast = dough.backtrackStages(stage1);
+		final double yeast = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0);
 
 		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
 	}
@@ -53,21 +53,36 @@ class DoughTest{
 	@Test
 	void twoStages() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
-		final double yeast = dough.backtrackStages(stage1, stage2);
+		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
 
 		Assertions.assertEquals(0.006_38, yeast, 0.000_01);
 	}
 
 	@Test
+	void twoStagesEarlyExit() throws DoughException, YeastException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addWater(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
+		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final double yeast1 = dough.backtrackStages(new LeaveningStage[]{stage1, stage2}, 2., 0);
+		final double yeast2 = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0);
+
+		Assertions.assertEquals(0.011_86, yeast1, 0.000_01);
+		Assertions.assertEquals(yeast2, yeast1, 0.000_01);
+	}
+
+	@Test
 	void twoStagesSameTemperature() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
-		final double yeast = dough.backtrackStages(stage1, stage2);
+		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
 
 		Assertions.assertEquals(0.006_14, yeast, 0.000_01);
 	}
@@ -75,11 +90,12 @@ class DoughTest{
 	@Test
 	void twoStagesInnerVolumeDecrease() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.)
 			.withVolumeDecrease(0.20);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
-		final double yeast = dough.backtrackStages(stage1, stage2);
+		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
 
 		Assertions.assertEquals(0.043_57, yeast, 0.000_01);
 	}
@@ -87,9 +103,10 @@ class DoughTest{
 	@Test
 	void twoStagesWithStretchAndFolds() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
+		dough.addWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5)
 			.withVolumeDecrease(0.10);
 		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5)
@@ -97,7 +114,7 @@ class DoughTest{
 		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.25)
 			.withVolumeDecrease(0.30);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
-		final double yeast = dough.backtrackStages(stretchAndFoldStages, stage1, stage2);
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1, stretchAndFoldStages);
 
 		Assertions.assertEquals(0.010_13, yeast, 0.000_01);
 	}
@@ -160,7 +177,7 @@ class DoughTest{
 	@Test
 	void waterFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(Dough.HYDRATION_MIN);
+		dough.addWater(Dough.HYDRATION_MIN);
 		final double factor = dough.waterFactor();
 
 		Assertions.assertEquals(0., factor, 0.000_001);
@@ -169,7 +186,7 @@ class DoughTest{
 	@Test
 	void waterFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration((Dough.HYDRATION_MIN + Dough.HYDRATION_MAX) / 2.);
+		dough.addWater((Dough.HYDRATION_MIN + Dough.HYDRATION_MAX) / 2.);
 		final double factor = dough.waterFactor();
 
 		Assertions.assertEquals(1.048_900, factor, 0.000_001);
@@ -178,7 +195,7 @@ class DoughTest{
 	@Test
 	void waterFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(Dough.HYDRATION_MAX);
+		dough.addWater(Dough.HYDRATION_MAX);
 		final double factor = dough.waterFactor();
 
 		Assertions.assertEquals(0., factor, 0.000_001);
@@ -196,7 +213,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.withChlorineDioxide(Dough.CHLORINE_DIOXIDE_MAX / 2.);
+		dough.withChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX / 2.);
 		final double factor = dough.chlorineDioxideFactor();
 
 		Assertions.assertEquals(0.5, factor, 0.000_001);
@@ -205,7 +222,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.withChlorineDioxide(Dough.CHLORINE_DIOXIDE_MAX * 0.99);
+		dough.withChlorineDioxide(Dough.WATER_CHLORINE_DIOXIDE_MAX * 0.99);
 		final double factor = dough.chlorineDioxideFactor();
 
 		Assertions.assertEquals(0.01, factor, 0.000_001);

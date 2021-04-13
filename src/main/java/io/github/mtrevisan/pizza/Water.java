@@ -65,7 +65,7 @@ public class Water{
 	 * @param pressure	Pressure [hPa].
 	 * @return	The boiling temperature of salted water [°C].
 	 */
-	public double boilingTemperature(final double salinity, final double pressure){
+	public static double boilingTemperature(final double salinity, final double pressure){
 		final double temperature = Helper.evaluatePolynomial(BOILING_TEMPERATURE_COEFFICIENTS, pressure);
 
 		//boiling point elevation [K]
@@ -80,13 +80,13 @@ public class Water{
 	/**
 	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
 	 *
-	 * @param hydration	Hydration [%].
+	 * @param water	Hydration [%].
 	 * @param salt	Salt quantity [%].
 	 * @param sugar	Sugar quantity [%].
 	 * @param temperature	Temperature [°C].
 	 * @return	The density [kg/l].
 	 */
-	public double brineDensity(final double pureWaterDensity, final double hydration, final double salt, final double sugar,
+	public static double brineDensity(final double pureWaterDensity, final double water, final double salt, final double sugar,
 			final double temperature){
 		//molar mass of glucose: 180.156 g/mol
 		//molar mass of sucrose/maltose: 342.29648 g/mol
@@ -95,7 +95,7 @@ public class Water{
 		return pureWaterDensity
 			+ ((0.020391744 * salt + 0.003443681 * sugar)
 			+ (-0.000044231 * salt + 0.0000004195 * sugar) * (temperature + ABSOLUTE_ZERO)
-			) * 1000. / hydration;
+			) * 1000. / water;
 	}
 
 
@@ -110,7 +110,7 @@ public class Water{
 	 * @param pressure	Pressure [hPa].
 	 * @return	The specific heat [J / (kg * K)].
 	 */
-	public double specificHeat(final double salinity, final double temperature, final double pressure){
+	public static double specificHeat(final double salinity, final double temperature, final double pressure){
 		final double a0 = Helper.evaluatePolynomial(SPECIFIC_HEAT_A0_COEFFICIENTS, temperature);
 		final double ap = Helper.evaluatePolynomial(SPECIFIC_HEAT_AP_COEFFICIENTS, temperature);
 		final double ap2 = Helper.evaluatePolynomial(SPECIFIC_HEAT_AP2_COEFFICIENTS, temperature);

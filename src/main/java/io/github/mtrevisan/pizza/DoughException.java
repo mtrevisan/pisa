@@ -27,10 +27,12 @@ package io.github.mtrevisan.pizza;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 
 
 public final class DoughException extends Exception{
 
+	@Serial
 	private static final long serialVersionUID = 6400213845757760261L;
 
 
@@ -60,11 +62,13 @@ public final class DoughException extends Exception{
 
 
 	@SuppressWarnings("unused")
+	@Serial
 	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
 		throw new NotSerializableException(getClass().getName());
 	}
 
 	@SuppressWarnings("unused")
+	@Serial
 	private void readObject(final ObjectInputStream is) throws NotSerializableException{
 		throw new NotSerializableException(getClass().getName());
 	}

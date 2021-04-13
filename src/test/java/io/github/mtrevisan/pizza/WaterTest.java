@@ -36,24 +36,21 @@ class WaterTest{
 
 	@Test
 	void boilingTemperatureAmbient(){
-		final Water water = new Water();
-		final double temperature = water.boilingTemperature(0., ATMOSPHERE);
+		final double temperature = Water.boilingTemperature(0., ATMOSPHERE);
 
 		Assertions.assertEquals(100.0, temperature, 0.1);
 	}
 
 	@Test
 	void boilingTemperatureAmbientWithSalt(){
-		final Water water = new Water();
-		final double temperature = water.boilingTemperature(0.0524, ATMOSPHERE);
+		final double temperature = Water.boilingTemperature(0.0524, ATMOSPHERE);
 
 		Assertions.assertEquals(100.9, temperature, 0.1);
 	}
 
 	@Test
 	void boilingTemperatureHalfway(){
-		final Water water = new Water();
-		final double temperature = water.boilingTemperature(0.0052, ATMOSPHERE * 2.);
+		final double temperature = Water.boilingTemperature(0.0052, ATMOSPHERE * 2.);
 
 		Assertions.assertEquals(5_211.3, temperature, 0.1);
 	}

@@ -29,12 +29,12 @@ import io.github.mtrevisan.pizza.utils.Helper;
 
 public class StretchAndFoldStage{
 
-	//V_after = V_prior * (1 - VOLUME_DECRESE) [%]
+	//V_after = V_prior * (1 - VOLUME_DECREASE) [%]
 	public static final double VOLUME_DECREASE_DEFAULT = 0.4187;
 
 
 	/** Interval at which to apply stretch & fold [hrs]. */
-	double lapse;
+	final double lapse;
 	/** Volume decrease after stretch & fold phase [%]. */
 	double volumeDecrease;
 

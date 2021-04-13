@@ -82,11 +82,10 @@ public class LeaveningParameters /*extends DoughParameters*/{
 		//FIXME
 //		targetVolume = getTargetVolume(params);
 
-		final Water water = new Water();
-		final double waterBoilingTemp = water.boilingTemperature(salinity * 1000. / hydration, atmosphericPressure);
+		final double waterBoilingTemp = Water.boilingTemperature(salinity * 1000. / hydration, atmosphericPressure);
 
 		if(hydration < 0.)
-			return "hydration [%] cannot be less than zero";
+			return "water [%] cannot be less than zero";
 		if(chlorineDioxide < 0.)
 			return "chlorine dioxide [mg/l] cannot be less than zero";
 		if(salinity < 0.)
