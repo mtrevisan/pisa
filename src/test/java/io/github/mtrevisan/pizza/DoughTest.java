@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 class DoughTest{
 
 	@Test
-	void twoStages() throws DoughException{
+	void twoStages() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
@@ -43,7 +43,7 @@ class DoughTest{
 	}
 
 	@Test
-	void twoStagesSameTemperature() throws DoughException{
+	void twoStagesSameTemperature() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
@@ -58,12 +58,12 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
-		Assertions.assertThrows(DoughException.class, () -> dough.backtrackStages(stage1),
-			"No yeast quantity will ever be able to produce the given expansion ratio in such a short time");
+		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(stage1),
+			"No yeast quantity will ever be able to produce the given expansion ratio");
 	}
 
 	@Test
-	void singleStage() throws DoughException{
+	void singleStage() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);

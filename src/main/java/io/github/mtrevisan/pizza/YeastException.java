@@ -29,32 +29,32 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 
-public final class DoughException extends Exception{
+public final class YeastException extends Exception{
 
-	private static final long serialVersionUID = 6400213845757760261L;
+	private static final long serialVersionUID = 8939884843074645087L;
 
 
-	public static DoughException create(final String message, final Throwable cause){
-		return new DoughException(message, cause);
+	public static YeastException create(final String message, final Throwable cause){
+		return new YeastException(message, cause);
 	}
 
-	public static DoughException create(final String message){
-		return new DoughException(message);
+	public static YeastException create(final String message){
+		return new YeastException(message);
 	}
 
-	public static DoughException create(final Throwable cause){
-		return new DoughException( cause);
+	public static YeastException create(final Throwable cause){
+		return new YeastException( cause);
 	}
 
-	private DoughException(final String message){
+	private YeastException(final String message){
 		super(message);
 	}
 
-	private DoughException(final Throwable cause){
+	private YeastException(final Throwable cause){
 		super(cause);
 	}
 
-	private DoughException(final String message, final Throwable cause){
+	private YeastException(final String message, final Throwable cause){
 		super(message, cause);
 	}
 

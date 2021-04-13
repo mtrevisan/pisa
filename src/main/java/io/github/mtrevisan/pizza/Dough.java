@@ -160,52 +160,59 @@ public class Dough{
 		this.yeastModel = yeastModel;
 	}
 
-	public void addSugar(final double sugar, final double sugarContent, final double waterContent){
+	public void addSugar(final double sugar, final double sugarContent, final double waterContent) throws DoughException{
 		this.sugar += sugar * sugarContent;
-		hydration += sugar * waterContent;
+		addHydration(sugar * waterContent);
+
+		if(sugar < 0. || this.sugar > SUGAR_MAX)
+			throw DoughException.create("Sugar [%] must be between 0 and " + Helper.round(SUGAR_MAX * 100., 1) + "%");
 	}
 
-	public void addFat(final double fat, final double fatContent, final double waterContent, final double saltContent){
+	public void addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
+			throws DoughException{
 		this.fat += fat * fatContent;
-		hydration += fat * waterContent;
-		salt += fat * saltContent;
+		addHydration(fat * waterContent);
+		addSalt(fat * saltContent);
+
+		//FIXME add check for maximum
+		if(this.fat < 0.)
+			throw DoughException.create("Fat [%] cannot be less than zero");
 	}
 
-	public void addSalt(final double salt){
+	public void addSalt(final double salt) throws DoughException{
 		this.salt += salt;
+
+		if(salt < 0. || this.salt > SALT_MAX)
+			throw DoughException.create("Salt [%] must be between 0 and " + Helper.round(SALT_MAX * 100., 1) + "%");
 	}
 
-	public void addHydration(final double hydration){
+	public void addHydration(final double hydration) throws DoughException{
+		if(hydration < 0.)
+			throw DoughException.create("Hydration [%] cannot be less than zero");
+
 		this.hydration += hydration;
 	}
 
-	public void withChlorineDioxide(final double chlorineDioxide){
+	public void withChlorineDioxide(final double chlorineDioxide) throws DoughException{
+		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
+			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and " + Helper.round(CHLORINE_DIOXIDE_MAX, 2)
+				+ " mg/l");
+
 		this.chlorineDioxide = chlorineDioxide;
 	}
 
-	public void withAtmosphericPressure(final double atmosphericPressure){
+	public void withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
+		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
+			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
+				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
+
 		this.atmosphericPressure = atmosphericPressure;
 	}
 
-	public void validate() throws DoughException{
-		if(sugar < 0. || sugar > SUGAR_MAX)
-			throw DoughException.create("Sugar [%] must be between 0 and "
-				+ Helper.round(SUGAR_MAX * 100., 1) + "%");
-		if(fat < 0.)
-			throw DoughException.create("Fat [%] cannot be less than zero");
-		if(salt < 0. || salt >= SALT_MAX)
-			throw DoughException.create("Salt [%] must be between 0 and "
-				+ Helper.round(SALT_MAX * 100., 3) + "%");
+	private void validate() throws DoughException{
 		if(hydration < HYDRATION_MIN || hydration > HYDRATION_MAX)
-			throw DoughException.create("Hydration [%] cannot be between "
-				+ Helper.round(HYDRATION_MIN * 100., 1)
+			throw DoughException.create("Hydration [%] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
 				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
-		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
-			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and "
-				+ Helper.round(CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
-		if(atmosphericPressure <= 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
-			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
-				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
 	}
 
 	/**
@@ -215,7 +222,9 @@ public class Dough{
 	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final LeaveningStage... stages) throws DoughException, TooManyEvaluationsException{
+	public double backtrackStages(final LeaveningStage... stages) throws DoughException, YeastException, TooManyEvaluationsException{
+		validate();
+
 		try{
 			final double ingredientsFactor = ingredientsFactor();
 			//FIXME apply stretch&fold volume reduction
@@ -248,7 +257,7 @@ public class Dough{
 			return solverYeast.solve(100, f, 0., MAX_YEAST);
 		}
 		catch(final NoBracketingException e){
-			throw DoughException.create("No yeast quantity will ever be able to produce the given expansion ratio in such a short time");
+			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio");
 		}
 	}
 
