@@ -50,6 +50,12 @@ public class Dough{
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 
 	/**
+	 * TODO
+	 * @see #fatFactor()
+	 */
+	public static final double FAT_MAX = 1.;
+
+	/**
 	 * @see #saltFactor()
 	 * @see #SALT_MAX
 	 */
@@ -119,9 +125,6 @@ public class Dough{
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
 
-	//Volume factor after each kneading, corresponding to a new stage (V_i = V_i-1 * (1 - STRETCH_AND_FOLD_VOLUME_REDUCTION)) [%]
-	private static final double STRETCH_AND_FOLD_VOLUME_REDUCTION = 1. - 0.4187;
-
 
 	//accuracy is ±0.001%
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
@@ -143,8 +146,7 @@ public class Dough{
 
 
 	//https://planetcalc.com/5992/
-	//TODO time[hrs] from FY[%] @ 25 °C: time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327)
-	//FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
+	//TODO time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327) (@ 25 °C), inverse is FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
 	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
 
@@ -160,53 +162,64 @@ public class Dough{
 		this.yeastModel = yeastModel;
 	}
 
-	public void addSugar(final double sugar, final double sugarContent, final double waterContent) throws DoughException{
+	public Dough addSugar(final double sugar, final double sugarContent, final double waterContent) throws DoughException{
 		this.sugar += sugar * sugarContent;
 		addHydration(sugar * waterContent);
 
 		if(sugar < 0. || this.sugar > SUGAR_MAX)
 			throw DoughException.create("Sugar [%] must be between 0 and " + Helper.round(SUGAR_MAX * 100., 1) + "%");
+
+		return this;
 	}
 
-	public void addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
+	public Dough addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
 			throws DoughException{
 		this.fat += fat * fatContent;
 		addHydration(fat * waterContent);
 		addSalt(fat * saltContent);
 
-		//FIXME add check for maximum
-		if(this.fat < 0.)
-			throw DoughException.create("Fat [%] cannot be less than zero");
+		if(fat < 0. || this.fat > FAT_MAX)
+			throw DoughException.create("Fat [%] must be between 0 and " + Helper.round(FAT_MAX * 100., 1) + "%");
+
+		return this;
 	}
 
-	public void addSalt(final double salt) throws DoughException{
+	public Dough addSalt(final double salt) throws DoughException{
 		this.salt += salt;
 
 		if(salt < 0. || this.salt > SALT_MAX)
 			throw DoughException.create("Salt [%] must be between 0 and " + Helper.round(SALT_MAX * 100., 1) + "%");
+
+		return this;
 	}
 
-	public void addHydration(final double hydration) throws DoughException{
+	public Dough addHydration(final double hydration) throws DoughException{
 		if(hydration < 0.)
 			throw DoughException.create("Hydration [%] cannot be less than zero");
 
 		this.hydration += hydration;
+
+		return this;
 	}
 
-	public void withChlorineDioxide(final double chlorineDioxide) throws DoughException{
+	public Dough withChlorineDioxide(final double chlorineDioxide) throws DoughException{
 		if(chlorineDioxide < 0. || chlorineDioxide >= CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] must be between 0 and " + Helper.round(CHLORINE_DIOXIDE_MAX, 2)
 				+ " mg/l");
 
 		this.chlorineDioxide = chlorineDioxide;
+
+		return this;
 	}
 
-	public void withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
+	public Dough withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
 		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
 				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
 
 		this.atmosphericPressure = atmosphericPressure;
+
+		return this;
 	}
 
 	private void validate() throws DoughException{
@@ -223,6 +236,19 @@ public class Dough{
 	 * @return	Yeast to use at first stage [%].
 	 */
 	public double backtrackStages(final LeaveningStage... stages) throws DoughException, YeastException, TooManyEvaluationsException{
+		return backtrackStages(null, stages);
+	}
+
+	/**
+	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
+	 * temperature.
+	 *
+	 * @param stretchAndFoldStages	Stretch & Fold stages.
+	 * @param stages	Data for stages.
+	 * @return	Yeast to use at first stage [%].
+	 */
+	public double backtrackStages(final StretchAndFoldStage[] stretchAndFoldStages, final LeaveningStage... stages) throws DoughException,
+			YeastException, TooManyEvaluationsException{
 		validate();
 
 		try{
@@ -341,8 +367,7 @@ public class Dough{
 	 * @return	Correction factor.
 	 */
 	double fatFactor(){
-		//0 <= fat <= ??%
-		final double maxFat = 0.;
+		//0 <= fat <= FAT_MAX
 		//1+fat/300...?
 		return 1.;
 	}

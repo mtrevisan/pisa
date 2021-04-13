@@ -32,6 +32,25 @@ import org.junit.jupiter.api.Test;
 class DoughTest{
 
 	@Test
+	void singleStageNoYeastPossible() throws DoughException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addHydration(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
+		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(stage1),
+			"No yeast quantity will ever be able to produce the given expansion ratio");
+	}
+
+	@Test
+	void singleStage() throws DoughException, YeastException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addHydration(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
+		final double yeast = dough.backtrackStages(stage1);
+
+		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
+	}
+
+	@Test
 	void twoStages() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
@@ -54,22 +73,19 @@ class DoughTest{
 	}
 
 	@Test
-	void singleStageNoYeastPossible() throws DoughException{
-		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addHydration(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
-		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(stage1),
-			"No yeast quantity will ever be able to produce the given expansion ratio");
-	}
-
-	@Test
-	void singleStage() throws DoughException, YeastException{
+	void twoStagesWithStretchAndFolds() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final double yeast = dough.backtrackStages(stage1);
+		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5);
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5);
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.25)
+			.withVolumeReduction(0.40);
+		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
+		final double yeast = dough.backtrackStages(stretchAndFoldStages, stage1, stage2);
 
-		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
+		Assertions.assertEquals(0.006_38, yeast, 0.000_01);
 	}
 
 
