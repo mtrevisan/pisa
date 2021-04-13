@@ -297,6 +297,7 @@ public class Dough{
 				}
 
 				//NOTE: last `volumeDecrease` is NOT taken into consideration!
+				//FIXME should it be?
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
 					currentStage.temperature, ingredientsFactor);
 				return volumeExpansionRatio - MAX_TARGET_VOLUME_EXPANSION_RATIO;
