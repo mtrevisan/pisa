@@ -24,13 +24,21 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+
 
 public class LeaveningStage{
 
-	//[°C]
+	//V_after = V_prior * (1 - VOLUME_DECRESE_CUT) [%]
+	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;
+
+
+	/** Leavening temperature [°C]. */
 	double temperature;
-	//[hrs]
+	/** Leavening duration [hrs]. */
 	double duration;
+	/** Volume decrease after leavening stage [%]. */
+	double volumeDecrease;
 
 
 	public static LeaveningStage create(final double temperature, final double duration){
@@ -42,9 +50,17 @@ public class LeaveningStage{
 		this.duration = duration;
 	}
 
+	public LeaveningStage withVolumeDecrease(final double volumeReduction){
+		this.volumeDecrease = volumeReduction;
+
+		return this;
+	}
+
 	@Override
 	public String toString(){
-		return getClass().getSimpleName() + "{" + temperature + " °C for " + duration + " hrs}";
+		return getClass().getSimpleName() + "{" + temperature + " °C for " + duration + " hrs"
+			+ (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
+			+ "}";
 	}
 
 }

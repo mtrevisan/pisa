@@ -73,19 +73,33 @@ class DoughTest{
 	}
 
 	@Test
+	void twoStagesInnerVolumeDecrease() throws DoughException, YeastException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
+		dough.addHydration(0.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., 5.)
+			.withVolumeDecrease(0.20);
+		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final double yeast = dough.backtrackStages(stage1, stage2);
+
+		Assertions.assertEquals(0.043_57, yeast, 0.000_01);
+	}
+
+	@Test
 	void twoStagesWithStretchAndFolds() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addHydration(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5)
+			.withVolumeDecrease(0.10);
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5)
+			.withVolumeDecrease(0.25);
 		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.25)
-			.withVolumeReduction(0.40);
+			.withVolumeDecrease(0.30);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		final double yeast = dough.backtrackStages(stretchAndFoldStages, stage1, stage2);
 
-		Assertions.assertEquals(0.006_38, yeast, 0.000_01);
+		Assertions.assertEquals(0.010_13, yeast, 0.000_01);
 	}
 
 

@@ -24,20 +24,19 @@
  */
 package io.github.mtrevisan.pizza;
 
-
 import io.github.mtrevisan.pizza.utils.Helper;
 
 
 public class StretchAndFoldStage{
 
-	//V_after = V_prior * (1 - VOLUME_REDUCTION) [%]
-	private static final double VOLUME_REDUCTION = 1. - 0.4187;
+	//V_after = V_prior * (1 - VOLUME_DECRESE) [%]
+	public static final double VOLUME_DECREASE_DEFAULT = 0.4187;
 
 
 	/** Interval at which to apply stretch & fold [hrs]. */
 	double lapse;
-	/** Volume reduction after each kneading [%]. */
-	double volumeReduction;
+	/** Volume decrease after stretch & fold phase [%]. */
+	double volumeDecrease;
 
 
 	public static StretchAndFoldStage create(final double lapse){
@@ -46,23 +45,23 @@ public class StretchAndFoldStage{
 
 	private StretchAndFoldStage(final double lapse){
 		this.lapse = lapse;
-		this.volumeReduction = VOLUME_REDUCTION;
+		this.volumeDecrease = VOLUME_DECREASE_DEFAULT;
 	}
 
-	public StretchAndFoldStage withVolumeReduction(final double volumeReduction){
-		this.volumeReduction = volumeReduction;
+	public StretchAndFoldStage withVolumeDecrease(final double volumeReduction){
+		this.volumeDecrease = volumeReduction;
 
 		return this;
 	}
 
-	public double getVolumeReduction(){
-		return volumeReduction;
+	public double getVolumeDecrease(){
+		return volumeDecrease;
 	}
 
 	@Override
 	public String toString(){
 		return getClass().getSimpleName() + "{lapse: " + lapse + " hrs, reduction: "
-			+ Helper.round(volumeReduction * 100., 2) + "%}";
+			+ Helper.round(volumeDecrease * 100., 2) + "%}";
 	}
 
 }

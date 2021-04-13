@@ -235,7 +235,7 @@ public class Dough{
 	 * @param stages	Data for stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final LeaveningStage... stages) throws DoughException, YeastException, TooManyEvaluationsException{
+	public double backtrackStages(final LeaveningStage... stages) throws DoughException, YeastException{
 		return backtrackStages(null, stages);
 	}
 
@@ -248,34 +248,55 @@ public class Dough{
 	 * @return	Yeast to use at first stage [%].
 	 */
 	public double backtrackStages(final StretchAndFoldStage[] stretchAndFoldStages, final LeaveningStage... stages) throws DoughException,
-			YeastException, TooManyEvaluationsException{
+			YeastException{
 		validate();
 
 		try{
 			final double ingredientsFactor = ingredientsFactor();
-			//FIXME apply stretch&fold volume reduction
 			final UnivariateFunction f = yeast -> {
 				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 				double lambda = estimatedLag(yeast);
 				LeaveningStage currentStage = stages[0];
 				double volumeExpansionRatio = 0.;
 				double duration = 0.;
+				int stretchAndFoldIndex = 0;
+				double stretchAndFoldDuration = 0.;
 				for(int i = 1; i < stages.length; i ++){
 					final LeaveningStage previousStage = stages[i - 1];
 					duration += previousStage.duration;
 					currentStage = stages[i];
 
 					//avoid modifying `lambda` if the temperature is the same
+					double currentVolume = 0.;
 					if(previousStage.temperature != currentStage.temperature){
-						final double previousRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha,
-							previousStage.temperature, ingredientsFactor);
+						final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
+							ingredientsFactor);
 						lambda = Math.max(lambda - previousStage.duration, 0.);
-						final double currentRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha,
-							currentStage.temperature, ingredientsFactor);
+						currentVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, currentStage.temperature, ingredientsFactor);
 
-						volumeExpansionRatio += previousRatio - currentRatio;
+						volumeExpansionRatio += previousVolume - currentVolume;
 					}
+					//account for stage volume decrease
+					volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
+
+					//apply stretch&fold volume reduction:
+					double stretchAndFoldVolumeDecrease = 0.;
+					while(stretchAndFoldStages != null && stretchAndFoldIndex < stretchAndFoldStages.length){
+						final StretchAndFoldStage stretchAndFoldStage = stretchAndFoldStages[stretchAndFoldIndex];
+						if(stretchAndFoldDuration + stretchAndFoldStage.lapse > duration)
+							break;
+
+						stretchAndFoldIndex ++;
+						stretchAndFoldDuration += stretchAndFoldStage.lapse;
+
+						final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
+							+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
+						stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
+					}
+					volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
 				}
+
+				//NOTE: last `volumeDecrease` is NOT taken into consideration!
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
 					currentStage.temperature, ingredientsFactor);
 				return volumeExpansionRatio - MAX_TARGET_VOLUME_EXPANSION_RATIO;
@@ -284,6 +305,9 @@ public class Dough{
 		}
 		catch(final NoBracketingException e){
 			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio");
+		}
+		catch(final TooManyEvaluationsException e){
+			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver");
 		}
 	}
 
