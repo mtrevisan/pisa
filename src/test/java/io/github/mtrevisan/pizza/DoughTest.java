@@ -131,19 +131,19 @@ class DoughTest{
 	@Test
 	void sugarFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addSugar(Dough.SUGAR_MAX / 2., 1., 0.);
+		dough.addSugar(Dough.SUGAR_MAX / 2., SugarType.SUCROSE, 1., 0.);
 		final double factor = dough.sugarFactor();
 
-		Assertions.assertEquals(0.279_338, factor, 0.000_001);
+		Assertions.assertEquals(0.309_960, factor, 0.000_001);
 	}
 
 	@Test
 	void sugarFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addSugar(Dough.SUGAR_MAX, 1., 0.);
+		dough.addSugar(Dough.SUGAR_MAX, SugarType.SUCROSE, 1., 0.);
 		final double factor = dough.sugarFactor();
 
-		Assertions.assertEquals(0., factor, 0.000_001);
+		Assertions.assertEquals(0.030_622, factor, 0.000_001);
 	}
 
 

@@ -40,8 +40,6 @@ public class Dough{
 
 	/** Standard atmosphere [hPa]. */
 	public static final double ONE_ATMOSPHERE = 1013.25;
-	/** Absolute zero [°C]. */
-	public static final double ABSOLUTE_ZERO = 273.15;
 
 	/**
 	 * @see #sugarFactor()
@@ -176,16 +174,16 @@ public class Dough{
 
 
 	/**
-	 * FIXME this is not properly `sugar`, but maybe sucrose, or something alike
-	 *
 	 * @param sugar	Sugar quantity w.r.t. flour [%].
+	 * @param sugarType	Sugar type.
 	 * @param sugarContent	Sucrose content [%].
 	 * @param waterContent	Water content [%].
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public Dough addSugar(final double sugar, final double sugarContent, final double waterContent) throws DoughException{
-		this.sugar += sugar * sugarContent;
+	public Dough addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
+			throws DoughException{
+		this.sugar += sugarType.factor * sugar * sugarContent;
 		addPureWater(sugar * waterContent);
 
 		if(sugar < 0. || this.sugar > SUGAR_MAX)
