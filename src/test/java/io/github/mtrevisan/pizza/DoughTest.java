@@ -36,7 +36,7 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
-		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0),
+		Assertions.assertThrows(YeastException.class, () -> dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0, null),
 			"No yeast quantity will ever be able to produce the given expansion ratio");
 	}
 
@@ -45,7 +45,7 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final double yeast = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0);
+		final double yeast = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0, null);
 
 		Assertions.assertEquals(0.011_86, yeast, 0.000_01);
 	}
@@ -57,7 +57,7 @@ class DoughTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
 		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
-		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1, null);
 
 		Assertions.assertEquals(0.006_38, yeast, 0.000_01);
 	}
@@ -68,8 +68,8 @@ class DoughTest{
 		dough.addPureWater(0.6);
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
-		final double yeast1 = dough.backtrackStages(new LeaveningStage[]{stage1, stage2}, 2., 0);
-		final double yeast2 = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0);
+		final double yeast1 = dough.backtrackStages(new LeaveningStage[]{stage1, stage2}, 2., 0, null);
+		final double yeast2 = dough.backtrackStages(new LeaveningStage[]{stage1}, 2., 0, null);
 
 		Assertions.assertEquals(0.011_86, yeast1, 0.000_01);
 		Assertions.assertEquals(yeast2, yeast1, 0.000_01);
@@ -82,7 +82,7 @@ class DoughTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
 		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
 		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
-		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1, null);
 
 		Assertions.assertEquals(0.006_14, yeast, 0.000_01);
 	}
@@ -95,7 +95,7 @@ class DoughTest{
 			.withVolumeDecrease(0.20);
 		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
 		final LeaveningStage[] leaveningStages = new LeaveningStage[]{stage1, stage2};
-		final double yeast = dough.backtrackStages(leaveningStages, 2., 1);
+		final double yeast = dough.backtrackStages(leaveningStages, 2., 1, null);
 
 		Assertions.assertEquals(0.043_57, yeast, 0.000_01);
 	}
@@ -152,7 +152,7 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(1., factor, 0.000_001);
+		Assertions.assertEquals(1.000_005, factor, 0.000_001);
 	}
 
 	@Test
@@ -161,7 +161,7 @@ class DoughTest{
 		dough.addSalt(Dough.SALT_MAX / 2.);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.834_505, factor, 0.000_001);
+		Assertions.assertEquals(0.835_500, factor, 0.000_001);
 	}
 
 	@Test
@@ -170,7 +170,7 @@ class DoughTest{
 		dough.addSalt(Dough.SALT_MAX * 0.99);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.026_662, factor, 0.000_001);
+		Assertions.assertEquals(0.029_823, factor, 0.000_001);
 	}
 
 

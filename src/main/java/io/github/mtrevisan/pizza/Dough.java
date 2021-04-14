@@ -46,6 +46,8 @@ public class Dough{
 	 */
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 	/**
+	 * [%]
+	 *
 	 * @see #sugarFactor()
 	 * @see #SUGAR_COEFFICIENTS
 	 */
@@ -53,6 +55,8 @@ public class Dough{
 
 	/**
 	 * TODO
+	 * [%]
+	 *
 	 * @see #fatFactor()
 	 */
 	public static final double FAT_MAX = 1.;
@@ -63,6 +67,8 @@ public class Dough{
 	 */
 	private static final double[] SALT_COEFFICIENTS = new double[]{1., -0.05, -45., -1187.5};
 	/**
+	 * [%]
+	 *
 	 * @see #saltFactor()
 	 * @see #SALT_COEFFICIENTS
 	 */
@@ -276,20 +282,6 @@ public class Dough{
 	}
 
 
-	/**
-	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
-	 * temperature.
-	 *
-	 * @param leaveningStages   Data for stages.
-	 * @param targetVolumeExpansionRatio   Maximum target volume expansion ratio to reach.
-	 * @param targetVolumeExpansionRatioAtLeaveningStage   Leavening stage in which to reach the given volume expansion ratio.
-	 * @return	Yeast to use at first stage [%].
-	 */
-	public double backtrackStages(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
-			final int targetVolumeExpansionRatioAtLeaveningStage) throws DoughException, YeastException{
-		return backtrackStages(leaveningStages, targetVolumeExpansionRatio, targetVolumeExpansionRatioAtLeaveningStage,
-			null);
-	}
 
 	/**
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
@@ -404,13 +396,16 @@ public class Dough{
 
 	/**
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
 	 * @param yeast	Quantity of yeast [%].
 	 * @return	The estimated lag [hrs].
 	 */
 	public double estimatedLag(final double yeast){
+		final double saltLag = Math.log(1. + Math.exp(0.494 * (salt * 1000. / water - 84.)));
 		//FIXME this formula is for 36±1 °C
-		return (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
+		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
+		return lag + saltLag;
 	}
 
 	/**
@@ -478,12 +473,17 @@ public class Dough{
 	/**
 	 * @see <a href="https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf">Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64.</a>
 	 * @see <a href="https://aem.asm.org/content/aem/43/4/757.full.pdf">Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.</a>
-	 * @see <a href="https://watermark.silverchair.com/0362-028x-70_2_456.pdf">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
+	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
+	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
+	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
 	 * @return	Correction factor.
 	 */
 	double saltFactor(){
-		return Math.max(Helper.evaluatePolynomial(SALT_COEFFICIENTS, salt), 0.);
+//		final double k = 1. - Math.log(Math.pow(1. + Math.exp(0.0618 * salt), 0.0073));
+//		return Math.exp(k * salt / (1.0010 - 0.0006 * salt));
+		//local maximum is at 0.01%
+		return Math.max(Helper.evaluatePolynomial(SALT_COEFFICIENTS, salt - 0.000_1), 0.);
 	}
 
 	/**

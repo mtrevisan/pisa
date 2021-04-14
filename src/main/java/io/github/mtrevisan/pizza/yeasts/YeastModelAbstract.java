@@ -87,8 +87,8 @@ public abstract class YeastModelAbstract{
 
 	@Override
 	public String toString(){
-		return getClass().getSimpleName() + "{Tmin: " + getTemperatureMin() + ", Topt: " + getTemperatureOpt()
-			+ ", Tmax: " + getTemperatureMax() + ", μ: " + getMaximumSpecificGrowthRate() + "}";
+		return getClass().getSimpleName() + "{T(" + getTemperatureMin() + ", " + getTemperatureOpt() + ", " + getTemperatureMax()
+			+ "), μ: " + getMaximumSpecificGrowthRate() + "}";
 	}
 
 }
