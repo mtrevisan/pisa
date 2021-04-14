@@ -50,6 +50,8 @@ public class Dough{
 	 *
 	 * @see #sugarFactor()
 	 * @see #SUGAR_COEFFICIENTS
+	 * @see <a hreaf="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
+	 * FIXME max is 3.21 mol/l
 	 */
 	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
 
@@ -71,6 +73,8 @@ public class Dough{
 	 *
 	 * @see #saltFactor()
 	 * @see #SALT_COEFFICIENTS
+	 * @see <a hreaf="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
+	 * FIXME max is 2.04 mol/l
 	 */
 	public static final double SALT_MAX = 0.08321;
 
@@ -480,8 +484,15 @@ public class Dough{
 	 * @return	Correction factor.
 	 */
 	double saltFactor(){
-//		final double k = 1. - Math.log(Math.pow(1. + Math.exp(0.0618 * salt), 0.0073));
-//		return Math.exp(k * salt / (1.0010 - 0.0006 * salt));
+		//Lactobacillus pentosus (salt [g/l])
+		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.1696 * salt), 0.1896));
+		//final double b = salt / (52.6363 + 0.0763 * salt);
+		//return Math.exp(a * b);
+
+		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.0618 * salt), 0.0073));
+		//final double b = salt / (1.0010 - 0.0006 * salt);
+		//return Math.exp(a * b);
+
 		//local maximum is at 0.01%
 		return Math.max(Helper.evaluatePolynomial(SALT_COEFFICIENTS, salt - 0.000_1), 0.);
 	}
