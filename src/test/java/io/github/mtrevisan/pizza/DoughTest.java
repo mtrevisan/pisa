@@ -146,7 +146,7 @@ class DoughTest{
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		dough.calculateYeast(leaveningStages, 2., 0, stretchAndFoldStages);
 
-		Recipe recipe = dough.recipe(ingredients);
+		Recipe recipe = dough.createRecipe(ingredients);
 		Assertions.assertEquals(443.2, recipe.flour, 0.1);
 		Assertions.assertEquals(288.1, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
@@ -194,7 +194,7 @@ class DoughTest{
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		dough.calculateYeast(leaveningStages, 2., 0, stretchAndFoldStages);
 
-		Recipe recipe = dough.recipe(ingredients);
+		Recipe recipe = dough.createRecipe(ingredients);
 		Assertions.assertEquals(443.7, recipe.flour, 0.1);
 		Assertions.assertEquals(288.4, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);

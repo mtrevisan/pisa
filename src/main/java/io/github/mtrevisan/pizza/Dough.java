@@ -602,7 +602,7 @@ public class Dough{
 	 * @param ingredients	The recipe ingredients.
 	 * @return	The recipe.
 	 */
-	public Recipe recipe(final Ingredients ingredients){
+	public Recipe createRecipe(final Ingredients ingredients){
 		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
 		double totalFlour = ingredients.dough / totalFraction;
 		double yeast, flour, water, sugar, fat, salt,

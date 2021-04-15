@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.pizza;
 
-
 import io.github.mtrevisan.pizza.utils.Helper;
 
 

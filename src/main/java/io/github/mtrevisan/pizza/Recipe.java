@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+
 
 public class Recipe{
 
@@ -41,5 +43,17 @@ public class Recipe{
 	double fat;
 	/** [g] */
 	double salt;
+
+
+	@Override
+	public String toString(){
+		return "flour: " + Helper.round(flour, 1) + " g"
+			+ ", water: " + Helper.round(water, 1) + " g"
+			+ (waterTemperature > 0.? " at " + Helper.round(waterTemperature, 1) + " °C": "")
+			+ ", yeast: " + Helper.round(yeast, 2) + " g"
+			+ ", sugar: " + Helper.round(sugar, 2) + " g"
+			+ ", fat: " + Helper.round(fat, 2) + " g"
+			+ ", salt: " + Helper.round(salt, 2) + " g";
+	}
 
 }
