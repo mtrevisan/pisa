@@ -38,8 +38,26 @@ public class Dough{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
 
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_CARBON = 12.0107;
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_HYDROGEN = 1.00784;
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_OXYGEN = 15.9994;
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_SODIUM = 22.989769;
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_CHLORINE = 35.453;
+
+	/** Molecular weight of glucose [g/mol]. */
+	private static final double MOLECULAR_WEIGHT_GLUCOSE = MOLECULAR_WEIGHT_CARBON * 6. + MOLECULAR_WEIGHT_HYDROGEN * 12.
+		+ MOLECULAR_WEIGHT_OXYGEN * 6.;
+	/** [g/mol] */
+	private static final double MOLECULAR_WEIGHT_SODIUM_CHLORIDE = MOLECULAR_WEIGHT_SODIUM + MOLECULAR_WEIGHT_CHLORINE;
+
 	/** Standard atmosphere [hPa]. */
-	public static final double ONE_ATMOSPHERE = 1013.25;
+	static final double ONE_ATMOSPHERE = 1013.25;
+
 
 	/**
 	 * @see #sugarFactor()
@@ -50,10 +68,9 @@ public class Dough{
 	 *
 	 * @see #sugarFactor()
 	 * @see #SUGAR_COEFFICIENTS
-	 * @see <a hreaf="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
-	 * FIXME max is 3.21 mol/l
+	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
-	public static final double SUGAR_MAX = Math.exp(-0.3154 / 0.403);
+	static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 100.;
 
 	/**
 	 * TODO
@@ -61,22 +78,15 @@ public class Dough{
 	 *
 	 * @see #fatFactor()
 	 */
-	public static final double FAT_MAX = 1.;
+	static final double FAT_MAX = 1.;
 
-	/**
-	 * @see #saltFactor()
-	 * @see #SALT_MAX
-	 */
-	private static final double[] SALT_COEFFICIENTS = new double[]{1., -0.05, -45., -1187.5};
 	/**
 	 * [%]
 	 *
 	 * @see #saltFactor()
-	 * @see #SALT_COEFFICIENTS
-	 * @see <a hreaf="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
-	 * FIXME max is 2.04 mol/l
+	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
-	public static final double SALT_MAX = 0.08321;
+	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 100.;
 
 	/**
 	 * @see #waterFactor()
@@ -90,28 +100,28 @@ public class Dough{
 	 * @see #WATER_COEFFICIENTS
 	 * @see #waterFactor()
 	 */
-	public static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
+	static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 	/**
 	 * [%]
 	 *
 	 * @see #WATER_COEFFICIENTS
 	 * @see #waterFactor()
 	 */
-	public static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
+	static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
 	/**
-	 * [mg/l]
+	 * [mg/l] = 1 ppm
 	 *
-	 * @see #chlorineDioxideFactor()
+	 * @see #waterChlorineDioxideFactor()
 	 */
-	public static final double WATER_CHLORINE_DIOXIDE_MAX = 0.0931;
+	public static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
 	/**
 	 * TODO
 	 * [mg/l]
 	 *
-	 * @see #fixedResidueFactor()
+	 * @see #waterFixedResidueFactor()
 	 */
-	public static final double WATER_FIXED_RESIDUE_MAX = 100.;
+	public static final double WATER_FIXED_RESIDUE_MAX = 1500.;
 
 	/**
 	 * @see #atmosphericPressureFactor()
@@ -135,9 +145,9 @@ public class Dough{
 	/**
 	 * [%]
 	 *
-	 * @see #backtrackStages(LeaveningStage[], double, int, StretchAndFoldStage[])
+	 * @see #calculateYeast(LeaveningStage[], double, int, StretchAndFoldStage[])
 	 */
-	private static final double YEAST_MAX = 1.;
+	private static final double SOLVER_YEAST_MAX = 1.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
@@ -149,13 +159,13 @@ public class Dough{
 
 
 	private final YeastModelAbstract yeastModel;
-	/** Sugar quantity w.r.t. flour [%]. */
+	/** Total sugar (glucose) quantity w.r.t. flour [%]. */
 	private double sugar;
-	/** Fat quantity w.r.t. flour [%]. */
+	/** Total fat quantity w.r.t. flour [%]. */
 	private double fat;
-	/** Salt quantity w.r.t. flour [%]. */
+	/** Total salt quantity w.r.t. flour [%]. */
 	private double salt;
-	/** Water quantity w.r.t. flour [%]. */
+	/** Total water quantity w.r.t. flour [%]. */
 	private double water;
 	/** Chlorine dioxide in water [mg/l]. */
 	private double waterChlorineDioxide;
@@ -163,6 +173,9 @@ public class Dough{
 	private double waterFixedResidue;
 	/** Atmospheric pressure [hPa]. */
 	private double atmosphericPressure = ONE_ATMOSPHERE;
+
+	/** Yeast quantity [%]. */
+	double yeast;
 
 
 	//https://planetcalc.com/5992/
@@ -185,6 +198,16 @@ public class Dough{
 
 	/**
 	 * @param sugar	Sugar quantity w.r.t. flour [%].
+	 * @param ingredients	The recipe ingredients.
+	 * @return	This instance.
+	 * @throws DoughException	If sugar is too low or too high.
+	 */
+	public Dough addSugar(final double sugar, final Ingredients ingredients) throws DoughException{
+		return addSugar(sugar, ingredients.sugarType, ingredients.sugarContent, ingredients.sugarWaterContent);
+	}
+
+	/**
+	 * @param sugar	Sugar quantity w.r.t. flour [%].
 	 * @param sugarType	Sugar type.
 	 * @param sugarContent	Sucrose content [%].
 	 * @param waterContent	Water content [%].
@@ -200,6 +223,16 @@ public class Dough{
 			throw DoughException.create("Sugar [%] must be between 0 and " + Helper.round(SUGAR_MAX * 100., 1) + "%");
 
 		return this;
+	}
+
+	/**
+	 * @param fat	Fat quantity w.r.t. flour [%].
+	 * @param ingredients	The recipe ingredients.
+	 * @return	This instance.
+	 * @throws DoughException	If fat is too low or too high.
+	 */
+	public Dough addFat(final double fat, final Ingredients ingredients) throws DoughException{
+		return addFat(fat, ingredients.fatContent, ingredients.fatWaterContent, ingredients.fatSaltContent);
 	}
 
 	/**
@@ -247,6 +280,16 @@ public class Dough{
 
 	/**
 	 * @param water	Water quantity w.r.t. flour [%].
+	 * @param ingredients	The recipe ingredients.
+	 * @return	This instance.
+	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
+	 */
+	public Dough addWater(final double water, final Ingredients ingredients) throws DoughException{
+		return addWater(water, ingredients.waterChlorineDioxide, ingredients.waterFixedResidue);
+	}
+
+	/**
+	 * @param water	Water quantity w.r.t. flour [%].
 	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
 	 * @param fixedResidue	Fixed residue in water [mg/l].
 	 * @return	This instance.
@@ -279,26 +322,38 @@ public class Dough{
 		return this;
 	}
 
+	/**
+	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
+	 *
+	 * @throws DoughException	If validation fails.
+	 */
 	private void validate() throws DoughException{
 		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
 			throw DoughException.create("Hydration [%] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
 				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
-	}
 
+		//convert [%] to [mol/l]
+		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
+		//convert [%] to [mol/l]
+		final double sodiumChloride = fractionOverTotal(salt * 10.) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
+		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221))) * (glucose / (0.0066 + 0.7096 * glucose)))
+				|| glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
+			throw DoughException.create("Salt and sugar are too much, yeast will die");
+	}
 
 
 	/**
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
 	 *
-	 * @param leaveningStages   Data for stages.
-	 * @param targetVolumeExpansionRatio   Maximum target volume expansion ratio to reach.
-	 * @param targetVolumeExpansionRatioAtLeaveningStage   Leavening stage in which to reach the given volume expansion ratio (index
+	 * @param leaveningStages	Data for stages.
+	 * @param targetVolumeExpansionRatio	Maximum target volume expansion ratio to reach.
+	 * @param targetVolumeExpansionRatioAtLeaveningStage	Leavening stage in which to reach the given volume expansion ratio (index
 	 * 	between 0 and `leaveningStages.length`).
-	 * @param stretchAndFoldStages   Stretch & Fold stages.
+	 * @param stretchAndFoldStages	Stretch & Fold stages.
 	 * @return	Yeast to use at first stage [%].
 	 */
-	public double backtrackStages(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
+	public void calculateYeast(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
 			final int targetVolumeExpansionRatioAtLeaveningStage, final StretchAndFoldStage[] stretchAndFoldStages) throws DoughException,
 			YeastException{
 		validate();
@@ -374,7 +429,7 @@ public class Dough{
 					currentStage.temperature, ingredientsFactor);
 				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - targetVolumeExpansionRatio;
 			};
-			return solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., YEAST_MAX);
+			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
 		catch(final NoBracketingException e){
 			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio");
@@ -406,7 +461,9 @@ public class Dough{
 	 * @return	The estimated lag [hrs].
 	 */
 	public double estimatedLag(final double yeast){
-		final double saltLag = Math.log(1. + Math.exp(0.494 * (salt * 1000. / water - 84.)));
+		//transform [%] to [g/l]
+		final double s = fractionOverTotal(salt * 10.);
+		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
 		//FIXME this formula is for 36±1 °C
 		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
 		return lag + saltLag;
@@ -440,8 +497,8 @@ public class Dough{
 		final double kFat = fatFactor();
 		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
-		final double kWaterChlorineDioxide = chlorineDioxideFactor();
-		final double kWaterFixedResidue = fixedResidueFactor();
+		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
+		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater * kWaterChlorineDioxide * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor();
 		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
@@ -456,9 +513,9 @@ public class Dough{
 	 */
 	double sugarFactor(){
 		if(sugar < 0.03)
-			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, sugar), 1.);
+			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, fractionOverTotal(sugar)), 1.);
 		if(sugar < SUGAR_MAX)
-			return -0.3154 - 0.403 * Math.log(sugar);
+			return Math.max(-0.3545 * (Math.log(fractionOverTotal(sugar)) - Math.log(SUGAR_MAX)), 0.);
 		return 0.;
 	}
 
@@ -485,16 +542,18 @@ public class Dough{
 	 */
 	double saltFactor(){
 		//Lactobacillus pentosus (salt [g/l])
-		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.1696 * salt), 0.1896));
-		//final double b = salt / (52.6363 + 0.0763 * salt);
+		//final double s = fractionOverTotal(salt * 10.);
+		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.1696 * s), 0.1896));
+		//final double b = s / (52.6363 + 0.0763 * s);
 		//return Math.exp(a * b);
 
-		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.0618 * salt), 0.0073));
-		//final double b = salt / (1.0010 - 0.0006 * salt);
-		//return Math.exp(a * b);
-
-		//local maximum is at 0.01%
-		return Math.max(Helper.evaluatePolynomial(SALT_COEFFICIENTS, salt - 0.000_1), 0.);
+		//local maximum is at 1.1%
+		//FIXME more or less
+		//transform [%] to [g/l]
+		final double s = fractionOverTotal(salt * 10.);
+		final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.69 * s), 0.4));
+		final double b = s / (1.7 + 0.3 * s);
+		return Math.exp(a * b);
 	}
 
 	/**
@@ -514,8 +573,8 @@ public class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double chlorineDioxideFactor(){
-		return Math.max(1. - waterChlorineDioxide / WATER_CHLORINE_DIOXIDE_MAX, 0.);
+	double waterChlorineDioxideFactor(){
+		return Math.max(1. - waterChlorineDioxide * fractionOverTotal(water) / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
 	/**
@@ -523,7 +582,7 @@ public class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double fixedResidueFactor(){
+	double waterFixedResidueFactor(){
 		//0 <= fixedResidue <= WATER_FIXED_RESIDUE_MAX
 		return 1.;
 	}
@@ -536,6 +595,55 @@ public class Dough{
 	double atmosphericPressureFactor(){
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
+	}
+
+	private double fractionOverTotal(final double value){
+		return value / (1. + water);
+	}
+
+
+	/**
+	 * @param ingredients	The recipe ingredients.
+	 * @param correctForIngredients	Whether to correct for ingredients' content in fat/salt/water.
+	 * @param correctForHumidity	Whether to correct for humidity in the flour.
+	 * @param airRelativeHumidity	Relative humidity of the air [%].
+	 * @return	The recipe.
+	 */
+	public Recipe recipe(final Ingredients ingredients, final boolean correctForIngredients, final boolean correctForHumidity,
+			final double airRelativeHumidity){
+		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
+		double totalFlour = ingredients.dough / totalFraction;
+		double yeast, flour, water, sugar, fat, salt,
+			difference;
+		do{
+			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
+			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
+			double correction = (correctForIngredients? this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent: 0.)
+				+ (correctForHumidity? Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.5): 0.);
+			water = Math.max(totalFlour * this.water - correction, 0.);
+			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
+			correction = (correctForIngredients? flour * ingredients.flour.fatContent: 0.);
+			fat = Math.max(totalFlour * this.fat - correction, 0.) / ingredients.fatContent;
+			correction = (correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
+			salt = Math.max(totalFlour * this.salt - correction, 0.);
+
+			//refine approximation:
+			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
+			difference = ingredients.dough - calculatedDough;
+			totalFlour += difference * 0.6;
+		}while(Math.abs(difference) > ingredients.doughPrecision);
+		final double waterTemperature = (ingredients.dough * ingredients.doughTemperature
+			- (ingredients.dough - water) * ingredients.ingredientsTemperature) / water;
+
+		final Recipe recipe = new Recipe();
+		recipe.flour = flour;
+		recipe.water = water;
+		recipe.waterTemperature = waterTemperature;
+		recipe.yeast = yeast;
+		recipe.sugar = sugar;
+		recipe.fat = fat;
+		recipe.salt = salt;
+		return recipe;
 	}
 
 
@@ -552,6 +660,7 @@ public class Dough{
 	 * @param doughTemperature	Temperature of the dough [°C].
 	 */
 	public double doughVolume(final double flour, final double dough, final double fatDensity, final double doughTemperature){
+		//TODO
 		//density of flour + salt + sugar + water
 		double doughDensity = 1.41
 			- 0.00006762 * atmosphericPressure

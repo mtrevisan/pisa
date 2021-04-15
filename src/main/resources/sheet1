@@ -1,157 +1,74 @@
-' [g]
-Const WEIGHT_PRECISION As Double = 0.005
-
-
-Private Sub Worksheet_Change(ByVal cell As Range)
-    Dim target_cells() As Variant: target_cells = Array( _
-        Range("inputFlourStrength"), Range("inputHydration"), Range("inputChlorineDioxide"), Range("inputSalt"), Range("inputFat"), _
-        Range("inputFatType"), Range("inputSugar"), Range("inputSugarType"), Range("inputYeastType"), _
-        Range("inputAtmosphericPressure"), Range("inputAirRelativeHumidity"), Range("inputCorrectForHumidity"), _
-        Range("inputAmbientTemperature"), Range("inputCorrectForIngredients"), Range("inputDoughTemperature"), _
-        Range("inputBulkFermentationDuration"), Range("inputBulkTemperature"), Range("inputFridgeRestDuration"), _
-        Range("inputFridgeTemperature"), Range("inputFinalProofDuration"), Range("inputProofTemperature"), _
-        Range("inputBakingTemperature"), Range("inputMassWeight"), Range("inputFlour1Strength"), Range("inputFlour2Strength") _
-    )
-
-    If CellsChanged(cell, target_cells) Then
-        IDYSeek
-    End If
-End Sub
-
 Sub IDYSeek()
-    Static seeking As Boolean
+	  Dim params As LeaveningParameters
+	  params.sugar = Range("inputSugar").Value2
+	  params.sugarType = Range("inputSugarType").Value2
+	  params.fat = Range("inputFat").Value2
+	  params.fatType = Range("inputFatType").Value2
+	  params.fatDensity = cellvalue(data, params.fatType, "density")
+	  params.salt = Range("inputSalt").Value2
+	  params.hydration = Range("inputHydration").Value2
+	  params.chlorineDioxide = Range("inputChlorineDioxide").Value2
+	  params.atmosphericPressure = Range("inputAtmosphericPressure").Value2
+	  params.ambientTemperature = Range("inputAmbientTemperature").Value2
+	  params.leaveningTime = Array(Range("inputBulkFermentationDuration").Value2 * 24, _
+			Range("inputFridgeRestDuration").Value2 * 24, _
+			Range("inputFinalProofDuration").Value2 * 24)
+	  params.temperature = Array(Range("inputBulkTemperature").Value2, _
+			Range("inputFridgeTemperature").Value2, _
+			Range("inputProofTemperature").Value2)
+	  params.bakingTemperature = Range("inputBakingTemperature").Value2
+	  params.targetArea = Range("inputArea").Value2
+	  params.targetHeight = Range("inputHeight").Value2
+	  params.dough = Range("inputMassWeight").Value2
+	  params.doughTemperature = Range("inputDoughTemperature").Value2
 
-    On Error GoTo error_handling
+		Dim yeastFactor As Double: yeastFactor = params.idy
+		Dim rawYeastFactor As Double: rawYeastFactor = yeastFactor / cellvalue(data, inputYeastType, "factor")
+		Dim inputMassWeight As Double: inputMassWeight = params.dough
+		' initial approximation
+		Dim totalFlour As Double: totalFlour = inputMassWeight / (1 _
+			 + params.hydration _
+			 + params.sugar / sugarInSugar _
+			 + rawYeastFactor _
+			 + params.salt _
+			 + params.fat / fatInFat)
+		Dim inputFlourStrength As Integer: inputFlourStrength = Range("inputFlourStrength").Value2
+		Dim inputFlour1Strength As Integer: inputFlour1Strength = Range("inputFlour1Strength").Value2
+		Dim inputFlour2Strength As Integer: inputFlour2Strength = Range("inputFlour2Strength").Value2
+		Dim diffFlourFlour2 As Integer: diffFlourFlour2 = inputFlourStrength - inputFlour2Strength
+		Dim diffFlour1Flour2 As Integer: diffFlour1Flour2 = inputFlour1Strength - inputFlour2Strength
+		Dim diffFlour1Flour As Integer: diffFlour1Flour = inputFlour1Strength - inputFlourStrength
+		Dim hasFlour1 As Boolean: hasFlour1 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) > 0 _
+			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) >= 0)
+		Dim hasFlour2 As Boolean: hasFlour2 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) >= 0 _
+			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) > 0)
+		Dim inputAirRelativeHumidity As Double: inputAirRelativeHumidity = Range("inputAirRelativeHumidity").Value2
+		Dim yeastWeight, flourWeight, flourWeight1, flourWeight2, sugarWeight, fatWeight, waterWeight, saltWeight, _
+			 calculatedDoughWeight, difference As Double
+		Do
+			 yeastWeight = totalFlour * rawYeastFactor
+			 flourWeight = WorksheetFunction.Max(totalFlour - yeastWeight * (1 - rawYeastContent), 0)
+			 flourWeight1 = IIf(hasFlour1, flourWeight * diffFlourFlour2 / diffFlour1Flour2, 0)
+			 flourWeight2 = IIf(hasFlour2, flourWeight * diffFlour1Flour / diffFlour1Flour2, 0)
+			 sugarWeight = flourWeight * params.sugar / sugarInSugar
+			 fatWeight = WorksheetFunction.Max(totalFlour * params.fat _
+				  - IIf(inputCorrectForIngredients, _
+						IIf(hasFlour1, flourWeight1 * fatInFlour1, 0) _
+						+ IIf(hasFlour2, flourWeight2 * fatInFlour2, 0), 0), 0) _
+				  / fatInFat
+			 waterWeight = totalFlour _
+				  * WorksheetFunction.Max(params.hydration _
+				  - IIf(inputCorrectForHumidity, getDoughHumidity(inputAirRelativeHumidity) - getDoughHumidity(0.5), 0) _
+				  - IIf(inputCorrectForIngredients, inputSugar * waterInSugar + WorksheetFunction.Max(fatWeight, 0) * waterInFat, 0), 0)
+			 saltWeight = totalFlour * params.salt _
+				  - IIf(inputCorrectForIngredients, _
+						IIf(hasFlour1, flourWeight1 * saltInFlour1, 0) _
+						+ IIf(hasFlour2, flourWeight2 * saltInFlour2, 0) _
+						+ WorksheetFunction.Max(fatWeight, 0) * saltInFat, 0)
 
-    If Not seeking Then
-        seeking = True
-        Application.ScreenUpdating = False
-
-        Dim data As Range
-        Set data = Range("data").CurrentRegion
-
-        Dim params As LeaveningParameters
-        params.sugar = Range("inputSugar").Value2
-        params.sugarType = Range("inputSugarType").Value2
-        params.fat = Range("inputFat").Value2
-        params.fatType = Range("inputFatType").Value2
-        params.fatDensity = cellvalue(data, params.fatType, "density")
-        params.salt = Range("inputSalt").Value2
-        params.hydration = Range("inputHydration").Value2
-        params.chlorineDioxide = Range("inputChlorineDioxide").Value2
-        params.atmosphericPressure = Range("inputAtmosphericPressure").Value2
-        params.ambientTemperature = Range("inputAmbientTemperature").Value2
-        params.leaveningTime = Array(Range("inputBulkFermentationDuration").Value2 * 24, _
-            Range("inputFridgeRestDuration").Value2 * 24, _
-            Range("inputFinalProofDuration").Value2 * 24)
-        params.temperature = Array(Range("inputBulkTemperature").Value2, _
-            Range("inputFridgeTemperature").Value2, _
-            Range("inputProofTemperature").Value2)
-        params.bakingTemperature = Range("inputBakingTemperature").Value2
-        params.targetArea = Range("inputArea").Value2
-        params.targetHeight = Range("inputHeight").Value2
-        params.dough = Range("inputMassWeight").Value2
-        params.doughTemperature = Range("inputDoughTemperature").Value2
-
-        Dim validation As String: validation = validateParams(params)
-        If validation = "" Then
-            If Range("validation").MergeCells Then
-                Range("validation").MergeArea.ClearContents
-            Else
-                Range("validation").ClearContents
-            End If
-
-            Call calculateIDY(params)
-
-            Dim inputYeastType As String: inputYeastType = Range("inputYeastType").Value2
-            Dim inputCorrectForHumidity As Boolean: inputCorrectForHumidity = Range("inputCorrectForHumidity").Value2 = "YES"
-            Dim inputCorrectForIngredients As Boolean: inputCorrectForIngredients = Range("inputCorrectForIngredients").Value2 = "YES"
-
-            Dim waterInSugar As Double: waterInSugar = cellvalue(data, params.sugarType, "water")
-            Dim waterInFat As Double: waterInFat = cellvalue(data, params.fatType, "water")
-            Dim sugarInSugar As Double: sugarInSugar = cellvalue(data, params.sugarType, "sugar")
-            Dim rawYeastContent As Double: rawYeastContent = cellvalue(data, inputYeastType, "dough")
-            Dim saltInFlour1 As Double: saltInFlour1 = cellvalue(data, "flour 1", "salt")
-            Dim saltInFlour2 As Double: saltInFlour2 = cellvalue(data, "flour 2", "salt")
-            Dim saltInFat As Double: saltInFat = cellvalue(data, params.fatType, "salt")
-            Dim fatInFlour1 As Double: fatInFlour1 = cellvalue(data, "flour 1", "fat")
-            Dim fatInFlour2 As Double: fatInFlour2 = cellvalue(data, "flour 2", "fat")
-            Dim fatInFat As Double: fatInFat = cellvalue(data, params.fatType, "fat")
-
-            Dim yeastFactor As Double: yeastFactor = params.idy
-            Dim rawYeastFactor As Double: rawYeastFactor = yeastFactor / cellvalue(data, inputYeastType, "factor")
-            Dim inputMassWeight As Double: inputMassWeight = params.dough
-            ' initial approximation
-            Dim totalFlour As Double: totalFlour = inputMassWeight / (1 _
-                + params.hydration _
-                + params.sugar / sugarInSugar _
-                + rawYeastFactor _
-                + params.salt _
-                + params.fat / fatInFat)
-            Dim inputFlourStrength As Integer: inputFlourStrength = Range("inputFlourStrength").Value2
-            Dim inputFlour1Strength As Integer: inputFlour1Strength = Range("inputFlour1Strength").Value2
-            Dim inputFlour2Strength As Integer: inputFlour2Strength = Range("inputFlour2Strength").Value2
-            Dim diffFlourFlour2 As Integer: diffFlourFlour2 = inputFlourStrength - inputFlour2Strength
-            Dim diffFlour1Flour2 As Integer: diffFlour1Flour2 = inputFlour1Strength - inputFlour2Strength
-            Dim diffFlour1Flour As Integer: diffFlour1Flour = inputFlour1Strength - inputFlourStrength
-            Dim hasFlour1 As Boolean: hasFlour1 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) > 0 _
-                And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) >= 0)
-            Dim hasFlour2 As Boolean: hasFlour2 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) >= 0 _
-                And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) > 0)
-            Dim inputAirRelativeHumidity As Double: inputAirRelativeHumidity = Range("inputAirRelativeHumidity").Value2
-            Dim yeastWeight, flourWeight, flourWeight1, flourWeight2, sugarWeight, fatWeight, waterWeight, saltWeight, _
-                calculatedDoughWeight, difference As Double
-            Do
-                yeastWeight = totalFlour * rawYeastFactor
-                flourWeight = WorksheetFunction.Max(totalFlour - yeastWeight * (1 - rawYeastContent), 0)
-                flourWeight1 = IIf(hasFlour1, flourWeight * diffFlourFlour2 / diffFlour1Flour2, 0)
-                flourWeight2 = IIf(hasFlour2, flourWeight * diffFlour1Flour / diffFlour1Flour2, 0)
-                sugarWeight = flourWeight * params.sugar / sugarInSugar
-                fatWeight = WorksheetFunction.Max(totalFlour * params.fat _
-                    - IIf(inputCorrectForIngredients, _
-                        IIf(hasFlour1, flourWeight1 * fatInFlour1, 0) _
-                        + IIf(hasFlour2, flourWeight2 * fatInFlour2, 0), 0), 0) _
-                    / fatInFat
-                waterWeight = totalFlour _
-                    * WorksheetFunction.Max(params.hydration _
-                    - IIf(inputCorrectForHumidity, getDoughHumidity(inputAirRelativeHumidity) - getDoughHumidity(0.5), 0) _
-                    - IIf(inputCorrectForIngredients, inputSugar * waterInSugar + WorksheetFunction.Max(fatWeight, 0) * waterInFat, 0), 0)
-                saltWeight = totalFlour * params.salt _
-                    - IIf(inputCorrectForIngredients, _
-                        IIf(hasFlour1, flourWeight1 * saltInFlour1, 0) _
-                        + IIf(hasFlour2, flourWeight2 * saltInFlour2, 0) _
-                        + WorksheetFunction.Max(fatWeight, 0) * saltInFat, 0)
-
-                ' refine approximation
-                calculatedDoughWeight = flourWeight + waterWeight + sugarWeight + yeastWeight + saltWeight + fatWeight
-                difference = inputMassWeight - calculatedDoughWeight
-                totalFlour = totalFlour + difference / 2
-            Loop Until Abs(difference) < WEIGHT_PRECISION
-
-            Range("estimatedLag").Value2 = getEstimatedLag(yeastFactor) / 24
-            Range("estimatedExhaustion").Value2 = getEstimatedExhaustion(yeastFactor) / 24
-            Range("flourWeight1").Value2 = IIf(flourWeight1 > 0, flourWeight1, "--")
-            Range("flourWeight2").Value2 = IIf(flourWeight2 > 0, flourWeight2, "--")
-            Range("waterWeight").Value2 = waterWeight
-            Range("sugarWeight").Value2 = sugarWeight
-            Range("yeastWeight").Value2 = yeastWeight
-            Range("saltWeight").Value2 = saltWeight
-            Range("fatWeight").Value2 = fatWeight
-        Else
-            Range("validation").Value2 = validation
-        End If
-
-        Application.ScreenUpdating = True
-        seeking = False
-    End If
-
-done:
-    Exit Sub
-
-error_handling:
-    Application.ScreenUpdating = True
-    seeking = False
-
-    MsgBox "An error occurred: " & Err.Description
+			 ' refine approximation
+			 calculatedDoughWeight = flourWeight + waterWeight + sugarWeight + yeastWeight + saltWeight + fatWeight
+			 difference = inputMassWeight - calculatedDoughWeight
+			 totalFlour = totalFlour + difference / 2
+		Loop Until Abs(difference) < WEIGHT_PRECISION
 End Sub
-

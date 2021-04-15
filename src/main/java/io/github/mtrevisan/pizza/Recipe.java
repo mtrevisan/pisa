@@ -25,30 +25,21 @@
 package io.github.mtrevisan.pizza;
 
 
-public class Flour{
+public class Recipe{
 
-	/** Salt content [%]. */
-	double saltContent;
-	/** Fat content [%]. */
-	double fatContent;
-
-
-	/**
-	 * @see <a href="https://www.research.manchester.ac.uk/portal/files/54543624/FULL_TEXT.PDF">Trinh. Gas cells in bread dough. 2013.</a>
-	 *
-	 * @param hydration	[%].
-	 * @return	Protein content (standard error is 0.0466) [%].
-	 */
-	public static double estimatedMinimumProteinContent(final double hydration){
-		return (hydration - 0.320) / 2.15;
-	}
-
-	/**
-	 * @param airRelativeHumidity	[%].
-	 * @return	Flour humidity [%].
-	 */
-	public static double estimatedHumidity(final double airRelativeHumidity){
-		return 0.035 * Math.pow(airRelativeHumidity, 2.);
-	}
+	/** [g] */
+	double flour;
+	/** [g] */
+	double water;
+	/** [°C] */
+	double waterTemperature;
+	/** [g] */
+	double yeast;
+	/** [g] */
+	double sugar;
+	/** [g] */
+	double fat;
+	/** [g] */
+	double salt;
 
 }

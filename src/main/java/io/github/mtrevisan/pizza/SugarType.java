@@ -38,6 +38,7 @@ public enum SugarType{
 	GALACTOSE(0.28 / 0.41);
 
 
+	/** Equivalent quantity in glucose to obtain the same maximum volume expansion ratio. */
 	double factor;
 
 

@@ -25,30 +25,49 @@
 package io.github.mtrevisan.pizza;
 
 
-public class Flour{
+public class Ingredients{
 
-	/** Salt content [%]. */
-	double saltContent;
-	/** Fat content [%]. */
-	double fatContent;
+	/** Total dough weight [g]. */
+	double dough;
+	/** [g] */
+	double doughPrecision;
+	/** Temperature of ingredients [°C]. */
+	double ingredientsTemperature;
+	/** Desired dough temperature [°C]. */
+	double doughTemperature;
+
+	/** Chlorine dioxide in water [mg/l]. */
+	double waterChlorineDioxide;
+	/** Fixed residue in water [mg/l]. */
+	double waterFixedResidue;
+
+	Flour flour;
+
+	YeastType yeastType;
+	/** Raw yeast content [%]. */
+	double rawYeast = 1.;
+
+	SugarType sugarType;
+	/** Raw sugar content [%]. */
+	double sugarContent = 1.;
+	/** Water content in sugar [%]. */
+	double sugarWaterContent;
+
+	/** Raw fat content [%]. */
+	double fatContent = 1.;
+	/** Water content in fat [%]. */
+	double fatWaterContent;
+	/** Salt content in fat [%]. */
+	double fatSaltContent;
 
 
-	/**
-	 * @see <a href="https://www.research.manchester.ac.uk/portal/files/54543624/FULL_TEXT.PDF">Trinh. Gas cells in bread dough. 2013.</a>
-	 *
-	 * @param hydration	[%].
-	 * @return	Protein content (standard error is 0.0466) [%].
-	 */
-	public static double estimatedMinimumProteinContent(final double hydration){
-		return (hydration - 0.320) / 2.15;
+	public static Ingredients create(final double dough, final double doughPrecision){
+		return new Ingredients(dough, doughPrecision);
 	}
 
-	/**
-	 * @param airRelativeHumidity	[%].
-	 * @return	Flour humidity [%].
-	 */
-	public static double estimatedHumidity(final double airRelativeHumidity){
-		return 0.035 * Math.pow(airRelativeHumidity, 2.);
+	private Ingredients(final double dough, final double doughPrecision){
+		this.dough = dough;
+		this.doughPrecision = doughPrecision;
 	}
 
 }
