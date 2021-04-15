@@ -31,7 +31,7 @@ public enum YeastType{
 	INSTANT_DRY(3.125);
 
 
-	double factor;
+	final double factor;
 
 
 	YeastType(final double factor){

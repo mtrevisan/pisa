@@ -69,8 +69,4 @@ public class Helper{
 			.doubleValue();
 	}
 
-	public static boolean changedSign(final double a, final double b, final double ref){
-		return ((ref - a) * (ref - b) < 0.);
-	}
-
 }

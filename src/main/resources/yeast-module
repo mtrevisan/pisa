@@ -1,9 +1,40 @@
+Sub IDYSeek()
+	  Dim params As LeaveningParameters
+	  params.fatDensity = cellvalue(data, params.fatType, "density")
+	  params.atmosphericPressure = Range("inputAtmosphericPressure").Value2
+	  params.bakingTemperature = Range("inputBakingTemperature").Value2
+	  params.targetArea = Range("inputArea").Value2
+	  params.targetHeight = Range("inputHeight").Value2
+
+		Dim inputFlourStrength As Integer: inputFlourStrength = Range("inputFlourStrength").Value2
+		Dim inputFlour1Strength As Integer: inputFlour1Strength = Range("inputFlour1Strength").Value2
+		Dim inputFlour2Strength As Integer: inputFlour2Strength = Range("inputFlour2Strength").Value2
+		Dim diffFlourFlour2 As Integer: diffFlourFlour2 = inputFlourStrength - inputFlour2Strength
+		Dim diffFlour1Flour2 As Integer: diffFlour1Flour2 = inputFlour1Strength - inputFlour2Strength
+		Dim diffFlour1Flour As Integer: diffFlour1Flour = inputFlour1Strength - inputFlourStrength
+		Dim hasFlour1 As Boolean: hasFlour1 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) > 0 _
+			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) >= 0)
+		Dim hasFlour2 As Boolean: hasFlour2 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) >= 0 _
+			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) > 0)
+		Do
+			 yeastWeight = totalFlour * rawYeastFactor
+			 flourWeight = WorksheetFunction.Max(totalFlour - yeastWeight * (1 - rawYeastContent), 0)
+			 flourWeight1 = IIf(hasFlour1, flourWeight * diffFlourFlour2 / diffFlour1Flour2, 0)
+			 flourWeight2 = IIf(hasFlour2, flourWeight * diffFlour1Flour / diffFlour1Flour2, 0)
+			 sugarWeight = flourWeight * params.sugar / sugarInSugar
+
+			 ' refine approximation
+		Loop Until Abs(difference) < WEIGHT_PRECISION
+End Sub
+
+
 'TODO account for baking temperature
 'initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
 'volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
 Private Function calculateCharlesGayLussacVolumeExpansion(initialTemperature As Double, finalTemperature As Double) As Double
     calculateCharlesGayLussacVolumeExpansion = (finalTemperature + ABSOLUTE_ZERO) / (initialTemperature + ABSOLUTE_ZERO)
 End Function
+
 
 ' http://www.mscampicchio.com/tecal_10.php
 ' Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101

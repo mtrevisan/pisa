@@ -29,7 +29,7 @@ import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 
-public class LeaveningParameters /*extends DoughParameters*/{
+public class LeaveningParameters{
 
 	//[%]
 	double idy;
@@ -44,7 +44,7 @@ public class LeaveningParameters /*extends DoughParameters*/{
 	//fat density [kg/l]
 	double fatDensity;
 	//[%]
-	double salinity;
+	double salt;
 	//[%]
 	double hydration;
 	//[mg/l]
@@ -82,13 +82,13 @@ public class LeaveningParameters /*extends DoughParameters*/{
 		//FIXME
 //		targetVolume = getTargetVolume(params);
 
-		final double waterBoilingTemp = Water.boilingTemperature(salinity * 1000. / hydration, atmosphericPressure);
+		final double waterBoilingTemp = Water.boilingTemperature(salt * 1000. / hydration, atmosphericPressure);
 
 		if(hydration < 0.)
 			return "water [%] cannot be less than zero";
 		if(chlorineDioxide < 0.)
 			return "chlorine dioxide [mg/l] cannot be less than zero";
-		if(salinity < 0.)
+		if(salt < 0.)
 			return "salt [%] cannot be less than zero";
 		if(fat < 0.)
 			return "fat [%] cannot be less than zero";

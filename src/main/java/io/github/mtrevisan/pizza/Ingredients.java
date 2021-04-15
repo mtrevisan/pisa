@@ -28,9 +28,9 @@ package io.github.mtrevisan.pizza;
 public class Ingredients{
 
 	/** Total dough weight [g]. */
-	double dough;
+	final double dough;
 	/** [g] */
-	double doughPrecision;
+	final double doughPrecision;
 	/** Temperature of ingredients [°C]. */
 	double ingredientsTemperature;
 	/** Desired dough temperature [°C]. */

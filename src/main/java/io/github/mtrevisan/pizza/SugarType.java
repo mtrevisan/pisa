@@ -32,6 +32,7 @@ package io.github.mtrevisan.pizza;
  * @see <a href="https://hal.insa-toulouse.fr/hal-02559361/file/b_b_vanDijken2000.pdf">Marques, Raghavendran, Stambuk, Gombert. Sucrose andSaccharomyces cerevisiae: a relationshipmost sweet. 2016.</a>
  */
 public enum SugarType{
+	@SuppressWarnings("PointlessArithmeticExpression")
 	GLUCOSE(0.41 / 0.41),
 	SUCROSE(0.38 / 0.41),
 	MALTOSE(0.40 / 0.41),
@@ -39,7 +40,7 @@ public enum SugarType{
 
 
 	/** Equivalent quantity in glucose to obtain the same maximum volume expansion ratio. */
-	double factor;
+	final double factor;
 
 
 	SugarType(final double factor){

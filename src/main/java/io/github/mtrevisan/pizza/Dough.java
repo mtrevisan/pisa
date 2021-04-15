@@ -355,7 +355,6 @@ public class Dough{
 	 * @param targetVolumeExpansionRatioAtLeaveningStage	Leavening stage in which to reach the given volume expansion ratio (index
 	 * 	between 0 and `leaveningStages.length`).
 	 * @param stretchAndFoldStages	Stretch & Fold stages.
-	 * @return	Yeast to use at first stage [%].
 	 */
 	public void calculateYeast(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
 			final int targetVolumeExpansionRatioAtLeaveningStage, final StretchAndFoldStage[] stretchAndFoldStages) throws DoughException,
