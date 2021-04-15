@@ -146,11 +146,11 @@ class DoughTest{
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		dough.calculateYeast(leaveningStages, 2., 0, stretchAndFoldStages);
 
-		Recipe recipe = dough.recipe(ingredients, false, false, 0.);
+		Recipe recipe = dough.recipe(ingredients);
 		Assertions.assertEquals(443.2, recipe.flour, 0.1);
 		Assertions.assertEquals(288.1, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(1.77, recipe.yeast, 0.01);
+		Assertions.assertEquals(1.84, recipe.yeast, 0.01);
 		Assertions.assertEquals(0.66, recipe.salt, 0.01);
 		Assertions.assertEquals(6.21, recipe.fat, 0.01);
 		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
@@ -163,6 +163,7 @@ class DoughTest{
 		flour.saltContent = 0.001;
 		flour.fatContent = 0.0008;
 		Ingredients ingredients = Ingredients.create(741.3, 0.001);
+		ingredients.correctForIngredients = true;
 		ingredients.flour = flour;
 		ingredients.waterChlorineDioxide = 0.02;
 		ingredients.waterFixedResidue = 237.;
@@ -193,11 +194,11 @@ class DoughTest{
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		dough.calculateYeast(leaveningStages, 2., 0, stretchAndFoldStages);
 
-		Recipe recipe = dough.recipe(ingredients, true, false, 0.);
+		Recipe recipe = dough.recipe(ingredients);
 		Assertions.assertEquals(443.7, recipe.flour, 0.1);
 		Assertions.assertEquals(288.4, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(1.77, recipe.yeast, 0.01);
+		Assertions.assertEquals(1.86, recipe.yeast, 0.01);
 		Assertions.assertEquals(0.23, recipe.salt, 0.01);
 		Assertions.assertEquals(5.82, recipe.fat, 0.01);
 		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
@@ -245,7 +246,7 @@ class DoughTest{
 		dough.addSalt(Dough.SALT_MAX / 2.);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.328_31, factor, 0.000_001);
+		Assertions.assertEquals(0.203_633, factor, 0.000_001);
 	}
 
 	@Test
@@ -254,7 +255,7 @@ class DoughTest{
 		dough.addSalt(Dough.SALT_MAX * 0.99);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.006_191, factor, 0.000_001);
+		Assertions.assertEquals(0.000_666, factor, 0.000_001);
 	}
 
 

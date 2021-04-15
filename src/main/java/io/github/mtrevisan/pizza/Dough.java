@@ -70,7 +70,7 @@ public class Dough{
 	 * @see #SUGAR_COEFFICIENTS
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
-	static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 100.;
+	static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10.;
 
 	/**
 	 * TODO
@@ -81,12 +81,12 @@ public class Dough{
 	static final double FAT_MAX = 1.;
 
 	/**
-	 * [%]
+	 * (should be 2.04 * mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. % = 11.922324876 (?)) [%]
 	 *
 	 * @see #saltFactor()
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
-	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 100.;
+	static final double SALT_MAX = 45.;
 
 	/**
 	 * @see #waterFactor()
@@ -216,11 +216,11 @@ public class Dough{
 	 */
 	public Dough addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
 			throws DoughException{
+		if(sugar < 0.)
+			throw DoughException.create("Sugar [%] must be positive");
+
 		this.sugar += sugarType.factor * sugar * sugarContent;
 		addPureWater(sugar * waterContent);
-
-		if(sugar < 0. || this.sugar > SUGAR_MAX)
-			throw DoughException.create("Sugar [%] must be between 0 and " + Helper.round(SUGAR_MAX * 100., 1) + "%");
 
 		return this;
 	}
@@ -261,10 +261,10 @@ public class Dough{
 	 * @throws DoughException	If salt is too low or too high.
 	 */
 	public Dough addSalt(final double salt) throws DoughException{
-		this.salt += salt;
+		if(salt < 0.)
+			throw DoughException.create("Salt [%] must be positive");
 
-		if(salt < 0. || this.salt > SALT_MAX)
-			throw DoughException.create("Salt [%] must be between 0 and " + Helper.round(SALT_MAX * 100., 1) + "%");
+		this.salt += salt;
 
 		return this;
 	}
@@ -331,13 +331,17 @@ public class Dough{
 		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
 			throw DoughException.create("Hydration [%] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
 				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
+		if(fractionOverTotal(sugar) > SUGAR_MAX)
+			throw DoughException.create("Sugar [%] must be less than " + Helper.round(SUGAR_MAX * 100., 1) + "%");
+		if(fractionOverTotal(salt) > SALT_MAX)
+			throw DoughException.create("Salt [%] must be less than " + Helper.round(SALT_MAX * 100., 1) + "%");
 
 		//convert [%] to [mol/l]
 		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
 		//convert [%] to [mol/l]
 		final double sodiumChloride = fractionOverTotal(salt * 10.) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
-		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221))) * (glucose / (0.0066 + 0.7096 * glucose)))
-				|| glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
+		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221)))
+				* (glucose / (0.0066 + 0.7096 * glucose))) || glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
 			throw DoughException.create("Salt and sugar are too much, yeast will die");
 	}
 
@@ -537,22 +541,14 @@ public class Dough{
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
+	 * @see <a href="https://d1wqtxts1xzle7.cloudfront.net/48505539/jsfa.457520160901-11783-19gnau8.pdf?1472797633=&response-content-disposition=inline%3B+filename%3DImpact_of_sodium_chloride_on_wheat_flour.pdf&Expires=1618498570&Signature=dFLpl0PBw4mQRTxNaRzxp9eozMUL1ir6vROQ~HfXRHf1HDM2baa2S7UEylSHTz1HFgq5I1jH4tq9bXjBl~u5b7JCkY5jOV3tCrP0vAz86mdHbgCyWFWlURa6W8-MlnAHcsQgzDwt3DrLfuQjLDSMuMSm7Nfb3e89hXdVm0~nF0JPOQ8c3H~5SD-WFk9BLlA9L335YdT6ZrvHkKebgpS6EItx9ARopUQawItYWeJDbNEeE4gfsVIDHgf8Mbv2hRLN-9Xa~SvnRDxjOLzKR2q4Q95vLSHXkzOYhVBQP9tIrknkNVC4m1PdZMW9r1CN5hNbHFvXcqFjijTFsDxIykrzlg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
 	 * @return	Correction factor.
 	 */
 	double saltFactor(){
-		//Lactobacillus pentosus (salt [g/l])
-		//final double s = fractionOverTotal(salt * 10.);
-		//final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.1696 * s), 0.1896));
-		//final double b = s / (52.6363 + 0.0763 * s);
-		//return Math.exp(a * b);
-
-		//local maximum is at 1.1%
-		//FIXME more or less
-		//transform [%] to [g/l]
-		final double s = fractionOverTotal(salt * 10.);
-		final double a = 1. - Math.log(Math.pow(1. + Math.exp(0.69 * s), 0.4));
-		final double b = s / (1.7 + 0.3 * s);
+		final double x = 11.7362 * salt;
+		final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
+		final double b = salt / (87.5679 - 0.2725 * salt);
 		return Math.exp(a * b);
 	}
 
@@ -604,28 +600,27 @@ public class Dough{
 
 	/**
 	 * @param ingredients	The recipe ingredients.
-	 * @param correctForIngredients	Whether to correct for ingredients' content in fat/salt/water.
-	 * @param correctForHumidity	Whether to correct for humidity in the flour.
-	 * @param airRelativeHumidity	Relative humidity of the air [%].
 	 * @return	The recipe.
 	 */
-	public Recipe recipe(final Ingredients ingredients, final boolean correctForIngredients, final boolean correctForHumidity,
-			final double airRelativeHumidity){
+	public Recipe recipe(final Ingredients ingredients){
 		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
 		double totalFlour = ingredients.dough / totalFraction;
 		double yeast, flour, water, sugar, fat, salt,
 			difference;
+		final double waterCorrection = (ingredients.correctForIngredients?
+			this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent: 0.)
+			+ (ingredients.correctForHumidity? Flour.estimatedHumidity(ingredients.airRelativeHumidity)
+			- Flour.estimatedHumidity(0.5): 0.);
 		do{
 			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
 			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
-			double correction = (correctForIngredients? this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent: 0.)
-				+ (correctForHumidity? Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.5): 0.);
-			water = Math.max(totalFlour * this.water - correction, 0.);
+			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
 			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
-			correction = (correctForIngredients? flour * ingredients.flour.fatContent: 0.);
-			fat = Math.max(totalFlour * this.fat - correction, 0.) / ingredients.fatContent;
-			correction = (correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
-			salt = Math.max(totalFlour * this.salt - correction, 0.);
+			final double fatCorrection = (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
+			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
+			final double saltCorrection = (ingredients.correctForIngredients? flour * ingredients.flour.saltContent
+				+ this.fat * ingredients.fatSaltContent: 0.);
+			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
 
 			//refine approximation:
 			final double calculatedDough = flour + water + yeast + sugar + salt + fat;

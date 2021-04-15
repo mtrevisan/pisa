@@ -36,6 +36,13 @@ public class Ingredients{
 	/** Desired dough temperature [°C]. */
 	double doughTemperature;
 
+	/** Whether to correct for ingredients' content in fat/salt/water. */
+	boolean correctForIngredients;
+	/** Whether to correct for humidity in the flour. */
+	boolean correctForHumidity;
+	/** Relative humidity of the air [%]. */
+	double airRelativeHumidity;
+
 	/** Chlorine dioxide in water [mg/l]. */
 	double waterChlorineDioxide;
 	/** Fixed residue in water [mg/l]. */

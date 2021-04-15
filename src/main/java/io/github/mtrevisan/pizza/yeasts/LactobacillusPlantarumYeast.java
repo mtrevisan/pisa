@@ -26,12 +26,12 @@ package io.github.mtrevisan.pizza.yeasts;
 
 
 /**
- * Lactobacillus plantatus constants
+ * Lactobacillus plantarum constants
  *
  * @see <a href="https://www.researchgate.net/profile/Lubomir-Valik/publication/332879137_Modelling_growth_of_Lactobacillus_plantarum_as_a_function_of_temperature_Effects_of_media/links/5cd08131a6fdccc9dd91e29d/Modelling-growth-of-Lactobacillus-plantarum-as-a-function-of-temperature-Effects-of-media.pdf">Matejčeková, Spodniaková, Dujmić, Liptáková, Valík. Modelling growth of Lactobacillus plantarum as a function of temperature: Effects of media. 2019</a>
  * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5192527/">Munanga, Loiseau, Grabulos, Mestres. Modeling Lactic Fermentation of Gowé Using Lactobacillus Starter Culture. 2016</a>
  */
-public class LactobacillusPlantarusYeast extends YeastModelAbstract{
+public class LactobacillusPlantarumYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
