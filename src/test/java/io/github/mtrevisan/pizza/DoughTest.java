@@ -159,6 +159,7 @@ class DoughTest{
 	@Test
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
 		Flour flour = new Flour();
+		flour.strength = 260.;
 		flour.saltContent = 0.001;
 		flour.fatContent = 0.0008;
 		Ingredients ingredients = Ingredients.create(741.3, 0.001);

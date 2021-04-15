@@ -27,6 +27,8 @@ package io.github.mtrevisan.pizza;
 
 public class Flour{
 
+	/** W. */
+	double strength;
 	/** Salt content [%]. */
 	double saltContent;
 	/** Fat content [%]. */
