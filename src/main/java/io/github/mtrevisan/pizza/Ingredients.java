@@ -45,6 +45,8 @@ public class Ingredients{
 
 	/** Chlorine dioxide in water [mg/l]. */
 	double waterChlorineDioxide;
+	/** Calcium carbonate (CaCO3) in water [mg/l] = [°F * 10] = [°I * 7] = [°dH * 5.6]. */
+//	double waterCalciumCarbonate;
 	/** Fixed residue in water [mg/l]. */
 	double waterFixedResidue;
 

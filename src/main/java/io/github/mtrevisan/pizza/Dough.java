@@ -182,12 +182,6 @@ public class Dough{
 	double yeast;
 
 
-	//TODO time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327) (@ 25 °C), inverse is FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
-	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
-	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
-	//https://www.pizzamaking.com/forum/index.php?topic=22649.msg229864#msg229864
-
-
 	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
 		return new Dough(yeastModel);
 	}
