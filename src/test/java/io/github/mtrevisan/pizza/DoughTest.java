@@ -148,14 +148,14 @@ class DoughTest{
 		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.5)
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
-		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 0)
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0)
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		Recipe recipe = dough.createRecipe(ingredients, procedure);
 
-		Assertions.assertEquals(443.2, recipe.flour, 0.1);
-		Assertions.assertEquals(288.1, recipe.water, 0.1);
+		Assertions.assertEquals(443.9, recipe.flour, 0.1);
+		Assertions.assertEquals(288.5, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(1.84, recipe.yeast, 0.01);
+		Assertions.assertEquals(0.56, recipe.yeast, 0.01);
 		Assertions.assertEquals(0.66, recipe.salt, 0.01);
 		Assertions.assertEquals(6.21, recipe.fat, 0.01);
 		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
@@ -196,16 +196,16 @@ class DoughTest{
 		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.5)
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
-		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 0)
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0)
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		Recipe recipe = dough.createRecipe(ingredients, procedure);
 
-		Assertions.assertEquals(443.7, recipe.flour, 0.1);
-		Assertions.assertEquals(288.4, recipe.water, 0.1);
+		Assertions.assertEquals(444.4, recipe.flour, 0.1);
+		Assertions.assertEquals(288.9, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(1.86, recipe.yeast, 0.01);
+		Assertions.assertEquals(0.56, recipe.yeast, 0.01);
 		Assertions.assertEquals(0.23, recipe.salt, 0.01);
-		Assertions.assertEquals(5.82, recipe.fat, 0.01);
+		Assertions.assertEquals(5.83, recipe.fat, 0.01);
 		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
 	}
 

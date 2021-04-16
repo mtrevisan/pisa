@@ -29,6 +29,7 @@ End Sub
 
 
 'TODO account for baking temperature
+' https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 'initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
 'volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
 Private Function calculateCharlesGayLussacVolumeExpansion(initialTemperature As Double, finalTemperature As Double) As Double
