@@ -49,7 +49,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2., 0);
 		dough.calculateYeast(procedure);
 
-		Assertions.assertEquals(0.011_86, dough.yeast, 0.000_01);
+		Assertions.assertEquals(0.011_83, dough.yeast, 0.000_01);
 	}
 
 	@Test
@@ -77,7 +77,7 @@ class DoughTest{
 		dough.calculateYeast(procedure);
 		final double yeast2 = dough.yeast;
 
-		Assertions.assertEquals(0.011_86, yeast1, 0.000_01);
+		Assertions.assertEquals(0.011_83, yeast1, 0.000_01);
 		Assertions.assertEquals(yeast2, yeast1, 0.000_01);
 	}
 
@@ -103,7 +103,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 1);
 		dough.calculateYeast(procedure);
 
-		Assertions.assertEquals(0.043_57, dough.yeast, 0.000_01);
+		Assertions.assertEquals(0.043_27, dough.yeast, 0.000_01);
 	}
 
 	@Test
@@ -171,6 +171,7 @@ class DoughTest{
 		ingredients.correctForIngredients = true;
 		ingredients.flour = flour;
 		ingredients.waterChlorineDioxide = 0.02;
+		ingredients.waterPH = 7.9;
 		ingredients.waterFixedResidue = 237.;
 		ingredients.yeastType = YeastType.INSTANT_DRY;
 		ingredients.rawYeast = 1.;
@@ -200,10 +201,10 @@ class DoughTest{
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		Recipe recipe = dough.createRecipe(ingredients, procedure);
 
-		Assertions.assertEquals(444.4, recipe.flour, 0.1);
+		Assertions.assertEquals(444.5, recipe.flour, 0.1);
 		Assertions.assertEquals(288.9, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(0.56, recipe.yeast, 0.01);
+		Assertions.assertEquals(0.45, recipe.yeast, 0.01);
 		Assertions.assertEquals(0.23, recipe.salt, 0.01);
 		Assertions.assertEquals(5.83, recipe.fat, 0.01);
 		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
@@ -213,27 +214,27 @@ class DoughTest{
 	@Test
 	void sugarFactorMin() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		final double factor = dough.sugarFactor();
+		final double factor = dough.sugarFactor(35.);
 
-		Assertions.assertEquals(1., factor, 0.000_001);
+		Assertions.assertEquals(1.000_236, factor, 0.000_001);
 	}
 
 	@Test
 	void sugarFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSugar(Dough.SUGAR_MAX / 2., SugarType.SUCROSE, 1., 0.);
-		final double factor = dough.sugarFactor();
+		final double factor = dough.sugarFactor(35.);
 
-		Assertions.assertEquals(0.272_658, factor, 0.000_001);
+		Assertions.assertEquals(0.708_084, factor, 0.000_001);
 	}
 
 	@Test
 	void sugarFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addSugar(Dough.SUGAR_MAX, SugarType.SUCROSE, 1., 0.);
-		final double factor = dough.sugarFactor();
+		final double factor = dough.sugarFactor(35.);
 
-		Assertions.assertEquals(0.026_937, factor, 0.000_001);
+		Assertions.assertEquals(0.465_287, factor, 0.000_001);
 	}
 
 
@@ -251,16 +252,16 @@ class DoughTest{
 		dough.addSalt(Dough.SALT_MAX / 2.);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.203_633, factor, 0.000_001);
+		Assertions.assertEquals(0.946_612, factor, 0.000_001);
 	}
 
 	@Test
 	void saltFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addSalt(Dough.SALT_MAX * 0.99);
+		dough.addSalt(Dough.SALT_MAX);
 		final double factor = dough.saltFactor();
 
-		Assertions.assertEquals(0.000_666, factor, 0.000_001);
+		Assertions.assertEquals(0.694_137, factor, 0.000_001);
 	}
 
 
@@ -303,7 +304,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorHalfway() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addWater(0.6, Dough.WATER_CHLORINE_DIOXIDE_MAX / 2., 0.);
+		dough.addWater(0.6, Dough.WATER_CHLORINE_DIOXIDE_MAX / 2., 0., 0.);
 		final double factor = dough.waterChlorineDioxideFactor();
 
 		Assertions.assertEquals(0.812_500, factor, 0.000_001);
@@ -312,7 +313,7 @@ class DoughTest{
 	@Test
 	void chlorineDioxideFactorMax() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
-		dough.addWater(0.6, Dough.WATER_CHLORINE_DIOXIDE_MAX * 0.99, 0.);
+		dough.addWater(0.6, Dough.WATER_CHLORINE_DIOXIDE_MAX * 0.99, 0., 0.);
 		final double factor = dough.waterChlorineDioxideFactor();
 
 		Assertions.assertEquals(0.628_750, factor, 0.000_001);

@@ -61,13 +61,13 @@ public class Dough{
 
 
 	/**
-	 * @see #sugarFactor()
+	 * @see #sugarFactor(double)
 	 */
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 	/**
-	 * [%]
+	 * (should be 3.21 mol/l = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10. [%] = 57.82965228 (?)) [%]
 	 *
-	 * @see #sugarFactor()
+	 * @see #sugarFactor(double)
 	 * @see #SUGAR_COEFFICIENTS
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
@@ -82,12 +82,12 @@ public class Dough{
 	static final double FAT_MAX = 1.;
 
 	/**
-	 * (should be 2.04 * mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. % = 11.922324876 (?)) [%]
+	 * (should be 2.04 mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [%] = 11.922324876 (?)) [%]
 	 *
 	 * @see #saltFactor()
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
-	static final double SALT_MAX = 45.;
+	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10.;
 
 	/**
 	 * @see #waterFactor()
@@ -123,6 +123,7 @@ public class Dough{
 	 * @see #waterFixedResidueFactor()
 	 */
 	public static final double WATER_FIXED_RESIDUE_MAX = 1500.;
+	public static final double PURE_WATER_PH = 5.4;
 
 	/**
 	 * @see #atmosphericPressureFactor()
@@ -173,6 +174,8 @@ public class Dough{
 	private double water;
 	/** Chlorine dioxide in water [mg/l]. */
 	private double waterChlorineDioxide;
+	/** pH of water. */
+	private double waterPH = PURE_WATER_PH;
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
 	/** Atmospheric pressure [hPa]. */
@@ -273,7 +276,7 @@ public class Dough{
 	 * @throws DoughException	If water is too low.
 	 */
 	public Dough addPureWater(final double water) throws DoughException{
-		return addWater(water, 0., 0.);
+		return addWater(water, 0., PURE_WATER_PH, 0.);
 	}
 
 	/**
@@ -283,28 +286,35 @@ public class Dough{
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
 	 */
 	public Dough addWater(final double water, final Ingredients ingredients) throws DoughException{
-		return addWater(water, ingredients.waterChlorineDioxide, ingredients.waterFixedResidue);
+		return addWater(water, ingredients.waterChlorineDioxide, ingredients.waterPH, ingredients.waterFixedResidue);
 	}
 
 	/**
 	 * @param water	Water quantity w.r.t. flour [%].
 	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
+	 * @param pH	pH of water.
 	 * @param fixedResidue	Fixed residue in water [mg/l].
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
 	 */
-	public Dough addWater(final double water, final double chlorineDioxide, final double fixedResidue) throws DoughException{
+	public Dough addWater(final double water, final double chlorineDioxide, final double pH, final double fixedResidue)
+			throws DoughException{
 		if(water < 0.)
 			throw DoughException.create("Hydration [%] cannot be less than zero");
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and "
 				+ Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
+		if(pH < 0.)
+			throw DoughException.create("pH of water must be positive");
 		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
 			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and "
 				+ Helper.round(WATER_FIXED_RESIDUE_MAX, 2) + " mg/l");
 
-		waterChlorineDioxide = (this.water * waterChlorineDioxide + water * chlorineDioxide) / (this.water + water);
-		waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
+		if(this.water + water > 0){
+			waterChlorineDioxide = (this.water * waterChlorineDioxide + water * chlorineDioxide) / (this.water + water);
+			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
+			waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
+		}
 		this.water += water;
 
 		return this;
@@ -354,7 +364,6 @@ public class Dough{
 		validate();
 
 		try{
-			final double ingredientsFactor = ingredientsFactor();
 			final UnivariateFunction f = yeast -> {
 				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 				double lambda = estimatedLag(yeast);
@@ -372,6 +381,7 @@ public class Dough{
 						//avoid modifying `lambda` if the temperature is the same
 						double currentVolume = 0.;
 						if(previousStage.temperature != currentStage.temperature){
+							final double ingredientsFactor = ingredientsFactor(previousStage.temperature);
 							final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
 								ingredientsFactor);
 							lambda = Math.max(lambda - previousStage.duration, 0.);
@@ -392,6 +402,7 @@ public class Dough{
 							stretchAndFoldIndex ++;
 							stretchAndFoldDuration += stretchAndFoldStage.lapse;
 
+							final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
 							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
 								+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
 							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
@@ -405,6 +416,7 @@ public class Dough{
 					}
 				}
 
+				final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
 				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
 					currentStage.temperature, ingredientsFactor);
@@ -473,16 +485,18 @@ public class Dough{
 	 * </ul>
 	 * </p>
 	 *
+	 * @param temperature	Temperature [°C].
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
-	private double ingredientsFactor(){
-		final double kSugar = sugarFactor();
+	private double ingredientsFactor(final double temperature){
+		final double kSugar = sugarFactor(temperature);
 		final double kFat = fatFactor();
 		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
 		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
+		final double kWaterPH = waterPHFactor(temperature);
 		final double kWaterFixedResidue = waterFixedResidueFactor();
-		final double kHydration = kWater * kWaterChlorineDioxide * kWaterFixedResidue;
+		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor();
 		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
 	}
@@ -491,15 +505,33 @@ public class Dough{
 	 * @see <a href="https://uwaterloo.ca/chem13-news-magazine/april-2015/activities/fermentation-sugars-using-yeast-discovery-experiment">The fermentation of sugars using yeast: A discovery experiment</a>
 	 * @see <a href="https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009.</a>
 	 * @see <a href="http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555">Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology</a>
+	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
+	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	double sugarFactor(){
-		if(sugar < 0.03)
-			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, fractionOverTotal(sugar)), 1.);
-		if(sugar < SUGAR_MAX)
-			return Math.max(-0.3545 * (Math.log(fractionOverTotal(sugar)) - Math.log(SUGAR_MAX)), 0.);
-		return 0.;
+	double sugarFactor(final double temperature){
+		/**
+		 * base is pH 5.4±0.1, 20 mg/l glucose
+		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
+		 */
+		final double basePH = 5.4;
+		final double baseSugar = 20. / 1000.;
+		final double baseMu = (0.3945 + (-0.00407 + 0.0000096 * baseSugar) * baseSugar
+			+ (-0.00375 + 0.000025 * baseSugar) * temperature
+			+ (0.003 - 0.00002 * baseSugar) * basePH
+			) / 3.;
+
+		return (0.3945 + (-0.00407 + 0.0000096 * sugar) * sugar
+			+ (-0.00375 + 0.000025 * sugar) * temperature
+			+ (0.003 - 0.00002 * sugar) * waterPH
+		) / (3. * baseMu);
+
+//		if(sugar < 0.03)
+//			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, fractionOverTotal(sugar)), 1.);
+//		if(sugar < SUGAR_MAX)
+//			return Math.max(-0.3545 * (Math.log(fractionOverTotal(sugar)) - Math.log(SUGAR_MAX)), 0.);
+//		return 0.;
 	}
 
 	/**
@@ -550,6 +582,34 @@ public class Dough{
 	 */
 	double waterChlorineDioxideFactor(){
 		return Math.max(1. - waterChlorineDioxide * fractionOverTotal(water) / WATER_CHLORINE_DIOXIDE_MAX, 0.);
+	}
+
+	/**
+	 * @see <a href="https://academic.oup.com/femsyr/article/15/2/fou005/534737">Peña, Sánchez, Álvarez, Calahorra, Ramírez. Effects of high medium pH on growth, metabolism and transport in Saccharomyces cerevisiae. 2015.</a>
+	 * @see <a href="https://oatao.univ-toulouse.fr/1556/1/Serra_1556.pdf">Serra, Strehaiano, Taillandier. Influence of temperature and pH on Saccharomyces bayanus var. uvarum growth; impact of a wine yeast interspecifichy bridization on these parameters. 2005.</a>
+	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return	Correction factor.
+	 */
+	double waterPHFactor(final double temperature){
+		/**
+		 * base is pH 5.4±0.1, 20 mg/l glucose
+		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
+		 */
+		final double basePH = 5.4;
+		final double baseSugar = 20. / 1000.;
+		final double baseMu = (0.22
+			+ (0.42625 + (-0.301 + 0.052 * basePH) * basePH)
+			+ (-0.026125 + 0.0095 * basePH) * temperature
+			+ (0.00011 - 0.00004 * basePH) * baseSugar
+		) / 9.;
+
+		return (0.22
+			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
+				+ (-0.026125 + 0.0095 * waterPH) * temperature
+				+ (0.00011 - 0.00004 * waterPH) * sugar
+		) / (9. * baseMu);
 	}
 
 	/**
