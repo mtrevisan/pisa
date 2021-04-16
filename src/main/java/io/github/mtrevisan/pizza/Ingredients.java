@@ -45,9 +45,24 @@ public class Ingredients{
 
 	/** Chlorine dioxide in water [mg/l]. */
 	double waterChlorineDioxide;
-	/** Calcium carbonate (CaCO3) in water [mg/l] = [°F * 10] = [°I * 7] = [°dH * 5.6]. */
-//	double waterCalciumCarbonate;
-	/** Fixed residue in water [mg/l]. */
+	/**
+	 * Calcium carbonate (CaCO3) in water [mg/l] = [°F * 10] = [°I * 7] = [°dH * 5.6].
+	 *
+	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
+	 */
+	double waterCalciumCarbonate;
+	/**
+	 * pH in water.
+	 * <p>
+	 * Hard water is more alkaline than soft water, and can decrease the activity of yeast.
+	 * Water that is slightly acid (pH a little below 7) is preferred for bread baking.
+	 * </p>
+	 */
+	double waterPH = Dough.PURE_WATER_PH;
+	/**
+	 * Fixed residue in water [mg/l].
+	 * TODO
+	 */
 	double waterFixedResidue;
 
 	Flour flour;
