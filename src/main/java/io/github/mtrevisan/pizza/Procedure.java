@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class Procedure{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Procedure.class);
 
 
 	LeaveningStage[] leaveningStages;

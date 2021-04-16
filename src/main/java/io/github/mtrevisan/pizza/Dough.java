@@ -30,9 +30,14 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Dough{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
+
 
 	/** [g/mol] */
 	private static final double MOLECULAR_WEIGHT_CARBON = 12.0107;
@@ -580,6 +585,7 @@ public class Dough{
 
 	/**
 	 * @param ingredients	The recipe ingredients.
+	 * @param procedure	The recipe procedure.
 	 * @return	The recipe.
 	 */
 	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure) throws DoughException, YeastException{
@@ -611,6 +617,11 @@ public class Dough{
 		}while(Math.abs(difference) > ingredients.doughPrecision);
 		final double waterTemperature = (ingredients.dough * ingredients.doughTemperature
 			- (ingredients.dough - water) * ingredients.ingredientsTemperature) / water;
+
+		if(waterTemperature >= yeastModel.getTemperatureMax())
+			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
+				+ " °C) is greater that maximum temperature sustainable by the yeast ("
+				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
 
 		final Recipe recipe = new Recipe();
 		recipe.flour = flour;

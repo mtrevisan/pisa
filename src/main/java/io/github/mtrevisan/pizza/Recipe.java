@@ -29,19 +29,19 @@ import io.github.mtrevisan.pizza.utils.Helper;
 
 public class Recipe{
 
-	/** [g] */
+	/** Flour quantity [g]. */
 	double flour;
-	/** [g] */
+	/** Water quantity [g]. */
 	double water;
-	/** [°C] */
+	/** Water temperature [°C]. */
 	double waterTemperature;
-	/** [g] */
+	/** Yeast quantity [g]. */
 	double yeast;
-	/** [g] */
+	/** Sugar quantity [g]. */
 	double sugar;
-	/** [g] */
+	/** Fat quantity [g]. */
 	double fat;
-	/** [g] */
+	/** Salt quantity [g]. */
 	double salt;
 
 
