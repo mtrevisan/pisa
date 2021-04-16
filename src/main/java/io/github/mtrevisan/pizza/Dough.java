@@ -182,6 +182,7 @@ public class Dough{
 	//TODO time[hrs] = 0.0665 * Math.pow(FY[%], -0.7327) (@ 25 °C), inverse is FY[%] = Math.pow(time[hrs] / 0.0665, 1. / -0.7327)
 	//https://www.pizzamaking.com/forum/index.php?topic=22649.20
 	//https://www.pizzamaking.com/forum/index.php?topic=26831.0
+	//https://www.pizzamaking.com/forum/index.php?topic=22649.msg229864#msg229864
 
 
 	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
@@ -467,8 +468,10 @@ public class Dough{
 		//transform [%] to [g/l]
 		final double s = fractionOverTotal(salt * 10.);
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
+
 		//FIXME this formula is for 36±1 °C
 		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
+
 		return lag + saltLag;
 	}
 
@@ -540,7 +543,7 @@ public class Dough{
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
-	 * @see <a href="https://d1wqtxts1xzle7.cloudfront.net/48505539/jsfa.457520160901-11783-19gnau8.pdf?1472797633=&response-content-disposition=inline%3B+filename%3DImpact_of_sodium_chloride_on_wheat_flour.pdf&Expires=1618498570&Signature=dFLpl0PBw4mQRTxNaRzxp9eozMUL1ir6vROQ~HfXRHf1HDM2baa2S7UEylSHTz1HFgq5I1jH4tq9bXjBl~u5b7JCkY5jOV3tCrP0vAz86mdHbgCyWFWlURa6W8-MlnAHcsQgzDwt3DrLfuQjLDSMuMSm7Nfb3e89hXdVm0~nF0JPOQ8c3H~5SD-WFk9BLlA9L335YdT6ZrvHkKebgpS6EItx9ARopUQawItYWeJDbNEeE4gfsVIDHgf8Mbv2hRLN-9Xa~SvnRDxjOLzKR2q4Q95vLSHXkzOYhVBQP9tIrknkNVC4m1PdZMW9r1CN5hNbHFvXcqFjijTFsDxIykrzlg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
+	 * @see <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/jsfa.4575">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
 	 * @return	Correction factor.
 	 */
