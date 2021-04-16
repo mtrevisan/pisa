@@ -50,7 +50,8 @@ public class Flour{
 	 * @return	Flour humidity [%].
 	 */
 	public static double estimatedHumidity(final double airRelativeHumidity){
-		return 0.035 * Math.pow(airRelativeHumidity, 2.);
+		//13.5% at RH 70.62%
+		return 0.121 + 0.000_044 * Math.exp(8.16 * airRelativeHumidity);
 	}
 
 }

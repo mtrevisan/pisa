@@ -148,7 +148,9 @@ public class Dough{
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
-	//regression https://planetcalc.com/5992/
+	//regression: https://planetcalc.com/5992/
+	//regression: https://planetcalc.com/8735/
+	//regression: http://www.colby.edu/chemistry/PChem/scripts/lsfitpl.html
 
 
 	//accuracy is ±0.001%
@@ -590,7 +592,7 @@ public class Dough{
 		final double waterCorrection = (ingredients.correctForIngredients?
 			this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent: 0.)
 			+ (ingredients.correctForHumidity? Flour.estimatedHumidity(ingredients.airRelativeHumidity)
-			- Flour.estimatedHumidity(0.5): 0.);
+			- Flour.estimatedHumidity(0.706): 0.);
 		do{
 			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
 			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
