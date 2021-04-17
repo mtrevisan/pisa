@@ -25,6 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
+import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +108,19 @@ public class Procedure{
 		this.stretchAndFoldStages = stretchAndFoldStages;
 
 		return this;
+	}
+
+	public void validate(final YeastModelAbstract yeastModel) throws DoughException{
+		if(leaveningStages == null)
+			throw DoughException.create("Missing leavening stage(s)");
+		for(final LeaveningStage stage : leaveningStages)
+			if(stage.temperature < yeastModel.getTemperatureMin() || stage.temperature > yeastModel.getTemperatureMax())
+				throw DoughException.create("Stage temperature [°C] must be between "
+					+ Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
+					+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C, was "
+					+ Helper.round(stage.temperature, 1));
+		if(targetVolumeExpansionRatio <= 0.)
+			throw DoughException.create("Target volume expansion ratio [% v/v] must be positive");
 	}
 
 }

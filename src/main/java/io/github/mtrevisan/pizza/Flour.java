@@ -39,10 +39,22 @@ public class Flour{
 		return new Flour(0., 0., 0.);
 	}
 
+	/**
+	 * @param strength	Salt content [% w/w].
+	 * @return	The instance.
+	 * @throws DoughException	If there are errors in the parameters' values.
+	 */
 	public static final Flour create(final double strength) throws DoughException{
 		return create(strength, 0., 0.);
 	}
 
+	/**
+	 * @param strength	Strength.
+	 * @param saltContent	Salt content [% w/w].
+	 * @param fatContent	Fat content [% w/w].
+	 * @return	The instance.
+	 * @throws DoughException	If there are errors in the parameters' values.
+	 */
 	public static final Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
 		if(strength <= 0)
 			throw DoughException.create("Strength mush be positive");

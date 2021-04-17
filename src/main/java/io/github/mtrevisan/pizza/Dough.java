@@ -361,6 +361,7 @@ public class Dough{
 			YeastException{
 		validate();
 		ingredients.validate(yeastModel);
+		procedure.validate(yeastModel);
 
 		calculateYeast(procedure);
 
@@ -393,25 +394,25 @@ public class Dough{
 				+ " °C) is greater that maximum temperature sustainable by the yeast ("
 				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
 
-		final Recipe recipe = new Recipe();
-		recipe.flour = flour;
-		recipe.water = water;
-		recipe.waterTemperature = waterTemperature;
-		recipe.yeast = yeast;
-		recipe.sugar = sugar;
-		recipe.fat = fat;
-		recipe.salt = salt;
+		final Recipe recipe = Recipe.create()
+			.withFlour(flour)
+			.withWater(water, waterTemperature)
+			.withYeast(yeast)
+			.withSugar(sugar)
+			.withFat(fat)
+			.withSalt(salt);
 
 		LocalTime last = procedure.timeToBake.minus(procedure.seasoning);
-		recipe.seasoning = last;
-		recipe.stagesStartEnd = new LocalTime[procedure.stagesWork.length][2];
+		recipe.withSeasoningInstant(last);
+		final LocalTime[][] stageStartEndInstants = new LocalTime[procedure.stagesWork.length][2];
 		for(int i = procedure.stagesWork.length - 1; i >= 0; i --){
 			last = last.minus(procedure.stagesWork[i]);
-			recipe.stagesStartEnd[i][1] = last;
+			stageStartEndInstants[i][1] = last;
 			last = last.minus(procedure.leaveningStages[i].duration);
-			recipe.stagesStartEnd[i][0] = last;
+			stageStartEndInstants[i][0] = last;
 		}
-		recipe.doughMaking = last.minus(procedure.doughMaking);
+		recipe.withStageStartEndInstants(stageStartEndInstants)
+			.withDoughMakingInstant(last.minus(procedure.doughMaking));
 
 		return recipe;
 	}

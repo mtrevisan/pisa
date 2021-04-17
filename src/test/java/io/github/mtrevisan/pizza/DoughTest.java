@@ -167,21 +167,22 @@ class DoughTest{
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		Recipe recipe = dough.createRecipe(ingredients, procedure);
 
-		Assertions.assertEquals(440.3, recipe.flour, 0.1);
-		Assertions.assertEquals(286.2, recipe.water, 0.1);
-		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(0.69, recipe.yeast, 0.01);
-		Assertions.assertEquals(6.61, recipe.salt, 0.01);
-		Assertions.assertEquals(6.17, recipe.fat, 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt
-			+ recipe.fat, 0.1);
-		Assertions.assertEquals(LocalTime.of(12, 25), recipe.doughMaking);
+		Assertions.assertEquals(440.3, recipe.getFlour(), 0.1);
+		Assertions.assertEquals(286.2, recipe.getWater(), 0.1);
+		Assertions.assertEquals(43.1, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(1.33, recipe.getSugar(), 0.01);
+		Assertions.assertEquals(0.69, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(6.61, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(6.17, recipe.getFat(), 0.01);
+		Assertions.assertEquals(ingredients.dough, recipe.getFlour() + recipe.getWater() + recipe.getSugar() + recipe.getYeast()
+			+ recipe.getSalt() + recipe.getFat(), 0.1);
+		Assertions.assertEquals(LocalTime.of(12, 25), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[][]{
 				new LocalTime[]{LocalTime.of(12, 35), LocalTime.of(18, 35)},
 				new LocalTime[]{LocalTime.of(18, 45), LocalTime.of(19, 45)}
 			},
-			recipe.stagesStartEnd);
-		Assertions.assertEquals(LocalTime.of(19, 45), recipe.seasoning);
+			recipe.getStageStartEndInstants());
+		Assertions.assertEquals(LocalTime.of(19, 45), recipe.getSeasoningInstant());
 	}
 
 	@Test
@@ -214,14 +215,14 @@ class DoughTest{
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		final Recipe recipe = dough.createRecipe(ingredients, procedure);
 
-		Assertions.assertEquals(440.9, recipe.flour, 0.1);
-		Assertions.assertEquals(286.6, recipe.water, 0.1);
-		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(0.45, recipe.yeast, 0.01);
-		Assertions.assertEquals(6.19, recipe.salt, 0.01);
-		Assertions.assertEquals(5.79, recipe.fat, 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt
-			+ recipe.fat, 0.1);
+		Assertions.assertEquals(440.9, recipe.getFlour(), 0.1);
+		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);
+		Assertions.assertEquals(1.33, recipe.getSugar(), 0.01);
+		Assertions.assertEquals(0.45, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(6.19, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(5.79, recipe.getFat(), 0.01);
+		Assertions.assertEquals(ingredients.dough, recipe.getFlour() + recipe.getWater() + recipe.getSugar() + recipe.getYeast()
+			+ recipe.getSalt() + recipe.getFat(), 0.1);
 	}
 
 

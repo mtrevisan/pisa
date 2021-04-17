@@ -43,17 +43,32 @@ public class LeaveningStage{
 	double volumeDecrease;
 
 
-	public static LeaveningStage create(final double temperature, final Duration duration){
+	/**
+	 * @param temperature	Leavening temperature [°C].
+	 * @param duration	Leavening duration [hrs].
+	 * @return	The instance.
+	 */
+	public static LeaveningStage create(final double temperature, final Duration duration) throws DoughException{
 		return new LeaveningStage(temperature, duration);
 	}
 
-	private LeaveningStage(final double temperature, final Duration duration){
+	private LeaveningStage(final double temperature, final Duration duration) throws DoughException{
+		if(duration == null || duration.isNegative() || duration.isZero())
+			throw DoughException.create("Duration should be present and non-negative");
+
 		this.temperature = temperature;
 		this.duration = duration;
 	}
 
-	public LeaveningStage withVolumeDecrease(final double volumeReduction){
-		this.volumeDecrease = volumeReduction;
+	/**
+	 * @param volumeDecrease	Volume decrease after leavening stage [% v/v].
+	 * @return	The instance.
+	 */
+	public LeaveningStage withVolumeDecrease(final double volumeDecrease) throws DoughException{
+		if(volumeDecrease <= 0. || volumeDecrease >= 1.)
+			throw DoughException.create("Volume decrease [% v/v] should be between 0 and 1");
+
+		this.volumeDecrease = volumeDecrease;
 
 		return this;
 	}

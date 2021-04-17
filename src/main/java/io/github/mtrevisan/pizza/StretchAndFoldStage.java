@@ -41,6 +41,10 @@ public class StretchAndFoldStage{
 	double volumeDecrease;
 
 
+	/**
+	 * @param lapse	Interval at which to apply stretch & fold [hrs].
+	 * @return	The instance.
+	 */
 	public static StretchAndFoldStage create(final Duration lapse){
 		return new StretchAndFoldStage(lapse);
 	}
@@ -50,14 +54,17 @@ public class StretchAndFoldStage{
 		this.volumeDecrease = VOLUME_DECREASE_DEFAULT;
 	}
 
-	public StretchAndFoldStage withVolumeDecrease(final double volumeReduction){
-		this.volumeDecrease = volumeReduction;
+	/**
+	 * @param volumeDecrease	Volume decrease after stretch & fold phase [% v/v].
+	 * @return	The instance.
+	 */
+	public StretchAndFoldStage withVolumeDecrease(final double volumeDecrease) throws DoughException{
+		if(volumeDecrease <= 0. || volumeDecrease >= 1.)
+			throw DoughException.create("Volume decrease [% v/v] should be between 0 and 1");
+
+		this.volumeDecrease = volumeDecrease;
 
 		return this;
-	}
-
-	public double getVolumeDecrease(){
-		return volumeDecrease;
 	}
 
 	@Override
