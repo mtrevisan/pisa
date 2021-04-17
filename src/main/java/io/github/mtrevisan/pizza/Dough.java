@@ -359,6 +359,9 @@ public class Dough{
 	 */
 	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure) throws DoughException,
 			YeastException{
+		validate();
+		ingredients.validate(yeastModel);
+
 		calculateYeast(procedure);
 
 		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
@@ -381,10 +384,11 @@ public class Dough{
 			difference = ingredients.dough - calculatedDough;
 			totalFlour += difference * 0.6;
 		}while(Math.abs(difference) > ingredients.doughPrecision);
-		final double waterTemperature = (ingredients.dough * ingredients.doughTemperature
-			- (ingredients.dough - water) * ingredients.ingredientsTemperature) / water;
+		final Double waterTemperature = (ingredients.doughTemperature != null && ingredients.ingredientsTemperature != null?
+			(ingredients.dough * ingredients.doughTemperature - (ingredients.dough - water) * ingredients.ingredientsTemperature) / water:
+			null);
 
-		if(waterTemperature >= yeastModel.getTemperatureMax())
+		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
 			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
 				+ " °C) is greater that maximum temperature sustainable by the yeast ("
 				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
@@ -436,9 +440,7 @@ public class Dough{
 	 *
 	 * @param procedure	Data for procedure.
 	 */
-	void calculateYeast(final Procedure procedure) throws DoughException, YeastException{
-		validate();
-
+	void calculateYeast(final Procedure procedure) throws YeastException{
 		try{
 			final UnivariateFunction f = yeast -> {
 				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
@@ -494,6 +496,9 @@ public class Dough{
 				}
 
 				final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
+				if(ingredientsFactor == 0.)
+					return Double.POSITIVE_INFINITY;
+
 				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
 					alpha, currentStage.temperature, ingredientsFactor);
@@ -676,11 +681,11 @@ public class Dough{
 			+ (0.00011 - 0.00004 * basePH) * baseSugar
 		) / 9.;
 
-		return (0.22
+		return Math.max((0.22
 			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
 				+ (-0.026125 + 0.0095 * waterPH) * temperature
 				+ (0.00011 - 0.00004 * waterPH) * sugar
-		) / (9. * baseMu);
+		) / (9. * baseMu), 0.);
 	}
 
 	/**

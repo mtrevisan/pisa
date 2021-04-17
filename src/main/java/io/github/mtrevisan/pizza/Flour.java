@@ -35,6 +35,31 @@ public class Flour{
 	double fatContent;
 
 
+	public static final Flour create(){
+		return new Flour(0., 0., 0.);
+	}
+
+	public static final Flour create(final double strength) throws DoughException{
+		return create(strength, 0., 0.);
+	}
+
+	public static final Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
+		if(strength <= 0)
+			throw DoughException.create("Strength mush be positive");
+		if(saltContent < 0)
+			throw DoughException.create("Salt content must be non-negative");
+		if(fatContent < 0)
+			throw DoughException.create("Fat content must be non-negative");
+
+		return new Flour(strength, saltContent, fatContent);
+	}
+
+	private Flour(final double strength, final double saltContent, final double fatContent){
+		this.strength = strength;
+		this.saltContent = saltContent;
+		this.fatContent = fatContent;
+	}
+
 	/**
 	 * @see <a href="https://www.research.manchester.ac.uk/portal/files/54543624/FULL_TEXT.PDF">Trinh. Gas cells in bread dough. 2013.</a>
 	 *

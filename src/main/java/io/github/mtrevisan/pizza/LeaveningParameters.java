@@ -1,27 +1,3 @@
-/**
- * Copyright (c) 2019-2020 Mauro Trevisan
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
@@ -35,8 +11,6 @@ public class LeaveningParameters{
 	double idy;
 	//[% w/w]
 	double sugar;
-	//can be one of ['sucrose', 'maltose', 'honey']
-	String sugarType;
 	//[% w/w]
 	double fat;
 	//can be one of ['olive oil', 'lard']
@@ -99,9 +73,6 @@ public class LeaveningParameters{
 		if(atmosphericPressure <= 0. || atmosphericPressure >= Dough.ATMOSPHERIC_PRESSURE_MAX)
 			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Dough.ATMOSPHERIC_PRESSURE_MAX, 0)
 				+ " hPa";
-		if(doughTemperature <= yeastModel.getTemperatureMin() || doughTemperature >= yeastModel.getTemperatureMax())
-			return "Dough temperature [°C] must be between " + Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C";
 		if(bakingTemperature <= waterBoilingTemp)
 			return "Baking temperature [°C] must be greater than water boiling temperature (" + Helper.round(waterBoilingTemp, 1)
 				+ " °C)";
