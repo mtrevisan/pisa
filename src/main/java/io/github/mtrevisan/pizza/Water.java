@@ -79,9 +79,9 @@ public class Water{
 	/**
 	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
 	 *
-	 * @param water	Hydration [%].
-	 * @param salt	Salt quantity [%].
-	 * @param sugar	Sugar quantity [%].
+	 * @param water	Hydration [% w/w].
+	 * @param salt	Salt quantity [% w/w].
+	 * @param sugar	Sugar quantity [% w/w].
 	 * @param temperature	Temperature [°C].
 	 * @return	The density [kg/l].
 	 */

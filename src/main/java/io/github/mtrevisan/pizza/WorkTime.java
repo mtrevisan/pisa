@@ -24,45 +24,31 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.utils.Helper;
-
 import java.time.Duration;
+import java.time.LocalTime;
+import java.util.Objects;
 
 
-public class LeaveningStage{
+public class WorkTime{
 
-	//V_after = V_prior * (1 - VOLUME_DECREASE_CUT) [% v/v]
-	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;
-
-
-	/** Leavening temperature [°C]. */
-	final double temperature;
-	/** Leavening duration [hrs]. */
-	final Duration duration;
-	/** Volume decrease after leavening stage [% v/v]. */
-	double volumeDecrease;
+	final Duration doughMaking;
+	final Duration[] stagesWork;
+	final Duration seasoning;
+	final LocalTime timeToBake;
 
 
-	public static LeaveningStage create(final double temperature, final Duration duration){
-		return new LeaveningStage(temperature, duration);
+	public static WorkTime create(final Duration doughMaking, final Duration[] stagesWork, final Duration seasoning,
+			final LocalTime timeToBake){
+		return new WorkTime(doughMaking, stagesWork, seasoning, timeToBake);
 	}
 
-	private LeaveningStage(final double temperature, final Duration duration){
-		this.temperature = temperature;
-		this.duration = duration;
-	}
+	private WorkTime(final Duration doughMaking, final Duration[] stagesWork, final Duration seasoning, final LocalTime timeToBake){
+		Objects.requireNonNull(timeToBake, "Time to bake not set");
 
-	public LeaveningStage withVolumeDecrease(final double volumeReduction){
-		this.volumeDecrease = volumeReduction;
-
-		return this;
-	}
-
-	@Override
-	public String toString(){
-		return getClass().getSimpleName() + "{" + temperature + " °C for " + duration + " hrs"
-			+ (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
-			+ "}";
+		this.timeToBake = timeToBake;
+		this.doughMaking = doughMaking;
+		this.stagesWork = stagesWork;
+		this.seasoning = seasoning;
 	}
 
 }

@@ -33,6 +33,9 @@ import org.apache.commons.math3.exception.TooManyEvaluationsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.LocalTime;
+
 
 public class Dough{
 
@@ -65,7 +68,7 @@ public class Dough{
 	 */
 	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
 	/**
-	 * (should be 3.21 mol/l = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10. [%] = 57.82965228 (?)) [%]
+	 * (should be 3.21 mol/l = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10. [% w/w] = 57.82965228 (?)) [% w/w]
 	 *
 	 * @see #sugarFactor(double)
 	 * @see #SUGAR_COEFFICIENTS
@@ -75,14 +78,14 @@ public class Dough{
 
 	/**
 	 * TODO
-	 * [%]
+	 * [% w/w]
 	 *
 	 * @see #fatFactor()
 	 */
 	static final double FAT_MAX = 1.;
 
 	/**
-	 * (should be 2.04 mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [%] = 11.922324876 (?)) [%]
+	 * (should be 2.04 mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
 	 *
 	 * @see #saltFactor()
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
@@ -96,14 +99,14 @@ public class Dough{
 	 */
 	private static final double[] WATER_COEFFICIENTS = new double[]{-1.292, 7.65, -6.25};
 	/**
-	 * [%]
+	 * [% w/w]
 	 *
 	 * @see #WATER_COEFFICIENTS
 	 * @see #waterFactor()
 	 */
 	static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 	/**
-	 * [%]
+	 * [% w/w]
 	 *
 	 * @see #WATER_COEFFICIENTS
 	 * @see #waterFactor()
@@ -145,7 +148,7 @@ public class Dough{
 	public static final double ATMOSPHERIC_PRESSURE_MAX = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
 	/**
-	 * [%]
+	 * [% w/w]
 	 *
 	 * @see #calculateYeast(Procedure)
 	 */
@@ -164,13 +167,13 @@ public class Dough{
 
 
 	private final YeastModelAbstract yeastModel;
-	/** Total sugar (glucose) quantity w.r.t. flour [%]. */
+	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
-	/** Total fat quantity w.r.t. flour [%]. */
+	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fat;
-	/** Total salt quantity w.r.t. flour [%]. */
+	/** Total salt quantity w.r.t. flour [% w/w]. */
 	private double salt;
-	/** Total water quantity w.r.t. flour [%]. */
+	/** Total water quantity w.r.t. flour [% w/w]. */
 	private double water;
 	/** Chlorine dioxide in water [mg/l]. */
 	private double waterChlorineDioxide;
@@ -181,7 +184,7 @@ public class Dough{
 	/** Atmospheric pressure [hPa]. */
 	private double atmosphericPressure = ONE_ATMOSPHERE;
 
-	/** Yeast quantity [%]. */
+	/** Yeast quantity [% w/w]. */
 	double yeast;
 
 
@@ -198,7 +201,7 @@ public class Dough{
 
 
 	/**
-	 * @param sugar	Sugar quantity w.r.t. flour [%].
+	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
 	 * @param ingredients	The recipe ingredients.
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
@@ -208,17 +211,17 @@ public class Dough{
 	}
 
 	/**
-	 * @param sugar	Sugar quantity w.r.t. flour [%].
+	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
 	 * @param sugarType	Sugar type.
-	 * @param sugarContent	Sucrose content [%].
-	 * @param waterContent	Water content [%].
+	 * @param sugarContent	Sucrose content [% w/w].
+	 * @param waterContent	Water content [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
 	public Dough addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
 			throws DoughException{
 		if(sugar < 0.)
-			throw DoughException.create("Sugar [%] must be positive");
+			throw DoughException.create("Sugar [% w/w] must be positive");
 
 		this.sugar += sugarType.factor * sugar * sugarContent;
 		addPureWater(sugar * waterContent);
@@ -227,7 +230,7 @@ public class Dough{
 	}
 
 	/**
-	 * @param fat	Fat quantity w.r.t. flour [%].
+	 * @param fat	Fat quantity w.r.t. flour [% w/w].
 	 * @param ingredients	The recipe ingredients.
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
@@ -237,10 +240,10 @@ public class Dough{
 	}
 
 	/**
-	 * @param fat	Fat quantity w.r.t. flour [%].
-	 * @param fatContent	Sucrose content [%].
-	 * @param waterContent	Water content [%].
-	 * @param saltContent	Salt content [%].
+	 * @param fat	Fat quantity w.r.t. flour [% w/w].
+	 * @param fatContent	Sucrose content [% w/w].
+	 * @param waterContent	Water content [% w/w].
+	 * @param saltContent	Salt content [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
 	 */
@@ -251,19 +254,19 @@ public class Dough{
 		addSalt(fat * saltContent);
 
 		if(fat < 0. || this.fat > FAT_MAX)
-			throw DoughException.create("Fat [%] must be between 0 and " + Helper.round(FAT_MAX * 100., 1) + "%");
+			throw DoughException.create("Fat [% w/w] must be between 0 and " + Helper.round(FAT_MAX * 100., 1) + "%");
 
 		return this;
 	}
 
 	/**
-	 * @param salt	Salt quantity w.r.t. flour [%].
+	 * @param salt	Salt quantity w.r.t. flour [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If salt is too low or too high.
 	 */
 	public Dough addSalt(final double salt) throws DoughException{
 		if(salt < 0.)
-			throw DoughException.create("Salt [%] must be positive");
+			throw DoughException.create("Salt [% w/w] must be positive");
 
 		this.salt += salt;
 
@@ -271,7 +274,7 @@ public class Dough{
 	}
 
 	/**
-	 * @param water	Water quantity w.r.t. flour [%].
+	 * @param water	Water quantity w.r.t. flour [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low.
 	 */
@@ -280,7 +283,7 @@ public class Dough{
 	}
 
 	/**
-	 * @param water	Water quantity w.r.t. flour [%].
+	 * @param water	Water quantity w.r.t. flour [% w/w].
 	 * @param ingredients	The recipe ingredients.
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
@@ -290,7 +293,7 @@ public class Dough{
 	}
 
 	/**
-	 * @param water	Water quantity w.r.t. flour [%].
+	 * @param water	Water quantity w.r.t. flour [% w/w].
 	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
 	 * @param pH	pH of water.
 	 * @param fixedResidue	Fixed residue in water [mg/l].
@@ -300,7 +303,7 @@ public class Dough{
 	public Dough addWater(final double water, final double chlorineDioxide, final double pH, final double fixedResidue)
 			throws DoughException{
 		if(water < 0.)
-			throw DoughException.create("Hydration [%] cannot be less than zero");
+			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and "
 				+ Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
@@ -337,16 +340,16 @@ public class Dough{
 	 */
 	private void validate() throws DoughException{
 		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
-			throw DoughException.create("Hydration [%] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
+			throw DoughException.create("Hydration [% w/w] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
 				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
 		if(fractionOverTotal(sugar) > SUGAR_MAX)
-			throw DoughException.create("Sugar [%] must be less than " + Helper.round(SUGAR_MAX * 100., 1) + "%");
+			throw DoughException.create("Sugar [% w/w] must be less than " + Helper.round(SUGAR_MAX * 100., 1) + "%");
 		if(fractionOverTotal(salt) > SALT_MAX)
-			throw DoughException.create("Salt [%] must be less than " + Helper.round(SALT_MAX * 100., 1) + "%");
+			throw DoughException.create("Salt [% w/w] must be less than " + Helper.round(SALT_MAX * 100., 1) + "%");
 
-		//convert [%] to [mol/l]
+		//convert [% w/w] to [mol/l]
 		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
-		//convert [%] to [mol/l]
+		//convert [% w/w] to [mol/l]
 		final double sodiumChloride = fractionOverTotal(salt * 10.) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
 		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221)))
 				* (glucose / (0.0066 + 0.7096 * glucose))) || glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
@@ -369,23 +372,24 @@ public class Dough{
 				double lambda = estimatedLag(yeast);
 				LeaveningStage currentStage = procedure.leaveningStages[0];
 				double volumeExpansionRatio = 0.;
-				double duration = 0.;
+				Duration duration = Duration.ZERO;
 				if(procedure.targetVolumeExpansionRatioAtLeaveningStage > 0){
 					int stretchAndFoldIndex = 0;
-					double stretchAndFoldDuration = 0.;
+					Duration stretchAndFoldDuration = Duration.ZERO;
 					for(int i = 1; i < procedure.leaveningStages.length; i ++){
 						final LeaveningStage previousStage = procedure.leaveningStages[i - 1];
-						duration += previousStage.duration;
+						duration = duration.plus(previousStage.duration);
 						currentStage = procedure.leaveningStages[i];
 
 						//avoid modifying `lambda` if the temperature is the same
 						double currentVolume = 0.;
 						if(previousStage.temperature != currentStage.temperature){
 							final double ingredientsFactor = ingredientsFactor(previousStage.temperature);
-							final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
+							final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+								previousStage.temperature, ingredientsFactor);
+							lambda = Math.max(lambda - previousStage.duration.toMinutes() / 60., 0.);
+							currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha, currentStage.temperature,
 								ingredientsFactor);
-							lambda = Math.max(lambda - previousStage.duration, 0.);
-							currentVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, currentStage.temperature, ingredientsFactor);
 
 							volumeExpansionRatio += previousVolume - currentVolume;
 						}
@@ -396,15 +400,15 @@ public class Dough{
 						double stretchAndFoldVolumeDecrease = 0.;
 						while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
 							final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
-							if(stretchAndFoldDuration + stretchAndFoldStage.lapse > duration)
+							if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration) > 0)
 								break;
 
 							stretchAndFoldIndex ++;
-							stretchAndFoldDuration += stretchAndFoldStage.lapse;
+							stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
 
 							final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
-							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration - previousStage.duration
-								+ stretchAndFoldDuration, lambda, alpha, currentStage.temperature, ingredientsFactor);
+							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
+								.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactor);
 							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
 								* stretchAndFoldStage.volumeDecrease;
 						}
@@ -418,8 +422,8 @@ public class Dough{
 
 				final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
 				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
-				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration + currentStage.duration, lambda, alpha,
-					currentStage.temperature, ingredientsFactor);
+				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
+					alpha, currentStage.temperature, ingredientsFactor);
 				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetVolumeExpansionRatio;
 			};
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
@@ -437,7 +441,7 @@ public class Dough{
 	 *
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
-	 * @param yeast	Quantity of yeast [%].
+	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The estimated lag [hrs].
 	 */
 	double maximumRelativeVolumeExpansionRatio(final double yeast){
@@ -450,11 +454,11 @@ public class Dough{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
-	 * @param yeast	Quantity of yeast [%].
+	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The estimated lag [hrs].
 	 */
 	public double estimatedLag(final double yeast){
-		//transform [%] to [g/l]
+		//transform [% w/w] to [g/l]
 		final double s = fractionOverTotal(salt * 10.);
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
 
@@ -640,9 +644,14 @@ public class Dough{
 	/**
 	 * @param ingredients	The recipe ingredients.
 	 * @param procedure	The recipe procedure.
+	 * @param workTime	Work times.
 	 * @return	The recipe.
 	 */
-	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure) throws DoughException, YeastException{
+	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final WorkTime workTime) throws DoughException,
+			YeastException{
+		if(workTime.stagesWork.length != procedure.leaveningStages.length)
+			throw DoughException.create("Number of work at each stage does not match number of leavening stages");
+
 		calculateYeast(procedure);
 
 		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
@@ -685,6 +694,18 @@ public class Dough{
 		recipe.sugar = sugar;
 		recipe.fat = fat;
 		recipe.salt = salt;
+
+		LocalTime last = workTime.timeToBake.minus(workTime.seasoning);
+		recipe.seasoning = last;
+		recipe.stagesStartEnd = new LocalTime[workTime.stagesWork.length][2];
+		for(int i = workTime.stagesWork.length - 1; i >= 0; i --){
+			last = last.minus(workTime.stagesWork[i]);
+			recipe.stagesStartEnd[i][1] = last;
+			last = last.minus(procedure.leaveningStages[i].duration);
+			recipe.stagesStartEnd[i][0] = last;
+		}
+		recipe.doughMaking = last.minus(workTime.doughMaking);
+
 		return recipe;
 	}
 

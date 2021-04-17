@@ -26,24 +26,26 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
 
+import java.time.Duration;
+
 
 public class StretchAndFoldStage{
 
-	//V_after = V_prior * (1 - VOLUME_DECREASE) [%]
+	//V_after = V_prior * (1 - VOLUME_DECREASE) [% v/v]
 	public static final double VOLUME_DECREASE_DEFAULT = 0.4187;
 
 
 	/** Interval at which to apply stretch & fold [hrs]. */
-	final double lapse;
-	/** Volume decrease after stretch & fold phase [%]. */
+	final Duration lapse;
+	/** Volume decrease after stretch & fold phase [% v/v]. */
 	double volumeDecrease;
 
 
-	public static StretchAndFoldStage create(final double lapse){
+	public static StretchAndFoldStage create(final Duration lapse){
 		return new StretchAndFoldStage(lapse);
 	}
 
-	private StretchAndFoldStage(final double lapse){
+	private StretchAndFoldStage(final Duration lapse){
 		this.lapse = lapse;
 		this.volumeDecrease = VOLUME_DECREASE_DEFAULT;
 	}

@@ -40,7 +40,7 @@ public class Ingredients{
 	boolean correctForIngredients;
 	/** Whether to correct for humidity in the flour. */
 	boolean correctForHumidity;
-	/** Relative humidity of the air [%]. */
+	/** Relative humidity of the air [% w/w]. */
 	double airRelativeHumidity;
 
 	/** Chlorine dioxide in water [mg/l]. */
@@ -68,20 +68,20 @@ public class Ingredients{
 	Flour flour;
 
 	YeastType yeastType;
-	/** Raw yeast content [%]. */
+	/** Raw yeast content [% w/w]. */
 	double rawYeast = 1.;
 
 	SugarType sugarType;
-	/** Raw sugar content [%]. */
+	/** Raw sugar content [% w/w]. */
 	double sugarContent = 1.;
-	/** Water content in sugar [%]. */
+	/** Water content in sugar [% w/w]. */
 	double sugarWaterContent;
 
-	/** Raw fat content [%]. */
+	/** Raw fat content [% w/w]. */
 	double fatContent = 1.;
-	/** Water content in fat [%]. */
+	/** Water content in fat [% w/w]. */
 	double fatWaterContent;
-	/** Salt content in fat [%]. */
+	/** Salt content in fat [% w/w]. */
 	double fatSaltContent;
 
 

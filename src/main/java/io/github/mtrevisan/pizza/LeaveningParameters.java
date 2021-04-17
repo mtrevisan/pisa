@@ -31,21 +31,21 @@ import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 public class LeaveningParameters{
 
-	//[%]
+	//[% w/w]
 	double idy;
-	//[%]
+	//[% w/w]
 	double sugar;
 	//can be one of ['sucrose', 'maltose', 'honey']
 	String sugarType;
-	//[%]
+	//[% w/w]
 	double fat;
 	//can be one of ['olive oil', 'lard']
 	String fatType;
 	//fat density [kg/l]
 	double fatDensity;
-	//[%]
+	//[% w/w]
 	double salt;
-	//[%]
+	//[% w/w]
 	double hydration;
 	//[mg/l]
 	double chlorineDioxide;
@@ -68,9 +68,9 @@ public class LeaveningParameters{
 	//baking temperature [°C]
 	double bakingTemperature;
 
-	//target volume over the maximum attainable volume [%]
+	//target volume over the maximum attainable volume [% v/v]
 	double targetVolume;
-	//volume at each stage [%]
+	//volume at each stage [% v/v]
 	double[] volume;
 	//final volume ratio at the end of all the stages
 	double finalVolumeRatio;
@@ -85,17 +85,17 @@ public class LeaveningParameters{
 		final double waterBoilingTemp = Water.boilingTemperature(salt * 1000. / hydration, atmosphericPressure);
 
 		if(hydration < 0.)
-			return "water [%] cannot be less than zero";
+			return "water [% w/w] cannot be less than zero";
 		if(chlorineDioxide < 0.)
 			return "chlorine dioxide [mg/l] cannot be less than zero";
 		if(salt < 0.)
-			return "salt [%] cannot be less than zero";
+			return "salt [% w/w] cannot be less than zero";
 		if(fat < 0.)
-			return "fat [%] cannot be less than zero";
+			return "fat [% w/w] cannot be less than zero";
 		if(sugar < 0.)
-			return "sugar [%] cannot be less than zero";
+			return "sugar [% w/w] cannot be less than zero";
 		if(idy < 0.)
-			return "IDY [%] cannot be less than zero";
+			return "yeast [% w/w] cannot be less than zero";
 		if(atmosphericPressure <= 0. || atmosphericPressure >= Dough.ATMOSPHERIC_PRESSURE_MAX)
 			return "Atmospheric pressure [hPa] must be between 0 and " + Helper.round(Dough.ATMOSPHERIC_PRESSURE_MAX, 0)
 				+ " hPa";
@@ -109,7 +109,7 @@ public class LeaveningParameters{
 			return "targetHeight [cm] cannot be less than or equal to zero";
 		//FIXME
 //		if(targetVolume <= 0. || targetVolume > 1.)
-//			return "targetVolume [%] cannot be less than or equal to zero or greater than or equal to one";
+//			return "targetVolume [% v/v] cannot be less than or equal to zero or greater than or equal to one";
 
 		final int size = temperature.length;
 		if(size != leaveningTime.length)

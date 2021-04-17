@@ -29,25 +29,25 @@ public class Flour{
 
 	/** W. */
 	double strength;
-	/** Salt content [%]. */
+	/** Salt content [% w/w]. */
 	double saltContent;
-	/** Fat content [%]. */
+	/** Fat content [% w/w]. */
 	double fatContent;
 
 
 	/**
 	 * @see <a href="https://www.research.manchester.ac.uk/portal/files/54543624/FULL_TEXT.PDF">Trinh. Gas cells in bread dough. 2013.</a>
 	 *
-	 * @param hydration	[%].
-	 * @return	Protein content (standard error is 0.0466) [%].
+	 * @param hydration	[% w/w].
+	 * @return	Protein content (standard error is 0.0466) [% w/w].
 	 */
 	public static double estimatedMinimumProteinContent(final double hydration){
 		return (hydration - 0.320) / 2.15;
 	}
 
 	/**
-	 * @param airRelativeHumidity	[%].
-	 * @return	Flour humidity [%].
+	 * @param airRelativeHumidity	[% w/w].
+	 * @return	Flour humidity [% w/w].
 	 */
 	public static double estimatedHumidity(final double airRelativeHumidity){
 		//13.5% at RH 70.62%

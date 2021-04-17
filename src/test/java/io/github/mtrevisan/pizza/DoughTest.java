@@ -28,6 +28,9 @@ import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalTime;
+
 
 class DoughTest{
 
@@ -35,7 +38,7 @@ class DoughTest{
 	void singleStageNoYeastPossible() throws DoughException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 1.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(1));
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2., 0);
 		Assertions.assertThrows(YeastException.class, () -> dough.calculateYeast(procedure),
 			"No yeast quantity will ever be able to produce the given expansion ratio");
@@ -45,7 +48,7 @@ class DoughTest{
 	void singleStage() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2., 0);
 		dough.calculateYeast(procedure);
 
@@ -56,8 +59,8 @@ class DoughTest{
 	void twoStages() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
+		final LeaveningStage stage2 = LeaveningStage.create(25., Duration.ofHours(1));
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 1);
 		dough.calculateYeast(procedure);
 
@@ -68,8 +71,8 @@ class DoughTest{
 	void twoStagesEarlyExit() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
+		final LeaveningStage stage2 = LeaveningStage.create(25., Duration.ofHours(1));
 		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 0);
 		dough.calculateYeast(procedure);
 		final double yeast1 = dough.yeast;
@@ -85,8 +88,8 @@ class DoughTest{
 	void twoStagesSameTemperature() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 1);
 		dough.calculateYeast(procedure);
 
@@ -97,9 +100,9 @@ class DoughTest{
 	void twoStagesInnerVolumeDecrease() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.)
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5))
 			.withVolumeDecrease(0.20);
-		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
+		final LeaveningStage stage2 = LeaveningStage.create(25., Duration.ofHours(1));
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 1);
 		dough.calculateYeast(procedure);
 
@@ -110,13 +113,13 @@ class DoughTest{
 	void twoStagesWithStretchAndFolds() throws DoughException, YeastException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast());
 		dough.addPureWater(0.6);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(25., 1.);
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5)
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
+		final LeaveningStage stage2 = LeaveningStage.create(25., Duration.ofHours(1));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.10);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5)
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.25);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.25)
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(15))
 			.withVolumeDecrease(0.30);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2., 1)
@@ -129,36 +132,50 @@ class DoughTest{
 	@Test
 	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException{
 		Ingredients ingredients = Ingredients.create(741.3, 0.001);
+		ingredients.ingredientsTemperature = 16.9;
+		ingredients.doughTemperature = 27.;
+		ingredients.waterChlorineDioxide = 0.02;
 		ingredients.flour = new Flour();
+		ingredients.flour.strength = 260.;
 		ingredients.yeastType = YeastType.INSTANT_DRY;
 		ingredients.sugarType = SugarType.SUCROSE;
+		ingredients.fatContent = 0.913;
 
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, ingredients)
 			.addSugar(0.003, ingredients)
-			.addSalt(0.0015)
+			.addSalt(0.015)
 			.addFat(0.014, ingredients)
-			.withAtmosphericPressure(1007.1);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5)
+			.withAtmosphericPressure(1012.8);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5)
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.5)
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
-		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0)
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0)
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		Recipe recipe = dough.createRecipe(ingredients, procedure);
+		final WorkTime workTime = WorkTime.create(Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0));
+		Recipe recipe = dough.createRecipe(ingredients, procedure, workTime);
 
-		Assertions.assertEquals(443.9, recipe.flour, 0.1);
-		Assertions.assertEquals(288.5, recipe.water, 0.1);
+		Assertions.assertEquals(440.3, recipe.flour, 0.1);
+		Assertions.assertEquals(286.2, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
-		Assertions.assertEquals(0.56, recipe.yeast, 0.01);
-		Assertions.assertEquals(0.66, recipe.salt, 0.01);
-		Assertions.assertEquals(6.21, recipe.fat, 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
+		Assertions.assertEquals(0.69, recipe.yeast, 0.01);
+		Assertions.assertEquals(6.61, recipe.salt, 0.01);
+		Assertions.assertEquals(6.17, recipe.fat, 0.01);
+		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt
+			+ recipe.fat, 0.1);
+		Assertions.assertEquals(LocalTime.of(12, 25), recipe.doughMaking);
+		Assertions.assertArrayEquals(new LocalTime[][]{
+				new LocalTime[]{LocalTime.of(12, 35), LocalTime.of(18, 35)},
+				new LocalTime[]{LocalTime.of(18, 45), LocalTime.of(19, 45)}
+			},
+			recipe.stagesStartEnd);
+		Assertions.assertEquals(LocalTime.of(19, 45), recipe.seasoning);
 	}
 
 	@Test
@@ -185,29 +202,31 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, ingredients)
 			.addSugar(0.003, ingredients)
-			.addSalt(0.0015)
+			.addSalt(0.015)
 			.addFat(0.014, ingredients)
 			.withAtmosphericPressure(1007.1);
-		final LeaveningStage stage1 = LeaveningStage.create(35., 5.);
-		final LeaveningStage stage2 = LeaveningStage.create(35., 1.);
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(0.5)
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5));
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(0.5)
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(0.5)
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0)
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		Recipe recipe = dough.createRecipe(ingredients, procedure);
+		final WorkTime workTime = WorkTime.create(Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0));
+		Recipe recipe = dough.createRecipe(ingredients, procedure, workTime);
 
-		Assertions.assertEquals(444.5, recipe.flour, 0.1);
-		Assertions.assertEquals(288.9, recipe.water, 0.1);
+		Assertions.assertEquals(440.9, recipe.flour, 0.1);
+		Assertions.assertEquals(286.6, recipe.water, 0.1);
 		Assertions.assertEquals(1.33, recipe.sugar, 0.01);
 		Assertions.assertEquals(0.45, recipe.yeast, 0.01);
-		Assertions.assertEquals(0.23, recipe.salt, 0.01);
-		Assertions.assertEquals(5.83, recipe.fat, 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt + recipe.fat, 0.1);
+		Assertions.assertEquals(6.19, recipe.salt, 0.01);
+		Assertions.assertEquals(5.79, recipe.fat, 0.01);
+		Assertions.assertEquals(ingredients.dough, recipe.flour + recipe.water + recipe.sugar + recipe.yeast + recipe.salt
+			+ recipe.fat, 0.1);
 	}
 
 

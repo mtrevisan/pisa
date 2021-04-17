@@ -28,6 +28,8 @@ import io.github.mtrevisan.pizza.utils.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+
 
 public class Procedure{
 
@@ -68,15 +70,15 @@ public class Procedure{
 	 */
 	public Procedure withStretchAndFoldStages(final StretchAndFoldStage[] stretchAndFoldStages){
 		if(stretchAndFoldStages != null){
-			double totalLeaveningDuration = 0.;
+			Duration totalLeaveningDuration = Duration.ZERO;
 			for(final LeaveningStage leaveningStage : leaveningStages)
-				totalLeaveningDuration += leaveningStage.duration;
-			double totalStretchAndFoldDuration = 0.;
+				totalLeaveningDuration = totalLeaveningDuration.plus(leaveningStage.duration);
+			Duration totalStretchAndFoldDuration = Duration.ZERO;
 			for(final StretchAndFoldStage stretchAndFoldStage : stretchAndFoldStages)
-				totalStretchAndFoldDuration += stretchAndFoldStage.lapse;
-			if(totalStretchAndFoldDuration > totalLeaveningDuration)
+				totalStretchAndFoldDuration = totalStretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
+			if(totalStretchAndFoldDuration.compareTo(totalLeaveningDuration) > 0)
 				LOGGER.warn("Duration of overall stretch & fold phases is longer than duration of leavening stages by "
-					+ Helper.round(totalStretchAndFoldDuration - totalLeaveningDuration, 2) + " hrs");
+					+ Helper.round(totalStretchAndFoldDuration.minus(totalLeaveningDuration).toMinutes() / 60., 2) + " hrs");
 		}
 
 		this.stretchAndFoldStages = stretchAndFoldStages;
