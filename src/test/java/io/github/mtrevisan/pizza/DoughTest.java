@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
+import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -165,7 +167,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		Recipe recipe = dough.createRecipe(ingredients, procedure);
+		Recipe recipe = dough.createRecipe(ingredients, procedure, new BakingPanAbstract[]{CircularBakingPan.create(24.)});
 
 		Assertions.assertEquals(440.3, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.2, recipe.getWater(), 0.1);
@@ -189,6 +191,7 @@ class DoughTest{
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
 		final Ingredients ingredients = Ingredients.create(741.3, 0.001)
 			.withCorrectForIngredients()
+			.withIngredientsTemperature(16.9)
 			.withFlour(Flour.create(230., 0.001, 0.0008))
 			.withWater(0.02, 0., 237., 7.9)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -213,7 +216,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Recipe recipe = dough.createRecipe(ingredients, procedure);
+		final Recipe recipe = dough.createRecipe(ingredients, procedure, new BakingPanAbstract[]{CircularBakingPan.create(24.)});
 
 		Assertions.assertEquals(440.9, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);

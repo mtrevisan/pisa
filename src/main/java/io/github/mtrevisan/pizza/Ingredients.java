@@ -38,6 +38,8 @@ public class Ingredients{
 	Double ingredientsTemperature;
 	/** Desired dough temperature [°C]. */
 	Double doughTemperature;
+	/** Desired pizza height [cm]. */
+	double targetPizzaHeight;
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
 	boolean correctForIngredients;
@@ -118,6 +120,16 @@ public class Ingredients{
 	 */
 	public Ingredients withDoughTemperature(final double doughTemperature){
 		this.doughTemperature = doughTemperature;
+
+		return this;
+	}
+
+	/**
+	 * @param targetPizzaHeight	Desired pizza height [cm].
+	 * @return	The instance.
+	 */
+	public Ingredients withTargetPizzaHeight(final double targetPizzaHeight){
+		this.targetPizzaHeight = targetPizzaHeight;
 
 		return this;
 	}

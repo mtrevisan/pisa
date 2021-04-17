@@ -28,14 +28,14 @@ package io.github.mtrevisan.pizza;
 public class Flour{
 
 	/** W. */
-	double strength;
+	final double strength;
 	/** Salt content [% w/w]. */
-	double saltContent;
+	final double saltContent;
 	/** Fat content [% w/w]. */
-	double fatContent;
+	final double fatContent;
 
 
-	public static final Flour create(){
+	public static Flour create(){
 		return new Flour(0., 0., 0.);
 	}
 
@@ -44,7 +44,7 @@ public class Flour{
 	 * @return	The instance.
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
-	public static final Flour create(final double strength) throws DoughException{
+	public static Flour create(final double strength) throws DoughException{
 		return create(strength, 0., 0.);
 	}
 
@@ -55,7 +55,7 @@ public class Flour{
 	 * @return	The instance.
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
-	public static final Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
+	public static Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
 		if(strength <= 0)
 			throw DoughException.create("Strength mush be positive");
 		if(saltContent < 0)

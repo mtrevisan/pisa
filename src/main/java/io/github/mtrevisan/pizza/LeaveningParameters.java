@@ -11,8 +11,6 @@ public class LeaveningParameters{
 	double targetArea;
 	//target height [cm]
 	double targetHeight;
-	//baking temperature [°C]
-	double bakingTemperature;
 
 	//target volume over the maximum attainable volume [% v/v]
 	double targetVolume;
@@ -26,11 +24,6 @@ public class LeaveningParameters{
 		//FIXME
 //		targetVolume = getTargetVolume(params);
 
-//		final double waterBoilingTemp = Water.boilingTemperature(salt * 1000. / hydration, atmosphericPressure);
-
-//		if(bakingTemperature <= waterBoilingTemp)
-//			return "Baking temperature [°C] must be greater than water boiling temperature (" + Helper.round(waterBoilingTemp, 1)
-//				+ " °C)";
 		if(targetHeight <= 0.)
 			return "targetHeight [cm] cannot be less than or equal to zero";
 		//FIXME

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -57,7 +58,7 @@ public class Dough{
 	private static final double MOLECULAR_WEIGHT_GLUCOSE = MOLECULAR_WEIGHT_CARBON * 6. + MOLECULAR_WEIGHT_HYDROGEN * 12.
 		+ MOLECULAR_WEIGHT_OXYGEN * 6.;
 	/** [g/mol] */
-	private static final double MOLECULAR_WEIGHT_SODIUM_CHLORIDE = MOLECULAR_WEIGHT_SODIUM + MOLECULAR_WEIGHT_CHLORINE;
+	static final double MOLECULAR_WEIGHT_SODIUM_CHLORIDE = MOLECULAR_WEIGHT_SODIUM + MOLECULAR_WEIGHT_CHLORINE;
 
 	/** Standard atmosphere [hPa]. */
 	static final double ONE_ATMOSPHERE = 1013.25;
@@ -318,6 +319,11 @@ public class Dough{
 		return this;
 	}
 
+	/**
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
+	 * @return	This instance.
+	 * @throws DoughException	If pressure is negative or above maximum.
+	 */
 	public Dough withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
 		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
@@ -355,53 +361,28 @@ public class Dough{
 	/**
 	 * @param ingredients	The recipe ingredients.
 	 * @param procedure	The recipe procedure.
+	 * @param bakingPans	Baking pans.
 	 * @return	The recipe.
 	 */
-	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure) throws DoughException,
-			YeastException{
+	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final BakingPanAbstract[] bakingPans)
+			throws DoughException, YeastException{
+		if(ingredients == null)
+			throw new IllegalArgumentException("Ingredients must be valued");
+		if(procedure == null)
+			throw new IllegalArgumentException("Procedure must be valued");
+		if(bakingPans == null || bakingPans.length == 0)
+			throw new IllegalArgumentException("Baking pans must be valued");
 		validate();
 		ingredients.validate(yeastModel);
 		procedure.validate(yeastModel);
 
+		//calculate yeast:
 		calculateYeast(procedure);
 
-		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
-		double totalFlour = ingredients.dough / totalFraction;
-		double yeast, flour, water, sugar, fat, salt,
-			difference;
-		final double waterCorrection = calculateWaterCorrection(ingredients);
-		do{
-			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
-			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
-			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
-			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
-			final double fatCorrection = calculateFatCorrection(ingredients, flour);
-			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
-			final double saltCorrection = calculateSaltCorrection(ingredients, flour);
-			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
+		//calculate ingredients:
+		final Recipe recipe = calculateIngredients(ingredients);
 
-			//refine approximation:
-			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
-			difference = ingredients.dough - calculatedDough;
-			totalFlour += difference * 0.6;
-		}while(Math.abs(difference) > ingredients.doughPrecision);
-		final Double waterTemperature = (ingredients.doughTemperature != null && ingredients.ingredientsTemperature != null?
-			(ingredients.dough * ingredients.doughTemperature - (ingredients.dough - water) * ingredients.ingredientsTemperature) / water:
-			null);
-
-		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
-			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
-				+ " °C) is greater that maximum temperature sustainable by the yeast ("
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
-
-		final Recipe recipe = Recipe.create()
-			.withFlour(flour)
-			.withWater(water, waterTemperature)
-			.withYeast(yeast)
-			.withSugar(sugar)
-			.withFat(fat)
-			.withSalt(salt);
-
+		//calculate times:
 		LocalTime last = procedure.timeToBake.minus(procedure.seasoning);
 		recipe.withSeasoningInstant(last);
 		final LocalTime[][] stageStartEndInstants = new LocalTime[procedure.stagesWork.length][2];
@@ -414,25 +395,26 @@ public class Dough{
 		recipe.withStageStartEndInstants(stageStartEndInstants)
 			.withDoughMakingInstant(last.minus(procedure.doughMaking));
 
+		//calculate baking temperature:
+		double totalBakingPansArea = 0.;
+		for(final BakingPanAbstract bakingPan : bakingPans)
+			totalBakingPansArea += bakingPan.area();
+		final double doughVolume = doughVolume(recipe.getFlour(), ingredients.dough, ingredients.fatDensity,
+			ingredients.ingredientsTemperature);
+		//[cm]
+		final double minHeight = doughVolume / totalBakingPansArea;
+		final double bakingRatio = ingredients.targetPizzaHeight / minHeight;
+		//apply inverse Charles-Gay Lussac
+		final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
+		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
+		final double waterBoilingTemp = Water.boilingTemperature(salt / water, sugar / water, ingredients.sugarType,
+			atmosphericPressure);
+		if(bakingTemperature < waterBoilingTemp)
+			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
+		else
+			recipe.withBakingTemperature(220.);
+
 		return recipe;
-	}
-
-	private double calculateWaterCorrection(final Ingredients ingredients){
-		double waterCorrection = 0.;
-		if(ingredients.correctForIngredients)
-			waterCorrection += this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent;
-		if(ingredients.correctForHumidity)
-			//NOTE: 70.62% is to obtain a humidity of 13.5%
-			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
-		return waterCorrection;
-	}
-
-	private double calculateFatCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
-	}
-
-	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
 	}
 
 	/**
@@ -503,7 +485,7 @@ public class Dough{
 				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
 				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
 					alpha, currentStage.temperature, ingredientsFactor);
-				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetVolumeExpansionRatio;
+				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
 			};
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
@@ -711,6 +693,73 @@ public class Dough{
 
 	private double fractionOverTotal(final double value){
 		return value / (1. + water);
+	}
+
+	private Recipe calculateIngredients(final Ingredients ingredients){
+		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
+		double totalFlour = ingredients.dough / totalFraction;
+		double yeast, flour, water, sugar, fat, salt,
+			difference;
+		final double waterCorrection = calculateWaterCorrection(ingredients);
+		do{
+			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
+			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
+			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
+			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
+			final double fatCorrection = calculateFatCorrection(ingredients, flour);
+			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
+			final double saltCorrection = calculateSaltCorrection(ingredients, flour);
+			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
+
+			//refine approximation:
+			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
+			difference = ingredients.dough - calculatedDough;
+			totalFlour += difference * 0.6;
+		}while(Math.abs(difference) > ingredients.doughPrecision);
+
+		//calculate water temperature:
+		final Double waterTemperature = (ingredients.doughTemperature != null && ingredients.ingredientsTemperature != null?
+			(ingredients.dough * ingredients.doughTemperature - (ingredients.dough - water) * ingredients.ingredientsTemperature) / water:
+			null);
+		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
+			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
+				+ " °C) is greater that maximum temperature sustainable by the yeast ("
+				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
+
+		final Recipe recipe = Recipe.create()
+			.withFlour(flour)
+			.withWater(water, waterTemperature)
+			.withYeast(yeast)
+			.withSugar(sugar)
+			.withFat(fat)
+			.withSalt(salt);
+		return recipe;
+	}
+
+	private double calculateWaterCorrection(final Ingredients ingredients){
+		double waterCorrection = 0.;
+		if(ingredients.correctForIngredients)
+			waterCorrection += this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent;
+		if(ingredients.correctForHumidity)
+			//NOTE: 70.62% is to obtain a humidity of 13.5%
+			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
+		return waterCorrection;
+	}
+
+	private double calculateFatCorrection(final Ingredients ingredients, final double flour){
+		return (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
+	}
+
+	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
+		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
+	}
+
+	//TODO account for baking temperature
+	// https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
+	//initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
+	//volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
+	private double calculateCharlesGayLussacVolumeExpansion(final double initialTemperature, final double finalTemperature){
+		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
 	}
 
 

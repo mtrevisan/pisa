@@ -40,7 +40,7 @@ public class Procedure{
 
 
 	final LeaveningStage[] leaveningStages;
-	final double targetVolumeExpansionRatio;
+	final double targetDoughVolumeExpansionRatio;
 	final int targetVolumeExpansionRatioAtLeaveningStage;
 	StretchAndFoldStage[] stretchAndFoldStages;
 
@@ -67,7 +67,7 @@ public class Procedure{
 			doughMaking, stagesWork, seasoning, timeToBake);
 	}
 
-	private Procedure(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
+	private Procedure(final LeaveningStage[] leaveningStages, final double targetDoughVolumeExpansionRatio,
 			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration[] stagesWork,
 			final Duration seasoning, final LocalTime timeToBake) throws DoughException{
 		if(targetVolumeExpansionRatioAtLeaveningStage < 0 || targetVolumeExpansionRatioAtLeaveningStage >= leaveningStages.length)
@@ -80,7 +80,7 @@ public class Procedure{
 			throw DoughException.create("Number of work at each stage does not match number of leavening stages");
 
 		this.leaveningStages = leaveningStages;
-		this.targetVolumeExpansionRatio = targetVolumeExpansionRatio;
+		this.targetDoughVolumeExpansionRatio = targetDoughVolumeExpansionRatio;
 		this.targetVolumeExpansionRatioAtLeaveningStage = targetVolumeExpansionRatioAtLeaveningStage;
 		this.timeToBake = timeToBake;
 		this.doughMaking = doughMaking;
@@ -119,7 +119,7 @@ public class Procedure{
 					+ Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
 					+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C, was "
 					+ Helper.round(stage.temperature, 1));
-		if(targetVolumeExpansionRatio <= 0.)
+		if(targetDoughVolumeExpansionRatio <= 0.)
 			throw DoughException.create("Target volume expansion ratio [% v/v] must be positive");
 	}
 

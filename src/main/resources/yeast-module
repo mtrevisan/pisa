@@ -34,15 +34,6 @@ Sub IDYSeek()
 End Sub
 
 
-'TODO account for baking temperature
-' https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-'initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
-'volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
-Private Function calculateCharlesGayLussacVolumeExpansion(initialTemperature As Double, finalTemperature As Double) As Double
-    calculateCharlesGayLussacVolumeExpansion = (finalTemperature + ABSOLUTE_ZERO) / (initialTemperature + ABSOLUTE_ZERO)
-End Function
-
-
 ' http://www.mscampicchio.com/tecal_10.php
 ' Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101
 ' http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf

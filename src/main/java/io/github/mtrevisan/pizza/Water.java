@@ -33,8 +33,6 @@ public class Water{
 	public static final double ABSOLUTE_ZERO = 273.15;
 
 	private static final double[] BOILING_TEMPERATURE_COEFFICIENTS = new double[]{19.46, 0.36395, -1.27769e-3, 3.21349e-6, -5.12207e-9, 4.92425e-12, -2.59915e-15, 5.7739e-19};
-	private static final double[] BOILING_TEMPERATURE_A_COEFFICIENTS = new double[]{17.95, 0.2823, -0.0004584};
-	private static final double[] BOILING_TEMPERATURE_B_COEFFICIENTS = new double[]{6.56, 0.05267, 0.0001536};
 
 	private static final double[] PURE_WATER_DENSITY_A_COEFFICIENTS = new double[]{0.824493, -0.0040899, 0.000076438, -0.00000082467, 0.0000000053875};
 	private static final double[] PURE_WATER_DENSITY_B_COEFFICIENTS = new double[]{-0.00572466, 0.00010227, -0.0000016546};
@@ -58,21 +56,22 @@ public class Water{
 
 
 	/**
-	 * @see <a href="https://journals.ametsoc.org/view/journals/bams/98/7/bams-d-16-0174.1.xml#e7">Methods for computing the boiling temperature of water at varying pressures</a>
+	 * @see <a href="https://journals.ametsoc.org/view/journals/bams/98/7/bams-d-16-0174.1.xml">Methods for computing the boiling temperature of water at varying pressures</a>
 	 *
-	 * @param salinity	Salt quantity [kg/kg].
+	 * @param salt	Salt [% w/w].
+	 * @param sugar	Sugar [% w/w].
 	 * @param pressure	Pressure [hPa].
-	 * @return	The boiling temperature of salted water [°C].
+	 * @return	The boiling temperature of salted and sweetened water [°C].
 	 */
-	public static double boilingTemperature(final double salinity, final double pressure){
+	public static double boilingTemperature(final double salt, final double sugar, final SugarType sugarType, final double pressure){
 		final double temperature = Helper.evaluatePolynomial(BOILING_TEMPERATURE_COEFFICIENTS, pressure);
 
-		//boiling point elevation [K]
-		final double a = Helper.evaluatePolynomial(BOILING_TEMPERATURE_A_COEFFICIENTS, temperature);
-		final double b = Helper.evaluatePolynomial(BOILING_TEMPERATURE_B_COEFFICIENTS, temperature);
-		final double saltBPE = (b + a * salinity) * salinity;
+		//boiling point elevation ΔTb = kb ⋅ m ⋅ i [K], for water, kb = 0.515 K/(mol/kg), and i is the number of particles formed when
+		//that compound dissolves (for covalent compounds, this number is always 1)
+		final double saltBPE = 0.515 * (salt * 1000. / Dough.MOLECULAR_WEIGHT_SODIUM_CHLORIDE) * 2.;
+		final double sugarBPE = 0.515 * (sugar * 1000. / sugarType.molecularWeight) * 1.;
 
-		return temperature + saltBPE;
+		return temperature + saltBPE + sugarBPE;
 	}
 
 

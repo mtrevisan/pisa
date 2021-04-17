@@ -33,18 +33,20 @@ package io.github.mtrevisan.pizza;
  */
 public enum SugarType{
 	@SuppressWarnings("PointlessArithmeticExpression")
-	GLUCOSE(0.41 / 0.41),
-	SUCROSE(0.38 / 0.41),
-	MALTOSE(0.40 / 0.41),
-	GALACTOSE(0.28 / 0.41);
+	GLUCOSE(0.41 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.),
+	SUCROSE(0.38 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
+	MALTOSE(0.40 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
+	GALACTOSE(0.28 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.);
 
 
 	/** Equivalent quantity in glucose to obtain the same maximum volume expansion ratio. */
 	final double factor;
+	final double molecularWeight;
 
 
-	SugarType(final double factor){
+	SugarType(final double factor, final double molecularWeight){
 		this.factor = factor;
+		this.molecularWeight = molecularWeight;
 	}
 
 }

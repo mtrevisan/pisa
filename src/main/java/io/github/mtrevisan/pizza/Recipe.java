@@ -53,8 +53,11 @@ public class Recipe{
 	/** Time to start seasoning the pizza. */
 	private LocalTime seasoningInstant;
 
+	/** Baking temperature [°C]. */
+	private double bakingTemperature;
 
-	public static final Recipe create(){
+
+	public static Recipe create(){
 		return new Recipe();
 	}
 
@@ -179,6 +182,7 @@ public class Recipe{
 		return salt;
 	}
 
+
 	/**
 	 * @param doughMakingInstant	Time to start making the dough.
 	 * @return	The instance.
@@ -229,6 +233,25 @@ public class Recipe{
 	public LocalTime getSeasoningInstant(){
 		return seasoningInstant;
 	}
+
+
+	/**
+	 * @param bakingTemperature	Baking temperature [°C].
+	 * @return	The instance.
+	 */
+	public Recipe withBakingTemperature(final double bakingTemperature){
+		this.bakingTemperature = bakingTemperature;
+
+		return this;
+	}
+
+	/**
+	 * @return	Baking temperature [°C].
+	 */
+	public double getBakingTemperature(){
+		return bakingTemperature;
+	}
+
 
 	@Override
 	public String toString(){
