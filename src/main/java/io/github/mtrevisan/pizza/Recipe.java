@@ -36,7 +36,7 @@ public class Recipe{
 	/** Water quantity [g]. */
 	double water;
 	/** Water temperature [°C]. */
-	double waterTemperature;
+	Double waterTemperature;
 	/** Yeast quantity [g]. */
 	double yeast;
 	/** Sugar quantity [g]. */
@@ -63,7 +63,7 @@ public class Recipe{
 		sb.append("]");
 		return "flour: " + Helper.round(flour, 1) + " g"
 			+ ", water: " + Helper.round(water, 1) + " g"
-			+ (waterTemperature > 0.? " at " + Helper.round(waterTemperature, 1) + " °C": "")
+			+ (waterTemperature != null? " at " + Helper.round(waterTemperature, 1) + " °C": "")
 			+ ", yeast: " + Helper.round(yeast, 2) + " g"
 			+ ", sugar: " + Helper.round(sugar, 2) + " g"
 			+ ", fat: " + Helper.round(fat, 2) + " g"

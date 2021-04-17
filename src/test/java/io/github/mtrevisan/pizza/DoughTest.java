@@ -139,16 +139,14 @@ class DoughTest{
 
 	@Test
 	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException{
-		Ingredients ingredients = Ingredients.create(741.3, 0.001);
-		ingredients.ingredientsTemperature = 16.9;
-		ingredients.doughTemperature = 27.;
-		ingredients.waterChlorineDioxide = 0.02;
-		ingredients.flour = new Flour();
-		ingredients.flour.strength = 260.;
-		ingredients.yeastType = YeastType.INSTANT_DRY;
-		ingredients.sugarType = SugarType.SUCROSE;
-		ingredients.fatContent = 0.913;
-
+		final Ingredients ingredients = Ingredients.create(741.3, 0.001)
+			.withIngredientsTemperature(16.9)
+			.withDoughTemperature(27.)
+			.withWater(0.02)
+			.withFlour(Flour.create(260.))
+			.withYeast(YeastType.INSTANT_DRY)
+			.withSugar(SugarType.SUCROSE)
+			.withFat(0.913);
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, ingredients)
 			.addSugar(0.003, ingredients)
@@ -188,24 +186,13 @@ class DoughTest{
 
 	@Test
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
-		Flour flour = new Flour();
-		flour.strength = 260.;
-		flour.saltContent = 0.001;
-		flour.fatContent = 0.0008;
-		Ingredients ingredients = Ingredients.create(741.3, 0.001);
-		ingredients.correctForIngredients = true;
-		ingredients.flour = flour;
-		ingredients.waterChlorineDioxide = 0.02;
-		ingredients.waterPH = 7.9;
-		ingredients.waterFixedResidue = 237.;
-		ingredients.yeastType = YeastType.INSTANT_DRY;
-		ingredients.rawYeast = 1.;
-		ingredients.sugarType = SugarType.SUCROSE;
-		ingredients.sugarContent = 0.998;
-		ingredients.sugarWaterContent = 0.0005;
-		ingredients.fatContent = 0.913;
-		ingredients.fatWaterContent = 0.;
-		ingredients.fatSaltContent = 0.002;
+		final Ingredients ingredients = Ingredients.create(741.3, 0.001)
+			.withCorrectForIngredients()
+			.withFlour(Flour.create(230., 0.001, 0.0008))
+			.withWater(0.02, 0., 237., 7.9)
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withSugar(SugarType.SUCROSE, 0.998, 0.0005)
+			.withFat(0.913, 0., 0.002);
 
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, ingredients)
@@ -225,7 +212,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		Recipe recipe = dough.createRecipe(ingredients, procedure);
+		final Recipe recipe = dough.createRecipe(ingredients, procedure);
 
 		Assertions.assertEquals(440.9, recipe.flour, 0.1);
 		Assertions.assertEquals(286.6, recipe.water, 0.1);

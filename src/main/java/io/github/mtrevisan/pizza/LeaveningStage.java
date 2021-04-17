@@ -60,8 +60,8 @@ public class LeaveningStage{
 
 	@Override
 	public String toString(){
-		return getClass().getSimpleName() + "{" + temperature + " °C for " + duration + " hrs"
-			+ (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
+		return getClass().getSimpleName() + "{" + temperature + " °C for " + Helper.round(duration.toMinutes() / 60., 2)
+			+ " hrs" + (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
 			+ "}";
 	}
 
