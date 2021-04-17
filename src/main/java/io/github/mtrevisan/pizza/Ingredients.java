@@ -195,7 +195,7 @@ public class Ingredients{
 	}
 
 	public Ingredients withFat(final double fatContent) throws DoughException{
-		return withFat(fatContent,  1., 0.);
+		return withFat(fatContent,  0., 0.);
 	}
 
 	public Ingredients withFat(final double fatContent, final double fatWaterContent, final double fatSaltContent) throws DoughException{
