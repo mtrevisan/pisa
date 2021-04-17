@@ -64,14 +64,9 @@ public class Dough{
 
 
 	/**
-	 * @see #sugarFactor(double)
-	 */
-	private static final double[] SUGAR_COEFFICIENTS = new double[]{1., 4.9, -50.};
-	/**
 	 * (should be 3.21 mol/l = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10. [% w/w] = 57.82965228 (?)) [% w/w]
 	 *
 	 * @see #sugarFactor(double)
-	 * @see #SUGAR_COEFFICIENTS
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
 	static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10.;
@@ -358,6 +353,84 @@ public class Dough{
 
 
 	/**
+	 * @param ingredients	The recipe ingredients.
+	 * @param procedure	The recipe procedure.
+	 * @return	The recipe.
+	 */
+	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure) throws DoughException,
+			YeastException{
+		calculateYeast(procedure);
+
+		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
+		double totalFlour = ingredients.dough / totalFraction;
+		double yeast, flour, water, sugar, fat, salt,
+			difference;
+		final double waterCorrection = calculateWaterCorrection(ingredients);
+		do{
+			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
+			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
+			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
+			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
+			final double fatCorrection = calculateFatCorrection(ingredients, flour);
+			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
+			final double saltCorrection = calculateSaltCorrection(ingredients, flour);
+			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
+
+			//refine approximation:
+			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
+			difference = ingredients.dough - calculatedDough;
+			totalFlour += difference * 0.6;
+		}while(Math.abs(difference) > ingredients.doughPrecision);
+		final double waterTemperature = (ingredients.dough * ingredients.doughTemperature
+			- (ingredients.dough - water) * ingredients.ingredientsTemperature) / water;
+
+		if(waterTemperature >= yeastModel.getTemperatureMax())
+			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
+				+ " °C) is greater that maximum temperature sustainable by the yeast ("
+				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
+
+		final Recipe recipe = new Recipe();
+		recipe.flour = flour;
+		recipe.water = water;
+		recipe.waterTemperature = waterTemperature;
+		recipe.yeast = yeast;
+		recipe.sugar = sugar;
+		recipe.fat = fat;
+		recipe.salt = salt;
+
+		LocalTime last = procedure.timeToBake.minus(procedure.seasoning);
+		recipe.seasoning = last;
+		recipe.stagesStartEnd = new LocalTime[procedure.stagesWork.length][2];
+		for(int i = procedure.stagesWork.length - 1; i >= 0; i --){
+			last = last.minus(procedure.stagesWork[i]);
+			recipe.stagesStartEnd[i][1] = last;
+			last = last.minus(procedure.leaveningStages[i].duration);
+			recipe.stagesStartEnd[i][0] = last;
+		}
+		recipe.doughMaking = last.minus(procedure.doughMaking);
+
+		return recipe;
+	}
+
+	private double calculateWaterCorrection(final Ingredients ingredients){
+		double waterCorrection = 0.;
+		if(ingredients.correctForIngredients)
+			waterCorrection += this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent;
+		if(ingredients.correctForHumidity)
+			//NOTE: 70.62% is to obtain a humidity of 13.5%
+			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
+		return waterCorrection;
+	}
+
+	private double calculateFatCorrection(final Ingredients ingredients, final double flour){
+		return (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
+	}
+
+	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
+		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
+	}
+
+	/**
 	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
 	 * temperature.
 	 *
@@ -530,12 +603,6 @@ public class Dough{
 			+ (-0.00375 + 0.000025 * sugar) * temperature
 			+ (0.003 - 0.00002 * sugar) * waterPH
 		) / (3. * baseMu);
-
-//		if(sugar < 0.03)
-//			return Math.min(Helper.evaluatePolynomial(SUGAR_COEFFICIENTS, fractionOverTotal(sugar)), 1.);
-//		if(sugar < SUGAR_MAX)
-//			return Math.max(-0.3545 * (Math.log(fractionOverTotal(sugar)) - Math.log(SUGAR_MAX)), 0.);
-//		return 0.;
 	}
 
 	/**
@@ -638,75 +705,6 @@ public class Dough{
 
 	private double fractionOverTotal(final double value){
 		return value / (1. + water);
-	}
-
-
-	/**
-	 * @param ingredients	The recipe ingredients.
-	 * @param procedure	The recipe procedure.
-	 * @param workTime	Work times.
-	 * @return	The recipe.
-	 */
-	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final WorkTime workTime) throws DoughException,
-			YeastException{
-		if(workTime.stagesWork.length != procedure.leaveningStages.length)
-			throw DoughException.create("Number of work at each stage does not match number of leavening stages");
-
-		calculateYeast(procedure);
-
-		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
-		double totalFlour = ingredients.dough / totalFraction;
-		double yeast, flour, water, sugar, fat, salt,
-			difference;
-		final double waterCorrection = (ingredients.correctForIngredients?
-			this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent: 0.)
-			+ (ingredients.correctForHumidity? Flour.estimatedHumidity(ingredients.airRelativeHumidity)
-			- Flour.estimatedHumidity(0.706): 0.);
-		do{
-			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
-			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
-			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
-			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
-			final double fatCorrection = (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
-			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
-			final double saltCorrection = (ingredients.correctForIngredients? flour * ingredients.flour.saltContent
-				+ this.fat * ingredients.fatSaltContent: 0.);
-			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
-
-			//refine approximation:
-			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
-			difference = ingredients.dough - calculatedDough;
-			totalFlour += difference * 0.6;
-		}while(Math.abs(difference) > ingredients.doughPrecision);
-		final double waterTemperature = (ingredients.dough * ingredients.doughTemperature
-			- (ingredients.dough - water) * ingredients.ingredientsTemperature) / water;
-
-		if(waterTemperature >= yeastModel.getTemperatureMax())
-			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
-				+ " °C) is greater that maximum temperature sustainable by the yeast ("
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
-
-		final Recipe recipe = new Recipe();
-		recipe.flour = flour;
-		recipe.water = water;
-		recipe.waterTemperature = waterTemperature;
-		recipe.yeast = yeast;
-		recipe.sugar = sugar;
-		recipe.fat = fat;
-		recipe.salt = salt;
-
-		LocalTime last = workTime.timeToBake.minus(workTime.seasoning);
-		recipe.seasoning = last;
-		recipe.stagesStartEnd = new LocalTime[workTime.stagesWork.length][2];
-		for(int i = workTime.stagesWork.length - 1; i >= 0; i --){
-			last = last.minus(workTime.stagesWork[i]);
-			recipe.stagesStartEnd[i][1] = last;
-			last = last.minus(procedure.leaveningStages[i].duration);
-			recipe.stagesStartEnd[i][0] = last;
-		}
-		recipe.doughMaking = last.minus(workTime.doughMaking);
-
-		return recipe;
 	}
 
 
