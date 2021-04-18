@@ -30,10 +30,6 @@ import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 public class Ingredients{
 
-	/** Total dough weight [g]. */
-	final double dough;
-	/** Dough weight precision [g]. */
-	final double doughPrecision;
 	/** Temperature of ingredients [°C]. */
 	Double ingredientsTemperature;
 	/** Desired dough temperature [°C]. */
@@ -89,20 +85,8 @@ public class Ingredients{
 	/** Salt content in fat [% w/w]. */
 	Double fatSaltContent;
 
+	OvenType ovenType;
 
-	/**
-	 * @param dough	Total dough weight [g].
-	 * @param doughPrecision	Dough weight precision [g].
-	 * @return	The instance.
-	 */
-	public static Ingredients create(final double dough, final double doughPrecision){
-		return new Ingredients(dough, doughPrecision);
-	}
-
-	private Ingredients(final double dough, final double doughPrecision){
-		this.dough = dough;
-		this.doughPrecision = doughPrecision;
-	}
 
 	/**
 	 * @param ingredientsTemperature	Temperature of ingredients [°C].
@@ -282,6 +266,15 @@ public class Ingredients{
 		this.fatContent = fatContent;
 		this.fatWaterContent = waterContent;
 		this.fatSaltContent = saltContent;
+
+		return this;
+	}
+
+	public Ingredients withOvenType(final OvenType ovenType) throws DoughException{
+		if(ovenType == null)
+			throw DoughException.create("Missing oven type");
+
+		this.ovenType = ovenType;
 
 		return this;
 	}

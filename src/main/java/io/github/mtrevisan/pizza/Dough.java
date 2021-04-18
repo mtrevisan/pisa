@@ -151,6 +151,8 @@ public class Dough{
 	private static final double SOLVER_YEAST_MAX = 1.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
+	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
+
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
 	//regression: https://planetcalc.com/5992/
@@ -380,7 +382,12 @@ public class Dough{
 		calculateYeast(procedure);
 
 		//calculate ingredients:
-		final Recipe recipe = calculateIngredients(ingredients);
+		double doughWeight = 0.;
+		for(final BakingPanAbstract bakingPan : bakingPans)
+			doughWeight += bakingPan.area();
+		//FIXME
+		doughWeight *= 0.76222;
+		final Recipe recipe = calculateIngredients(ingredients, doughWeight);
 
 		//calculate times:
 		LocalTime last = procedure.timeToBake.minus(procedure.seasoning);
@@ -399,20 +406,23 @@ public class Dough{
 		double totalBakingPansArea = 0.;
 		for(final BakingPanAbstract bakingPan : bakingPans)
 			totalBakingPansArea += bakingPan.area();
-		final double doughVolume = doughVolume(recipe.getFlour(), ingredients.dough, ingredients.fatDensity,
-			ingredients.ingredientsTemperature);
+		//FIXME
+final double fatDensity = 0.9175;
+		final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
 		//[cm]
 		final double minHeight = doughVolume / totalBakingPansArea;
 		final double bakingRatio = ingredients.targetPizzaHeight / minHeight;
 		//apply inverse Charles-Gay Lussac
 		final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
+		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 		final double waterBoilingTemp = Water.boilingTemperature(salt / water, sugar / water, ingredients.sugarType,
 			atmosphericPressure);
 		if(bakingTemperature < waterBoilingTemp)
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else
 			recipe.withBakingTemperature(220.);
+		recipe.withBakingDuration(calculateBakingDuration(ingredients));
 
 		return recipe;
 	}
@@ -695,9 +705,9 @@ public class Dough{
 		return value / (1. + water);
 	}
 
-	private Recipe calculateIngredients(final Ingredients ingredients){
+	private Recipe calculateIngredients(final Ingredients ingredients, final double doughWeight){
 		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
-		double totalFlour = ingredients.dough / totalFraction;
+		double totalFlour = doughWeight / totalFraction;
 		double yeast, flour, water, sugar, fat, salt,
 			difference;
 		final double waterCorrection = calculateWaterCorrection(ingredients);
@@ -713,27 +723,26 @@ public class Dough{
 
 			//refine approximation:
 			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
-			difference = ingredients.dough - calculatedDough;
+			difference = doughWeight - calculatedDough;
 			totalFlour += difference * 0.6;
-		}while(Math.abs(difference) > ingredients.doughPrecision);
+		}while(Math.abs(difference) > DOUGH_WEIGHT_PRECISION);
 
 		//calculate water temperature:
 		final Double waterTemperature = (ingredients.doughTemperature != null && ingredients.ingredientsTemperature != null?
-			(ingredients.dough * ingredients.doughTemperature - (ingredients.dough - water) * ingredients.ingredientsTemperature) / water:
+			(doughWeight * ingredients.doughTemperature - (doughWeight - water) * ingredients.ingredientsTemperature) / water:
 			null);
 		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
 			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
 				+ " °C) is greater that maximum temperature sustainable by the yeast ("
 				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
 
-		final Recipe recipe = Recipe.create()
+		return Recipe.create()
 			.withFlour(flour)
 			.withWater(water, waterTemperature)
 			.withYeast(yeast)
 			.withSugar(sugar)
 			.withFat(fat)
 			.withSalt(salt);
-		return recipe;
 	}
 
 	private double calculateWaterCorrection(final Ingredients ingredients){
@@ -762,20 +771,68 @@ public class Dough{
 		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
 	}
 
+	//https://stackoverflow.com/questions/4357061/differential-equations-in-java
+	//https://commons.apache.org/proper/commons-math/userguide/ode.html
+	//https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods -- GraggBulirschStoerIntegrator
+	private Duration calculateBakingDuration(final Ingredients ingredients){
+		//TODO
+		//https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599
+		//heat transfer coeff:
+		//air speed: 1 m/s
+//		if(ingredients.ovenType == OvenType.FORCED_AIR)
+			//h_rc = 1697.7 + (-9.66 + 0.02544 * T) * T
+//		else
+			//h_rc = 8066.6 + (-76.01 + 0.19536 * T) * T
+		//HS = 0.1837 + (-0.0014607 + 0.000004477 * T) * T
+		//Lp = dough height, Lt = tomato height, Lc = cheese height, L = Lp + Lt + Lc
+		//
+		//finite difference equations:
+		//node 9, cheese layer (c): d theta9 / dt = 4 * alpha_c / Lc^2 * (theta8 - 2 * theta9 + thetaS)
+		//d C9 / dt = 4 * Dmc / Lc^2 * (C8 - 2 * C9 + Cs)
+		//node 7, tomato paste layer (t): d theta7 / dt =4 * alpha_t / Lt^2 * (theta6 - 2 * theta7 + theta8)
+		//d C7 / dt = 4 * Dmt / Lt^2 * (C6 - 2 * C7 + C8)
+		//node 5, surface of the pizza layer (p): d theta5 / dt =100 * alpha_p / (3 * Lp^2) * (theta4 - 3 * theta5 + 2 * theta6)
+		//d C5 / dt = 100 * Dmp / (3 * Lp^2) * (C4 - 3 * C5 + 2 * C6)
+		//node 4 to 2, pizza: d theta_i / dt = 25 * alpha_p / Lp^2 * (theta_i-1 - 2 * theta_i + theta_i+1)
+		//d Ci / dt = 25 * Dmp / Lp^2 * (C_i-1 - 2 * Ci + C_i+1)
+		//node 1, pizza in contact with heated tray (p): d theta1 / dt = 100 * alpha_p / (3 * Lp^2) * (thetaB - 3 * theta1 + 2 * theta2)
+		//d C1 / dt = 50 * Dmp / Lp^2 * (C2 - C1)
+		//
+//		if(ingredients.ovenType == OvenType.FORCED_AIR)
+			//theta_S = 1 / (h_rc + 2 * Kc / Lc) * (h_rc + 2 * Kc * theta9 / Lc - 2 * Dmc * rho_c * Lv * m_p0 / (Lc * (Ta - T0)) * (C9 - CS))
+//		else
+			//theta_S = 1 / (h_r + 2 * Kc / Lc) * (h_r + 2 * Kc * theta9 / Lc - 2 * Dmc * rho_c * Lv * m_p0 / (Lc * (Ta - T0)) * (C9 - CS))
+		//CS = C9 - Kmc / (Dmc * rho_c) * (HS - Ha) * Lc / (2 * m_p0)
+		//d theta6 / dt = 20 / (rho_p * c_pp * Lp + 5 * rho_t * c_pt * Lt) * (5 * Kp / Lp * (theta5 - theta6) - Kt / Lt * (theta6 - theta7))
+		//d theta8 / dt = 4 / (rho_t * c_pt * Lt + rho_c * c_pc * Lc) * (Kt / Lt * (theta7 - theta8) - Kc / Lc * (theta8 - theta9))
+		//d C6 / dt = 20 / (Lp + 5 * Lt) * (5 * Dmp / Lp * (C5 - C6) - Dmt / Lt * (C6 - C7))
+		//d C8 / dt = 4 / (Lt + Lc) * (Dmt / Lt * (C7 - C8) - Dmc / Lc * (C8 - C9))
+		//
+		//total pizza height: L = 0.014 [m]
+		//latent heat of vaporization: Lv = 2256.9e3 [J/kg]
+		//height: Lp = 0.01, Lt = 0.002, Lc = 0.002 [m]
+		//moisture content: m_p0 = 0.47 to 0.55, m_t0 = 3.73, m_c0 = 0.826 [db?]
+		//density: rho_p = 862, rho_t = 1073, rho_c = 1140 [kg/m^3]
+		//specific heat: c_pp = 3770, c_pt = 2930, c_pc = 2864 [J / (kg * K)]
+		//thermal diffusivity: alpha_p = 0.128e-6, alpha_t = 1.737e-7, alpha_c = 1.164e-7 [m^2/s]
+		//thermal conductivity: Kp = 0.416, Kt = 0.546, Kc = 0.380 [W / (m * K)]
+		return null;
+	}
+
 
 	/**
 	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
 	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
-	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>	 *
+	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
 	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
 	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
 	 *
 	 * @param flour	Flour weight [g].
 	 * @param dough	Final dough weight [g].
 	 * @param fatDensity	Density of the fat [kg/l].
-	 * @param doughTemperature	Temperature of the dough [°C].
+	 * @param temperature	Temperature of the dough [°C].
 	 */
-	public double doughVolume(final double flour, final double dough, final double fatDensity, final double doughTemperature){
+	public double doughDensity(final double flour, final double dough, final double fatDensity, final double temperature){
 		//TODO
 		//density of flour + salt + sugar + water
 		double doughDensity = 1.41
@@ -785,11 +842,12 @@ public class Dough{
 //			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
 			- 0.00260 * water;
 
+		final double pureWaterDensity = 999.84259 + (0.06793952 + (-0.00909529 + (0.0001001685 + (-0.000001120083
+			+ 0.000000006536332 * temperature) * temperature) * temperature) * temperature) * temperature;
+
 		//account for fat
 		final double fraction = fat * flour / dough;
-		doughDensity = 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
-
-		return dough / doughDensity;
+		return 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
 	}
 
 }

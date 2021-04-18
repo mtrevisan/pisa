@@ -26,6 +26,7 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
+import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -141,8 +142,8 @@ class DoughTest{
 
 	@Test
 	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException{
-		final Ingredients ingredients = Ingredients.create(741.3, 0.001)
-			.withIngredientsTemperature(16.9)
+		final Ingredients ingredients = new Ingredients()
+			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withWater(0.02)
 			.withFlour(Flour.create(260.))
@@ -152,9 +153,9 @@ class DoughTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, ingredients)
 			.addSugar(0.003, ingredients)
-			.addSalt(0.015)
+			.addSalt(0.016)
 			.addFat(0.014, ingredients)
-			.withAtmosphericPressure(1012.8);
+			.withAtmosphericPressure(1012.1);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
@@ -167,17 +168,16 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		Recipe recipe = dough.createRecipe(ingredients, procedure, new BakingPanAbstract[]{CircularBakingPan.create(24.)});
+		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
+		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
 
 		Assertions.assertEquals(440.3, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.2, recipe.getWater(), 0.1);
-		Assertions.assertEquals(43.1, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(43.4, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(1.33, recipe.getSugar(), 0.01);
 		Assertions.assertEquals(0.69, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(6.61, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(6.17, recipe.getFat(), 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.getFlour() + recipe.getWater() + recipe.getSugar() + recipe.getYeast()
-			+ recipe.getSalt() + recipe.getFat(), 0.1);
 		Assertions.assertEquals(LocalTime.of(12, 25), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[][]{
 				new LocalTime[]{LocalTime.of(12, 35), LocalTime.of(18, 35)},
@@ -189,7 +189,7 @@ class DoughTest{
 
 	@Test
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
-		final Ingredients ingredients = Ingredients.create(741.3, 0.001)
+		final Ingredients ingredients = new Ingredients()
 			.withCorrectForIngredients()
 			.withIngredientsTemperature(16.9)
 			.withFlour(Flour.create(230., 0.001, 0.0008))
@@ -216,7 +216,8 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Recipe recipe = dough.createRecipe(ingredients, procedure, new BakingPanAbstract[]{CircularBakingPan.create(24.)});
+		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
+		final Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
 
 		Assertions.assertEquals(440.9, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);
@@ -224,8 +225,6 @@ class DoughTest{
 		Assertions.assertEquals(0.45, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(6.19, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(5.79, recipe.getFat(), 0.01);
-		Assertions.assertEquals(ingredients.dough, recipe.getFlour() + recipe.getWater() + recipe.getSugar() + recipe.getYeast()
-			+ recipe.getSalt() + recipe.getFat(), 0.1);
 	}
 
 

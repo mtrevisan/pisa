@@ -26,6 +26,7 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
 
+import java.time.Duration;
 import java.time.LocalTime;
 
 
@@ -55,6 +56,7 @@ public class Recipe{
 
 	/** Baking temperature [°C]. */
 	private double bakingTemperature;
+	private Duration bakingDuration;
 
 
 	public static Recipe create(){
@@ -250,6 +252,23 @@ public class Recipe{
 	 */
 	public double getBakingTemperature(){
 		return bakingTemperature;
+	}
+
+	/**
+	 * @param bakingDuration	Baking duration.
+	 * @return	The instance.
+	 */
+	public Recipe withBakingDuration(final Duration bakingDuration){
+		this.bakingDuration = bakingDuration;
+
+		return this;
+	}
+
+	/**
+	 * @return	Baking temperature [°C].
+	 */
+	public Duration getBakingDuration(){
+		return bakingDuration;
 	}
 
 

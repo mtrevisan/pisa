@@ -34,18 +34,6 @@ public class Water{
 
 	private static final double[] BOILING_TEMPERATURE_COEFFICIENTS = new double[]{19.46, 0.36395, -1.27769e-3, 3.21349e-6, -5.12207e-9, 4.92425e-12, -2.59915e-15, 5.7739e-19};
 
-	private static final double[] PURE_WATER_DENSITY_A_COEFFICIENTS = new double[]{0.824493, -0.0040899, 0.000076438, -0.00000082467, 0.0000000053875};
-	private static final double[] PURE_WATER_DENSITY_B_COEFFICIENTS = new double[]{-0.00572466, 0.00010227, -0.0000016546};
-	private static final double[] PURE_WATER_DENSITY_RHO0_COEFFICIENTS = new double[]{999.842594, 0.06793952, -0.00909529, 0.0001001685, -0.000001120083, 0.000000006536336};
-
-	private static final double[] SECANT_BULK_MODULUS_AW_COEFFICIENTS = new double[]{3.239908, 0.00143713, 0.000116092, -0.000000577905};
-	private static final double[] SECANT_BULK_MODULUS_A_COEFFICIENTS = new double[]{0.0022838, -0.000010981, -0.0000016078};
-	private static final double[] SECANT_BULK_MODULUS_BW_COEFFICIENTS = new double[]{0.0000850935, -0.00000612293, 0.000000052787};
-	private static final double[] SECANT_BULK_MODULUS_B_COEFFICIENTS = new double[]{-0.00000099348, 0.000000020816, 0.00000000091697};
-	private static final double[] SECANT_BULK_MODULUS_KW_COEFFICIENTS = new double[]{19652.21, 148.4206, -2.327105, 0.01360477, -0.00005155288};
-	private static final double[] SECANT_BULK_MODULUS_K0_1_COEFFICIENTS = new double[]{54.6746, -0.603459, 0.0109987, -0.00006167};
-	private static final double[] SECANT_BULK_MODULUS_K0_2_COEFFICIENTS = new double[]{0.07944, 0.016483, -0.00053009};
-
 	private static final double[] SPECIFIC_HEAT_A0_COEFFICIENTS = new double[]{4.193, -2.273e-4, 2.369e-6, 1.670e-10};
 	private static final double[] SPECIFIC_HEAT_AP_COEFFICIENTS = new double[]{-3.978e-5, 3.229e-7, -1.073e-11};
 	private static final double[] SPECIFIC_HEAT_AP2_COEFFICIENTS = new double[]{1.913e-9, -4.176e-11, 2.306e-13};
@@ -77,6 +65,8 @@ public class Water{
 
 	/**
 	 * @see "Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014."
+	 * @see <a href="https://www.translatorscafe.com/unit-converter/en-US/calculator/salt-water-density/">Salt Water Density Calculator</a>
+	 * @see <a href="https://www.engineeringtoolbox.com/density-aqueous-solution-organic-sugar-alcohol-concentration-d_1954.html">Density of aqueous solutions of organic substances as sugars and alcohols</a>
 	 *
 	 * @param water	Hydration [% w/w].
 	 * @param salt	Salt quantity [% w/w].
