@@ -8,27 +8,25 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 	//https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599
-	private final OvenType ovenType;
-
 	/**  [m] */
-	private double cheeseLayerThickness;
+	private final double cheeseLayerThickness;
 	/**  [m] */
-	private double tomatoLayerThickness;
+	private final double tomatoLayerThickness;
 	/**  [m] */
-	private double doughLayerThickness;
+	private final double doughLayerThickness;
 
 	private final double bakingTemperatureTop;
 	private final double bakingTemperatureBottom;
 	private final double ambientTemperature;
 
 	//ambient humidity ratio
-	private double Ha;
-	private double HS;
+	private final double Ha;
+	private final double HS;
 
 	//moisture diffusivity [m^2/s]
-	private double Dm_cheese, Dm_tomato, Dm_dough;
+	private final double Dm_cheese, Dm_tomato, Dm_dough;
 
-	private double h_rc, h_r;
+	private final double h_rc;
 
 	/** K [W / (m * K)] */
 	private final double thermalConductivityCheese = 0.380;
@@ -38,7 +36,7 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final double thermalConductivityDough = 0.416;
 
 	//surface mass transfer coefficient [kgH20 / (m^2 * s)]
-	private double Kmc;
+	private final double Kmc;
 	/** [kg/m^3] */
 	private final double densityCheese = 1140.;
 	/** [kg/m^3] */
@@ -70,8 +68,6 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	ThermalDescriptionODE(final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness,
 			final OvenType ovenType, final double bakingTemperatureTop, final double bakingTemperatureBottom, final double ambientTemperature,
 			final double ambientHumidityRatio){
-		this.ovenType = ovenType;
-
 		this.cheeseLayerThickness = cheeseLayerThickness;
 		this.tomatoLayerThickness = tomatoLayerThickness;
 		this.doughLayerThickness = doughLayerThickness;
@@ -117,7 +113,7 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 			0., 1.,
 			0., 1.,
 			0., 1.,
-			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 0.};
+			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 1.};
 	}
 
 	//y is a list of theta and C from layer 9 to layer 1
@@ -132,40 +128,37 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 		//at pizza surface
 		final double CS = getC(9, y) - Kmc / (Dm_cheese * densityCheese) * (HS - Ha) * cheeseLayerThickness / (2. * moistureContentDough0);
-		double thetaS;
-		if(ovenType == OvenType.FORCED_AIR)
-			thetaS = 1. / (h_rc + 2. * thermalConductivityCheese / cheeseLayerThickness) * (h_rc + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness - 2. * Dm_cheese * densityCheese * vaporizationLatentHeat * moistureContentDough0 / (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - CS));
-		else
-			thetaS = 1. / (h_r + 2. * thermalConductivityCheese / cheeseLayerThickness) * (h_r + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness - 2. * Dm_cheese * densityCheese * vaporizationLatentHeat * moistureContentDough0 / (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - CS));
+		final double thetaS = 1. / (h_rc + 2. * thermalConductivityCheese / cheeseLayerThickness) * (h_rc + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness - 2. * Dm_cheese * densityCheese * vaporizationLatentHeat * moistureContentDough0 / (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - CS));
 		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
 
-		//node 9, cheese layer (c)
+		//node 9, cheese layer
 		calculateTopLayer(9, y, yDot, thetaS, CS);
 
 		calculateInnerCheeseLayer(8, y, yDot);
 
-		//node 7, tomato paste layer (t)
+		//node 7, tomato paste layer
 		calculateTomatoCheeseInterfaceLayer(7, y, yDot);
 
 		calculateInnerTomatoLayer(6, y, yDot);
 
-		//node 5, surface of the pizza layer (p)
+		//node 5, surface of the dough layer
 		calculateDoughTomatoInterfaceLayer(5, y, yDot);
 
-		//node 4 to 2, pizza
+		//node 4 to 2, dough
 		calculateInnerDoughLayer(4, y, yDot);
 
 		calculateInnerDoughLayer(3, y, yDot);
 
 		calculateInnerDoughLayer(2, y, yDot);
 
-		//node 1, pizza in contact with heated tray (p)
+		//node 1, dough in contact with heated tray
 		calculateBottomLayer(1, y, yDot, thetaB);
 	}
 
 	private void calculateTopLayer(final int layer, final double[] y, final double[] yDot, final double thetaS, final double CS){
-		setTheta(layer, yDot, 4. * thermalDiffusivityCheese / (cheeseLayerThickness * cheeseLayerThickness) * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
-		setC(layer, yDot, 4. * Dm_cheese / (cheeseLayerThickness * cheeseLayerThickness) * (getC(layer - 1, y) - 2. * getC(layer, y) + CS));
+		final double tmp = 4. / (cheeseLayerThickness * cheeseLayerThickness);
+		setTheta(layer, yDot, tmp * thermalDiffusivityCheese * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
+		setC(layer, yDot, tmp * Dm_cheese * (getC(layer - 1, y) - 2. * getC(layer, y) + CS));
 	}
 
 	private void calculateInnerCheeseLayer(final int layer, final double[] y, final double[] yDot){
@@ -174,8 +167,9 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	}
 
 	private void calculateTomatoCheeseInterfaceLayer(final int layer, final double[] y, final double[] yDot){
-		setTheta(layer, yDot, 4. * thermalDiffusivityTomato / (tomatoLayerThickness * tomatoLayerThickness) * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
-		setC(layer, yDot, 4. * Dm_tomato / (tomatoLayerThickness * tomatoLayerThickness) * (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
+		final double tmp = 4. / (tomatoLayerThickness * tomatoLayerThickness);
+		setTheta(layer, yDot, tmp * thermalDiffusivityTomato * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
+		setC(layer, yDot, tmp * Dm_tomato * (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
 	}
 
 	private void calculateInnerTomatoLayer(final int layer, final double[] y, final double[] yDot){
@@ -184,17 +178,20 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	}
 
 	private void calculateDoughTomatoInterfaceLayer(final int layer, final double[] y, final double[] yDot){
-		setTheta(layer, yDot, 100. * thermalDiffusivityDough / (3. * doughLayerThickness * doughLayerThickness) * (getTheta(layer - 1, y) - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
-		setC(layer, yDot, 100. * Dm_dough / (3. * doughLayerThickness * doughLayerThickness) * (getC(layer - 1, y) - 3. * getC(layer, y) + 2. * getC(layer + 1, y)));
+		final double tmp = 100. / (3. * doughLayerThickness * doughLayerThickness);
+		setTheta(layer, yDot, tmp * thermalDiffusivityDough * (getTheta(layer - 1, y) - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
+		setC(layer, yDot, tmp * Dm_dough * (getC(layer - 1, y) - 3. * getC(layer, y) + 2. * getC(layer + 1, y)));
 	}
 
 	private void calculateInnerDoughLayer(final int layer, final double[] y, final double[] yDot){
-		setTheta(layer, yDot, 25. * thermalDiffusivityDough / (doughLayerThickness * doughLayerThickness) * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
-		setC(layer, yDot, 25. * Dm_dough / (doughLayerThickness * doughLayerThickness) * (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
+		final double tmp = 25. / (doughLayerThickness * doughLayerThickness);
+		setTheta(layer, yDot, tmp * thermalDiffusivityDough * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
+		setC(layer, yDot, tmp * Dm_dough * (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
 	}
 
 	private void calculateBottomLayer(final int layer, final double[] y, final double[] yDot, final double thetaB){
-		setTheta(layer, yDot, 100. * thermalDiffusivityDough / (3. * doughLayerThickness * doughLayerThickness) * (thetaB - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
+		final double tmp = 100. / (3. * doughLayerThickness * doughLayerThickness);
+		setTheta(layer, yDot, tmp * thermalDiffusivityDough * (thetaB - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
 	}
 
 	private double getTheta(final int layer, final double[] array){
