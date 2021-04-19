@@ -780,12 +780,13 @@ final double fatDensity = 0.9175;
 	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperature){
 		final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(1. / 3600., 1. / 60., 1.e-5, 1.e-5);
 		final FirstOrderDifferentialEquations ode = new ThermalDescriptionODE(0.002, 0.002, 0.01,
-			OvenType.FORCED_AIR, 218., 19.7, 0.08);
+			OvenType.FORCED_AIR, 218., 218., 19.7, 0.08);
 		//initial state
 		final double[] y = new double[]{
 			0., 0., 0., 0., 0., 0., 0., 0., 0.,
 			0., 0., 0., 0., 0., 0., 0., 0., 0.};
-		integrator.integrate(ode, 0., y, 20., y); // now y contains final state at time t=16.0
+		final double[] out = new double[18];
+		integrator.integrate(ode, 0., y, 20., out);
 		return null;
 	}
 
