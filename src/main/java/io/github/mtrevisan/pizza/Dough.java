@@ -31,6 +31,9 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
+import org.apache.commons.math3.ode.FirstOrderIntegrator;
+import org.apache.commons.math3.ode.nonstiff.GraggBulirschStoerIntegrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -422,7 +425,7 @@ final double fatDensity = 0.9175;
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else
 			recipe.withBakingTemperature(220.);
-		recipe.withBakingDuration(calculateBakingDuration(ingredients));
+		recipe.withBakingDuration(calculateBakingDuration(ingredients, recipe.getBakingTemperature()));
 
 		return recipe;
 	}
@@ -774,48 +777,15 @@ final double fatDensity = 0.9175;
 	//https://stackoverflow.com/questions/4357061/differential-equations-in-java
 	//https://commons.apache.org/proper/commons-math/userguide/ode.html
 	//https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods -- GraggBulirschStoerIntegrator
-	private Duration calculateBakingDuration(final Ingredients ingredients){
-		//TODO
-		//https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599
-		//heat transfer coeff:
-		//air speed: 1 m/s
-//		if(ingredients.ovenType == OvenType.FORCED_AIR)
-			//h_rc = 1697.7 + (-9.66 + 0.02544 * T) * T
-//		else
-			//h_rc = 8066.6 + (-76.01 + 0.19536 * T) * T
-		//HS = 0.1837 + (-0.0014607 + 0.000004477 * T) * T
-		//Lp = dough height, Lt = tomato height, Lc = cheese height, L = Lp + Lt + Lc
-		//
-		//finite difference equations:
-		//node 9, cheese layer (c): d theta9 / dt = 4 * alpha_c / Lc^2 * (theta8 - 2 * theta9 + thetaS)
-		//d C9 / dt = 4 * Dmc / Lc^2 * (C8 - 2 * C9 + Cs)
-		//node 7, tomato paste layer (t): d theta7 / dt =4 * alpha_t / Lt^2 * (theta6 - 2 * theta7 + theta8)
-		//d C7 / dt = 4 * Dmt / Lt^2 * (C6 - 2 * C7 + C8)
-		//node 5, surface of the pizza layer (p): d theta5 / dt =100 * alpha_p / (3 * Lp^2) * (theta4 - 3 * theta5 + 2 * theta6)
-		//d C5 / dt = 100 * Dmp / (3 * Lp^2) * (C4 - 3 * C5 + 2 * C6)
-		//node 4 to 2, pizza: d theta_i / dt = 25 * alpha_p / Lp^2 * (theta_i-1 - 2 * theta_i + theta_i+1)
-		//d Ci / dt = 25 * Dmp / Lp^2 * (C_i-1 - 2 * Ci + C_i+1)
-		//node 1, pizza in contact with heated tray (p): d theta1 / dt = 100 * alpha_p / (3 * Lp^2) * (thetaB - 3 * theta1 + 2 * theta2)
-		//d C1 / dt = 50 * Dmp / Lp^2 * (C2 - C1)
-		//
-//		if(ingredients.ovenType == OvenType.FORCED_AIR)
-			//theta_S = 1 / (h_rc + 2 * Kc / Lc) * (h_rc + 2 * Kc * theta9 / Lc - 2 * Dmc * rho_c * Lv * m_p0 / (Lc * (Ta - T0)) * (C9 - CS))
-//		else
-			//theta_S = 1 / (h_r + 2 * Kc / Lc) * (h_r + 2 * Kc * theta9 / Lc - 2 * Dmc * rho_c * Lv * m_p0 / (Lc * (Ta - T0)) * (C9 - CS))
-		//CS = C9 - Kmc / (Dmc * rho_c) * (HS - Ha) * Lc / (2 * m_p0)
-		//d theta6 / dt = 20 / (rho_p * c_pp * Lp + 5 * rho_t * c_pt * Lt) * (5 * Kp / Lp * (theta5 - theta6) - Kt / Lt * (theta6 - theta7))
-		//d theta8 / dt = 4 / (rho_t * c_pt * Lt + rho_c * c_pc * Lc) * (Kt / Lt * (theta7 - theta8) - Kc / Lc * (theta8 - theta9))
-		//d C6 / dt = 20 / (Lp + 5 * Lt) * (5 * Dmp / Lp * (C5 - C6) - Dmt / Lt * (C6 - C7))
-		//d C8 / dt = 4 / (Lt + Lc) * (Dmt / Lt * (C7 - C8) - Dmc / Lc * (C8 - C9))
-		//
-		//total pizza height: L = 0.014 [m]
-		//latent heat of vaporization: Lv = 2256.9e3 [J/kg]
-		//height: Lp = 0.01, Lt = 0.002, Lc = 0.002 [m]
-		//moisture content: m_p0 = 0.47 to 0.55, m_t0 = 3.73, m_c0 = 0.826 [db?]
-		//density: rho_p = 862, rho_t = 1073, rho_c = 1140 [kg/m^3]
-		//specific heat: c_pp = 3770, c_pt = 2930, c_pc = 2864 [J / (kg * K)]
-		//thermal diffusivity: alpha_p = 0.128e-6, alpha_t = 1.737e-7, alpha_c = 1.164e-7 [m^2/s]
-		//thermal conductivity: Kp = 0.416, Kt = 0.546, Kc = 0.380 [W / (m * K)]
+	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperature){
+		final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(1. / 3600., 1. / 60., 1.e-5, 1.e-5);
+		final FirstOrderDifferentialEquations ode = new ThermalDescriptionODE(0.002, 0.002, 0.01,
+			OvenType.FORCED_AIR, 218., 19.7, 0.08);
+		//initial state
+		final double[] y = new double[]{
+			0., 0., 0., 0., 0., 0., 0., 0., 0.,
+			0., 0., 0., 0., 0., 0., 0., 0., 0.};
+		integrator.integrate(ode, 0., y, 20., y); // now y contains final state at time t=16.0
 		return null;
 	}
 
