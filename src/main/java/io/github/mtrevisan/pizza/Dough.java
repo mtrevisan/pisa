@@ -31,7 +31,6 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
-import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import org.apache.commons.math3.ode.nonstiff.GraggBulirschStoerIntegrator;
 import org.slf4j.Logger;
@@ -165,6 +164,8 @@ public class Dough{
 
 	//accuracy is ±0.001%
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
+	//accuracy is ±5 s
+	private final BracketingNthOrderBrentSolver solverBakingTime = new BracketingNthOrderBrentSolver(5., 5);
 
 
 	private final YeastModelAbstract yeastModel;
@@ -419,13 +420,15 @@ final double fatDensity = 0.9175;
 		final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		final double waterBoilingTemp = Water.boilingTemperature(salt / water, sugar / water, ingredients.sugarType,
+		final double brineBoilingTemperature = Water.boilingTemperature(salt / water, sugar / water, ingredients.sugarType,
 			atmosphericPressure);
-		if(bakingTemperature < waterBoilingTemp)
+		if(bakingTemperature < brineBoilingTemperature)
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else
 			recipe.withBakingTemperature(220.);
-		recipe.withBakingDuration(calculateBakingDuration(ingredients, recipe.getBakingTemperature()));
+		final Duration bakingDuration = calculateBakingDuration(ingredients, recipe.getBakingTemperature(),
+			recipe.getBakingTemperature(), brineBoilingTemperature);
+		recipe.withBakingDuration(bakingDuration);
 
 		return recipe;
 	}
@@ -774,20 +777,25 @@ final double fatDensity = 0.9175;
 		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
 	}
 
-	//https://stackoverflow.com/questions/4357061/differential-equations-in-java
-	//https://commons.apache.org/proper/commons-math/userguide/ode.html
-	//https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods -- GraggBulirschStoerIntegrator
-	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperature){
+	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperatureTop,
+			final double bakingTemperatureBottom, final double brineBoilingTemperature){
 		final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(1. / 3600., 1. / 60., 1.e-5, 1.e-5);
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(0.002, 0.002, 0.01,
-			OvenType.FORCED_AIR, 220., 220., 19.7, 0.08);
-		//initial state
-		final double[] y = ode.getInitialState();
-		integrator.integrate(ode, 0., y, 20., y);
-		final double wbp = (100. - 19.7) / (220. - 19.7);
-		if(y[10] >= wbp)
-			System.out.println();
-		return null;
+			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, 19.7, 0.08);
+
+		final double wbp = (brineBoilingTemperature - 19.7) / (220. - 19.7);
+		final UnivariateFunction f = time -> {
+			final double[] y = ode.getInitialState();
+			if(time > 0.)
+				integrator.integrate(ode, 0., y, time, y);
+
+			double min = Double.POSITIVE_INFINITY;
+			for(int i = 0; i < y.length; i += 2)
+				min = Math.min(y[i], min);
+			return min - wbp;
+		};
+		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., 1800.);
+		return Duration.ofSeconds((long)time);
 	}
 
 
