@@ -154,7 +154,7 @@ class DoughTest{
 			.addWater(0.65, ingredients)
 			.addSugar(0.003, ingredients)
 			.addSalt(0.016)
-			.addFat(0.014, ingredients)
+			.addFat(0.016, ingredients)
 			.withAtmosphericPressure(1012.1);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
@@ -171,13 +171,13 @@ class DoughTest{
 		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
 		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
 
-		Assertions.assertEquals(440.3, recipe.getFlour(), 0.1);
-		Assertions.assertEquals(286.2, recipe.getWater(), 0.1);
+		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
+		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);
 		Assertions.assertEquals(43.4, recipe.getWaterTemperature(), 0.1);
-		Assertions.assertEquals(1.33, recipe.getSugar(), 0.01);
+		Assertions.assertEquals(1.32, recipe.getSugar(), 0.01);
 		Assertions.assertEquals(0.69, recipe.getYeast(), 0.01);
-		Assertions.assertEquals(6.61, recipe.getSalt(), 0.01);
-		Assertions.assertEquals(6.17, recipe.getFat(), 0.01);
+		Assertions.assertEquals(7.04, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(7.03, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 25), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[][]{
 				new LocalTime[]{LocalTime.of(12, 35), LocalTime.of(18, 35)},
