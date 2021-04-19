@@ -27,6 +27,13 @@ package io.github.mtrevisan.pizza.bakingpans;
 
 public abstract class BakingPanAbstract{
 
+	protected boolean hasBakingSheet;
+
+
 	public abstract double area();
+
+	public boolean hasBakingSheet(){
+		return hasBakingSheet;
+	}
 
 }

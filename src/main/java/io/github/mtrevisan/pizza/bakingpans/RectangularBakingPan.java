@@ -37,6 +37,12 @@ public class RectangularBakingPan extends BakingPanAbstract{
 		return new RectangularBakingPan(edge1, edge2);
 	}
 
+	public static RectangularBakingPan createWithBakingSheet(final double edge1, final double edge2){
+		final RectangularBakingPan pan = create(edge1, edge2);
+		pan.hasBakingSheet = true;
+		return pan;
+	}
+
 	private RectangularBakingPan(final double edge1, final double edge2){
 		if(edge1 <= 0. || edge2 <= 0.)
 			throw new IllegalArgumentException("Edges must be positive");

@@ -35,6 +35,12 @@ public class CircularBakingPan extends BakingPanAbstract{
 		return new CircularBakingPan(diameter);
 	}
 
+	public static CircularBakingPan createWithBakingSheet(final double diameter){
+		final CircularBakingPan pan = create(diameter);
+		pan.hasBakingSheet = true;
+		return pan;
+	}
+
 	private CircularBakingPan(final double diameter){
 		if(diameter <= 0.)
 			throw new IllegalArgumentException("Diameter must be positive");
