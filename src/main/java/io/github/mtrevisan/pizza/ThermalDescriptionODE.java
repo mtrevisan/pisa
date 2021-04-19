@@ -5,9 +5,11 @@ import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 
+/**
+ * @see <a href="https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599">Dumas, Mittal. Heat and mass transfer properties of pizza during baking. 2007.</a>
+ */
 public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
-	//https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599
 	/**  [m] */
 	private final double cheeseLayerThickness;
 	/**  [m] */
@@ -71,6 +73,7 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 			final double ambientHumidityRatio){
 		this.cheeseLayerThickness = cheeseLayerThickness;
 		this.tomatoLayerThickness = tomatoLayerThickness;
+		//TODO consider expansion due to Charles-Gay Lussac law
 		this.doughLayerThickness = doughLayerThickness;
 
 		this.bakingTemperatureTop = bakingTemperatureTop;
@@ -111,39 +114,45 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	}
 
 	public double[] getInitialState(){
+		//array of initial temperature (as (T - ambientTemperature) / (bakingTemperatureTop - ambientTemperature)) and moisture content
+		//by column
 		return new double[]{
+			//node 9, cheese layer
 			0., ambientHumidityRatio,
 			0., moistureContentCheese0 / moistureContentDough0,
+			//node 7, tomato paste layer
 			0., (moistureContentTomato0 + moistureContentCheese0) / (2. * moistureContentDough0),
 			0., moistureContentTomato0 / moistureContentDough0,
+			//node 5, surface of the dough layer
 			0., (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0),
+			//node 4, dough
 			0., 1.,
+			//node 3, dough
 			0., 1.,
+			//node 2, dough
 			0., 1.,
+			//node 1, dough in contact with heated tray
 			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 1.};
 	}
 
 	//y is a list of theta and C from layer 9 to layer 1
 	//dydt is a list of dTheta/dt and dC/dt from layer 9 to layer 1
-	//theta(T) is (T - ambientTemperature) / (bakingTemperatureTop - ambientTemperature)
-	//C(m) is m / m_p0
-	//psi(x) is x / L
 	@Override
 	public void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
 			DimensionMismatchException{
 		//finite difference equations:
 
 		//at pizza surface
-		final double CS = getC(9, y) - surfaceMassTransfer / (moistureDiffusivityCheese * densityCheese)
+		final double moistureContentSurface = getC(9, y) - surfaceMassTransfer / (moistureDiffusivityCheese * densityCheese)
 			* (surfaceHumidityRatio - ambientHumidityRatio) * cheeseLayerThickness / (2. * moistureContentDough0);
 		final double thetaS = 1. / (h_rc + 2. * thermalConductivityCheese / cheeseLayerThickness)
 			* (h_rc + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness
 			- 2. * moistureDiffusivityCheese * densityCheese * vaporizationLatentHeat * moistureContentDough0
-			/ (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - CS));
+			/ (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - moistureContentSurface));
 		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
 
 		//node 9, cheese layer
-		calculateTopLayer(9, y, dydt, thetaS, CS);
+		calculateTopLayer(9, y, dydt, thetaS, moistureContentSurface);
 
 		calculateInnerCheeseLayer(8, y, dydt);
 
@@ -157,10 +166,12 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 		//node 4 to 2, dough
 		calculateInnerDoughLayer(4, y, dydt);
-
 		calculateInnerDoughLayer(3, y, dydt);
-
 		calculateInnerDoughLayer(2, y, dydt);
+
+		//TODO add contact layer between dough and sheet
+		//TODO add contact layer between sheet and pan
+		//TODO consider layer 1 as convection and irradiation, not only convection
 
 		//node 1, dough in contact with heated tray
 		calculateBottomLayer(1, y, dydt, thetaB);

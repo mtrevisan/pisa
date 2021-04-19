@@ -55,7 +55,7 @@ public class Recipe{
 	private LocalTime seasoningInstant;
 
 	/** Baking temperature [°C]. */
-	private double bakingTemperature;
+	private Double bakingTemperature;
 	private Duration bakingDuration;
 
 
@@ -250,7 +250,7 @@ public class Recipe{
 	/**
 	 * @return	Baking temperature [°C].
 	 */
-	public double getBakingTemperature(){
+	public Double getBakingTemperature(){
 		return bakingTemperature;
 	}
 
@@ -292,7 +292,8 @@ public class Recipe{
 			+ ", dough making: " + doughMakingInstant
 			+ ", stages: " + sb
 			+ ", seasoning: " + seasoningInstant
-			;
+			+ (bakingTemperature != null? " baking at " + Helper.round(bakingTemperature, 1) + " °C"
+				+ (bakingDuration != null? " for " + bakingDuration.toSeconds() + " s": ""): "");
 	}
 
 }

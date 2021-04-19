@@ -151,6 +151,12 @@ public class Dough{
 	 * @see #calculateYeast(Procedure)
 	 */
 	private static final double SOLVER_YEAST_MAX = 1.;
+	/**
+	 * [s]
+	 *
+	 * @see #calculateBakingDuration(Ingredients, double, double, double)
+	 */
+	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
@@ -164,8 +170,9 @@ public class Dough{
 
 	//accuracy is ±0.001%
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
-	//accuracy is ±5 s
-	private final BracketingNthOrderBrentSolver solverBakingTime = new BracketingNthOrderBrentSolver(5., 5);
+	//accuracy is ±1 s
+	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.1, 1., 1.e-5, 1.e-5);
+	private final BracketingNthOrderBrentSolver solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
 
 
 	private final YeastModelAbstract yeastModel;
@@ -406,29 +413,31 @@ public class Dough{
 		recipe.withStageStartEndInstants(stageStartEndInstants)
 			.withDoughMakingInstant(last.minus(procedure.doughMaking));
 
-		//calculate baking temperature:
-		double totalBakingPansArea = 0.;
-		for(final BakingPanAbstract bakingPan : bakingPans)
-			totalBakingPansArea += bakingPan.area();
-		//FIXME
+		if(ingredients.targetPizzaHeight != null){
+			//calculate baking temperature:
+			double totalBakingPansArea = 0.;
+			for(final BakingPanAbstract bakingPan : bakingPans)
+				totalBakingPansArea += bakingPan.area();
+			//FIXME
 final double fatDensity = 0.9175;
-		final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
-		//[cm]
-		final double minHeight = doughVolume / totalBakingPansArea;
-		final double bakingRatio = ingredients.targetPizzaHeight / minHeight;
-		//apply inverse Charles-Gay Lussac
-		final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
-		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		final double brineBoilingTemperature = Water.boilingTemperature(salt / water, sugar / water, ingredients.sugarType,
-			atmosphericPressure);
-		if(bakingTemperature < brineBoilingTemperature)
-			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
-		else
-			recipe.withBakingTemperature(220.);
-		final Duration bakingDuration = calculateBakingDuration(ingredients, recipe.getBakingTemperature(),
-			recipe.getBakingTemperature(), brineBoilingTemperature);
-		recipe.withBakingDuration(bakingDuration);
+			final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
+			//[cm]
+			final double minHeight = doughVolume / totalBakingPansArea;
+			final double bakingRatio = ingredients.targetPizzaHeight / minHeight;
+			//apply inverse Charles-Gay Lussac
+			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
+			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
+			//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
+			final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
+				recipe.getSugar() / recipe.getWater(), ingredients.sugarType, atmosphericPressure);
+			if(bakingTemperature < brineBoilingTemperature)
+				LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
+			else
+				recipe.withBakingTemperature(bakingTemperature);
+			final Duration bakingDuration = calculateBakingDuration(ingredients, recipe.getBakingTemperature(),
+				recipe.getBakingTemperature(), brineBoilingTemperature);
+			recipe.withBakingDuration(bakingDuration);
+		}
 
 		return recipe;
 	}
@@ -779,11 +788,16 @@ final double fatDensity = 0.9175;
 
 	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperatureTop,
 			final double bakingTemperatureBottom, final double brineBoilingTemperature){
-		final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(1. / 3600., 1. / 60., 1.e-5, 1.e-5);
-		final ThermalDescriptionODE ode = new ThermalDescriptionODE(0.002, 0.002, 0.01,
-			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, 19.7, 0.08);
+		//FIXME to be calculated
+		final double cheeseLayerThickness = 0.002;
+		final double tomatoLayerThickness = 0.002;
+		final double doughLayerThickness = 0.01;
+		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
+			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, ingredients.ingredientsTemperature,
+			ingredients.airRelativeHumidity);
 
-		final double wbp = (brineBoilingTemperature - 19.7) / (220. - 19.7);
+		final double bbp = (brineBoilingTemperature - ingredients.ingredientsTemperature)
+			/ (bakingTemperatureTop - ingredients.ingredientsTemperature);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)
@@ -792,9 +806,9 @@ final double fatDensity = 0.9175;
 			double min = Double.POSITIVE_INFINITY;
 			for(int i = 0; i < y.length; i += 2)
 				min = Math.min(y[i], min);
-			return min - wbp;
+			return min - bbp;
 		};
-		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., 1800.);
+		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
 		return Duration.ofSeconds((long)time);
 	}
 

@@ -35,7 +35,7 @@ public class Ingredients{
 	/** Desired dough temperature [°C]. */
 	Double doughTemperature;
 	/** Desired pizza height [cm]. */
-	double targetPizzaHeight;
+	Double targetPizzaHeight;
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
 	boolean correctForIngredients;
