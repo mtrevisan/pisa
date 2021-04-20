@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -154,7 +153,7 @@ public class Dough{
 	/**
 	 * [s]
 	 *
-	 * @see #calculateBakingDuration(Ingredients, double, double, double)
+	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double)
 	 */
 	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
@@ -374,17 +373,15 @@ public class Dough{
 	/**
 	 * @param ingredients	The recipe ingredients.
 	 * @param procedure	The recipe procedure.
-	 * @param bakingPans	Baking pans.
+	 * @param bakingInstruments	Baking instruments.
 	 * @return	The recipe.
 	 */
-	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final BakingPanAbstract[] bakingPans)
+	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final BakingInstruments bakingInstruments)
 			throws DoughException, YeastException{
 		if(ingredients == null)
 			throw new IllegalArgumentException("Ingredients must be valued");
 		if(procedure == null)
 			throw new IllegalArgumentException("Procedure must be valued");
-		if(bakingPans == null || bakingPans.length == 0)
-			throw new IllegalArgumentException("Baking pans must be valued");
 		validate();
 		ingredients.validate(yeastModel);
 		procedure.validate(yeastModel);
@@ -393,11 +390,9 @@ public class Dough{
 		calculateYeast(procedure);
 
 		//calculate ingredients:
-		double doughWeight = 0.;
-		for(final BakingPanAbstract bakingPan : bakingPans)
-			doughWeight += bakingPan.area();
+		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//FIXME
-		doughWeight *= 0.76222;
+		final double doughWeight = totalBakingPansArea * 0.76222;
 		final Recipe recipe = calculateIngredients(ingredients, doughWeight);
 
 		//calculate times:
@@ -415,15 +410,12 @@ public class Dough{
 
 		if(ingredients.targetPizzaHeight != null){
 			//calculate baking temperature:
-			double totalBakingPansArea = 0.;
-			for(final BakingPanAbstract bakingPan : bakingPans)
-				totalBakingPansArea += bakingPan.area();
 			//FIXME
 final double fatDensity = 0.9175;
 			final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
 			//[cm]
-			final double minHeight = doughVolume / totalBakingPansArea;
-			final double bakingRatio = ingredients.targetPizzaHeight / minHeight;
+			final double minDoughHeight = doughVolume / totalBakingPansArea;
+			final double bakingRatio = ingredients.targetPizzaHeight / minDoughHeight;
 			//apply inverse Charles-Gay Lussac
 			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp)
@@ -434,8 +426,11 @@ final double fatDensity = 0.9175;
 				LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 			else
 				recipe.withBakingTemperature(bakingTemperature);
-			final Duration bakingDuration = calculateBakingDuration(ingredients, recipe.getBakingTemperature(),
-				recipe.getBakingTemperature(), brineBoilingTemperature);
+			//FIXME
+			bakingInstruments.bakingTemperatureTop = recipe.getBakingTemperature();
+			//FIXME
+			bakingInstruments.bakingTemperatureBottom = recipe.getBakingTemperature();
+			final Duration bakingDuration = calculateBakingDuration(ingredients, bakingInstruments, minDoughHeight, brineBoilingTemperature);
 			recipe.withBakingDuration(bakingDuration);
 		}
 
@@ -786,18 +781,18 @@ final double fatDensity = 0.9175;
 		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
 	}
 
-	private Duration calculateBakingDuration(final Ingredients ingredients, final double bakingTemperatureTop,
-			final double bakingTemperatureBottom, final double brineBoilingTemperature){
+	private Duration calculateBakingDuration(final Ingredients ingredients, final BakingInstruments bakingInstruments,
+			final double minDoughHeight, final double brineBoilingTemperature){
 		//FIXME to be calculated
 		final double cheeseLayerThickness = 0.002;
 		final double tomatoLayerThickness = 0.002;
-		final double doughLayerThickness = 0.01;
+		final double doughLayerThickness = minDoughHeight / 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
-			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, ingredients.ingredientsTemperature,
-			ingredients.airRelativeHumidity);
+			OvenType.FORCED_AIR, bakingInstruments.bakingTemperatureTop, bakingInstruments.bakingTemperatureBottom,
+			ingredients.ingredientsTemperature, ingredients.airRelativeHumidity);
 
 		final double bbp = (brineBoilingTemperature - ingredients.ingredientsTemperature)
-			/ (bakingTemperatureTop - ingredients.ingredientsTemperature);
+			/ (bakingInstruments.bakingTemperatureTop - ingredients.ingredientsTemperature);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)

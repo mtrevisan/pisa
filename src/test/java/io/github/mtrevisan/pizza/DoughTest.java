@@ -25,6 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
+import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
@@ -168,8 +169,11 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
-		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
+		final BakingInstruments bakingInstruments = new BakingInstruments();
+		bakingInstruments.bakingPans = new BakingPanAbstract[]{
+			RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
+			CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)};
+		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
 
 		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);
@@ -216,8 +220,11 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
-		final Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
+		final BakingInstruments bakingInstruments = new BakingInstruments();
+		bakingInstruments.bakingPans = new BakingPanAbstract[]{
+			RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
+			CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)};
+		final Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
 
 		Assertions.assertEquals(440.9, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);
@@ -257,8 +264,11 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final BakingPanAbstract[] bakingPans = {RectangularBakingPan.create(23., 25.), CircularBakingPan.create(22.5)};
-		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingPans);
+		final BakingInstruments bakingInstruments = new BakingInstruments();
+		bakingInstruments.bakingPans = new BakingPanAbstract[]{
+			RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
+			CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)};
+		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
 
 		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);

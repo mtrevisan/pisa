@@ -85,8 +85,6 @@ public class Ingredients{
 	/** Salt content in fat [% w/w]. */
 	Double fatSaltContent;
 
-	OvenType ovenType;
-
 
 	/**
 	 * @param ingredientsTemperature	Temperature of ingredients [°C].
@@ -266,15 +264,6 @@ public class Ingredients{
 		this.fatContent = fatContent;
 		this.fatWaterContent = waterContent;
 		this.fatSaltContent = saltContent;
-
-		return this;
-	}
-
-	public Ingredients withOvenType(final OvenType ovenType) throws DoughException{
-		if(ovenType == null)
-			throw DoughException.create("Missing oven type");
-
-		this.ovenType = ovenType;
 
 		return this;
 	}
