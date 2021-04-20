@@ -161,6 +161,8 @@ public final class Dough{
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
 
+	private static final double MAILLARD_REACTION_TEMPERATURE = 160.;
+
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
 	//regression: https://planetcalc.com/5992/
@@ -429,8 +431,13 @@ final double fatDensity = 0.9175;
 				recipe.getSugar() / recipe.getWater(), ingredients.sugarType, atmosphericPressure);
 			if(bakingTemperature < brineBoilingTemperature)
 				LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
-			else
+			else{
+				//https://bakerpedia.com/processes/maillard-reaction/
+				if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
+					LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
+
 				recipe.withBakingTemperature(bakingTemperature);
+			}
 			if(bakingInstruments.oven.hasTopHeating)
 				bakingInstruments.oven.withBakingTemperatureTop(recipe.getBakingTemperature());
 			if(bakingInstruments.oven.hasBottomHeating)
@@ -812,21 +819,17 @@ final double fatDensity = 0.9175;
 
 		final double bbt = (brineBoilingTemperature - ingredients.ingredientsTemperature)
 			/ (bakingInstruments.oven.bakingTemperatureTop - ingredients.ingredientsTemperature);
-		//Maillard reaction temperature
-		final double mrt = (160. - ingredients.ingredientsTemperature)
-			/ (bakingInstruments.oven.bakingTemperatureTop - ingredients.ingredientsTemperature);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)
 				integrator.integrate(ode, 0., y, time, y);
 
 			//https://blog.thermoworks.com/bread/homemade-bread-temperature-is-key/
-			//https://bakerpedia.com/processes/maillard-reaction/
-			//assure each layer has at least reached the water boiling temperature, and top layer reached the Maillard reaction temperature
-			double min = y[2];
-			for(int i = 4; i < y.length; i += 2)
+			//assure each layer has at least reached the water boiling temperature
+			double min = y[0];
+			for(int i = 2; i < y.length; i += 2)
 				min = Math.min(y[i], min);
-			return Math.min(y[0] - mrt, min - bbt);
+			return min - bbt;
 		};
 		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
 		return Duration.ofSeconds((long)time);
@@ -855,8 +858,8 @@ final double fatDensity = 0.9175;
 //			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
 			- 0.00260 * water;
 
-		final double pureWaterDensity = 999.84259 + (0.06793952 + (-0.00909529 + (0.0001001685 + (-0.000001120083
-			+ 0.000000006536332 * temperature) * temperature) * temperature) * temperature) * temperature;
+		final double pureWaterDensity = 999.84259 + (6.793952e-2 + (-9.09529e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * temperature)
+			* temperature) * temperature) * temperature) * temperature;
 
 		//account for fat
 		final double fraction = fat * flour / dough;
