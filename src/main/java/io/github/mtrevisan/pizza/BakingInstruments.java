@@ -24,16 +24,13 @@
  */
 package io.github.mtrevisan.pizza;
 
-
 import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
 
 
 public class BakingInstruments{
 
 	BakingPanAbstract[] bakingPans;
-	OvenType ovenType;
-	double bakingTemperatureTop;
-	double bakingTemperatureBottom;
+	Oven oven;
 
 
 	public BakingInstruments withBakingPans(final BakingPanAbstract[] bakingPans) throws DoughException{
@@ -45,19 +42,29 @@ public class BakingInstruments{
 		return this;
 	}
 
-	public BakingInstruments withOvenType(final OvenType ovenType) throws DoughException{
-		if(ovenType == null)
-			throw DoughException.create("Missing oven type");
+	public BakingInstruments withOven(final Oven oven) throws DoughException{
+		if(oven == null)
+			throw DoughException.create("Missing oven");
 
-		this.ovenType = ovenType;
+		this.oven = oven;
 
 		return this;
 	}
 
+	public void validate() throws DoughException{
+		if(bakingPans == null)
+			throw DoughException.create("At least one baking pan must be given");
+		if(oven == null)
+			throw DoughException.create("Oven data must be given");
+
+		oven.validate();
+	}
+
 	public double getBakingPansTotalArea(){
 		double area = 0.;
-		for(final BakingPanAbstract bakingPan : bakingPans)
-			area += bakingPan.area();
+		if(bakingPans != null)
+			for(final BakingPanAbstract bakingPan : bakingPans)
+				area += bakingPan.area();
 		return area;
 	}
 
