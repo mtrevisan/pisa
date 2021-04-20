@@ -422,7 +422,7 @@ final double fatDensity = 0.9175;
 			final double bakingRatio = 0.405 * ingredients.targetPizzaHeight / minDoughHeight;
 			//apply inverse Charles-Gay Lussac
 			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
+			//TODO calculate baking temperature (must be bakingTemperature >= maillardReactionTemperature)
 			//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 			final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
 				recipe.getSugar() / recipe.getWater(), ingredients.sugarType, atmosphericPressure);
