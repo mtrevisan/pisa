@@ -26,31 +26,35 @@ package io.github.mtrevisan.pizza.yeasts;
 
 
 /**
- * Lactobacillus brevis constants
+ * Saccharomyces cerevisiae (strain CEN.PK113-7D) constants
  *
- * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5192527/">Munanga, Loiseau, Grabulos, Mestres. Modeling Lactic Fermentation of Gowé Using Lactobacillus Starter Culture. 2016.</a>
+ * @see <a href="https://www.sciencedirect.com/science/article/pii/S2215017X20300175">Selection and subsequent physiological characterization of industrial Saccharomyces cerevisiae strains during continuous growth at sub- and- supra optimal temperatures. 2020.</a>
  */
-public class LactobacillusBrevisYeast extends YeastModelAbstract{
+public class SaccharomycesCerevisiaeCEN_PK113_7DYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
-		return 15.0;
+		//± 0.018 °C
+		return 0.368;
 	}
 
 	@Override
 	double getTemperatureOpt(){
-		return 44.6;
+		//± 0.85 °C
+		return 30.03;
 	}
 
 	@Override
 	public double getTemperatureMax(){
-		return 53.0;
+		//± 0.81 °C
+		return 41.21;
 	}
 
 	@Override
 	double getMaximumSpecificGrowthRate(){
-		//± 0.2 hrs^-1
-		return 1.8;
+		//base is pH 5.3, 22 mg/l glucose
+		//± 0.018 °C
+		return 0.368;
 	}
 
 }

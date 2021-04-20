@@ -29,7 +29,7 @@ package io.github.mtrevisan.pizza.yeasts;
  * Saccharomyces cerevisiae (strain PE35 M) constants
  * Masato fermentation (Peru)
  *
- * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
+ * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces. 2011.</a>
  */
 public class SaccharomycesCerevisiaePE35MYeast extends YeastModelAbstract{
 

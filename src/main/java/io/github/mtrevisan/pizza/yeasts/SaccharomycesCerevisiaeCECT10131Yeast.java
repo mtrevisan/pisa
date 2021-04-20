@@ -29,7 +29,7 @@ package io.github.mtrevisan.pizza.yeasts;
  * Saccharomyces cerevisiae (strain CECT 10131) constants
  * <i>Centaurea alba</i> flower (Spain)
  *
- * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
+ * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces. 2011.</a>
  */
 public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 

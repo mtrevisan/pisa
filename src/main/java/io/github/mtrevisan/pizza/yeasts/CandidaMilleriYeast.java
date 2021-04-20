@@ -28,7 +28,7 @@ package io.github.mtrevisan.pizza.yeasts;
 /**
  * Candida milleri constants
  *
- * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
+ * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces. 2011.</a>
  */
 public class CandidaMilleriYeast extends YeastModelAbstract{
 
