@@ -24,10 +24,6 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
-import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
-import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
-import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -169,16 +165,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Oven oven = Oven.create()
-			.withOvenType(OvenType.FORCED_AIR)
-			.withHasTopHeating()
-			.withHasBottomHeating();
-		final BakingInstruments bakingInstruments = new BakingInstruments()
-			.withBakingPans(new BakingPanAbstract[]{
-				RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
-				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)})
-			.withOven(oven);
-		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
+		Recipe recipe = dough.createRecipe(ingredients, procedure);
 
 		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);
@@ -225,16 +212,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.46, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Oven oven = Oven.create()
-			.withOvenType(OvenType.FORCED_AIR)
-			.withHasTopHeating()
-			.withHasBottomHeating();
-		final BakingInstruments bakingInstruments = new BakingInstruments()
-			.withBakingPans(new BakingPanAbstract[]{
-				RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
-				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)})
-			.withOven(oven);
-		final Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
+		final Recipe recipe = dough.createRecipe(ingredients, procedure);
 
 		Assertions.assertEquals(440.9, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);
@@ -242,66 +220,6 @@ class DoughTest{
 		Assertions.assertEquals(0.45, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(6.19, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(5.79, recipe.getFat(), 0.01);
-	}
-
-	@Test
-	void twoStagesWithHeightReal() throws DoughException, YeastException{
-		final Ingredients ingredients = new Ingredients()
-			.withIngredientsTemperature(16.7)
-			.withAirRelativeHumidity(0.55)
-			.withTargetPizzaHeight(2.4)
-			.withDoughTemperature(27.)
-			.withWater(0.02)
-			.withFlour(Flour.create(260.))
-			.withYeast(YeastType.INSTANT_DRY)
-			.withSugar(SugarType.SUCROSE)
-			.withFat(0.913);
-		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
-			.addWater(0.65, ingredients)
-			.addSugar(0.003, ingredients)
-			.addSalt(0.016)
-			.addFat(0.016, ingredients)
-			.withAtmosphericPressure(1012.1);
-		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
-		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage[] stretchAndFoldStages = new StretchAndFoldStage[]{safStage1, safStage2, safStage3};
-		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
-			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
-			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Oven oven = Oven.create()
-			.withOvenType(OvenType.FORCED_AIR)
-			.withHasTopHeating()
-			.withHasBottomHeating();
-		final BakingInstruments bakingInstruments = new BakingInstruments()
-			.withOven(oven)
-			.withBakingPans(new BakingPanAbstract[]{
-				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.02),
-				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)});
-		Recipe recipe = dough.createRecipe(ingredients, procedure, bakingInstruments);
-
-		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
-		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);
-		Assertions.assertEquals(43.4, recipe.getWaterTemperature(), 0.1);
-		Assertions.assertEquals(1.32, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.69, recipe.getYeast(), 0.01);
-		Assertions.assertEquals(7.04, recipe.getSalt(), 0.01);
-		Assertions.assertEquals(7.03, recipe.getFat(), 0.01);
-		Assertions.assertEquals(LocalTime.of(12, 25), recipe.getDoughMakingInstant());
-		Assertions.assertArrayEquals(new LocalTime[][]{
-				new LocalTime[]{LocalTime.of(12, 35), LocalTime.of(18, 35)},
-				new LocalTime[]{LocalTime.of(18, 45), LocalTime.of(19, 45)}
-			},
-			recipe.getStageStartEndInstants());
-		Assertions.assertEquals(LocalTime.of(19, 45), recipe.getSeasoningInstant());
-		Assertions.assertEquals(220.2, recipe.getBakingTemperature(), 0.1);
-		//FIXME should be around 12 min
-		Assertions.assertEquals(86., recipe.getBakingDuration().getSeconds(), 1.);
 	}
 
 
