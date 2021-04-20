@@ -30,8 +30,6 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
-import org.apache.commons.math3.ode.FirstOrderIntegrator;
-import org.apache.commons.math3.ode.nonstiff.GraggBulirschStoerIntegrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,12 +148,6 @@ public class Dough{
 	 * @see #calculateYeast(Procedure)
 	 */
 	private static final double SOLVER_YEAST_MAX = 1.;
-	/**
-	 * [s]
-	 *
-	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double)
-	 */
-	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
@@ -169,9 +161,6 @@ public class Dough{
 
 	//accuracy is ±0.001%
 	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
-	//accuracy is ±1 s
-	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.1, 1., 1.e-5, 1.e-5);
-	private final BracketingNthOrderBrentSolver solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
 
 
 	private final YeastModelAbstract yeastModel;
@@ -390,7 +379,7 @@ public class Dough{
 
 		//calculate ingredients:
 		//FIXME
-		final double doughWeight = 741.3;
+final double doughWeight = 741.3;
 		final Recipe recipe = calculateIngredients(ingredients, doughWeight);
 
 		//calculate times:
@@ -743,45 +732,6 @@ public class Dough{
 
 	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
 		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
-	}
-
-	//TODO account for baking temperature
-	// https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-	//initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
-	//volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
-	private double calculateCharlesGayLussacVolumeExpansion(final double initialTemperature, final double finalTemperature){
-		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
-	}
-
-
-	/**
-	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
-	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
-	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
-	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
-	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
-	 *
-	 * @param flour	Flour weight [g].
-	 * @param dough	Final dough weight [g].
-	 * @param fatDensity	Density of the fat [kg/l].
-	 * @param temperature	Temperature of the dough [°C].
-	 */
-	public double doughDensity(final double flour, final double dough, final double fatDensity, final double temperature){
-		//TODO
-		//density of flour + salt + sugar + water
-		double doughDensity = 1.41
-			- 0.00006762 * atmosphericPressure
-			+ 0.00640 * salt
-//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
-//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
-			- 0.00260 * water;
-
-		final double pureWaterDensity = 999.84259 + (0.06793952 + (-0.00909529 + (0.0001001685 + (-0.000001120083
-			+ 0.000000006536332 * temperature) * temperature) * temperature) * temperature) * temperature;
-
-		//account for fat
-		final double fraction = fat * flour / dough;
-		return 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
 	}
 
 }
