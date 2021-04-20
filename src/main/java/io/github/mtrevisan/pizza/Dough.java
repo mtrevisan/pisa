@@ -154,7 +154,7 @@ public final class Dough{
 	/**
 	 * [s]
 	 *
-	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double)
+	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double, double, double)
 	 */
 	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
@@ -418,9 +418,9 @@ public final class Dough{
 final double fatDensity = 0.9175;
 			final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
 			//[cm]
-			final double minDoughHeight = doughVolume / totalBakingPansArea;
+			final double initialDoughHeight = doughVolume / totalBakingPansArea;
 			//FIXME the factor accounts for water content and gases produced by levain
-			final double bakingRatio = 0.405 * ingredients.targetPizzaHeight / minDoughHeight;
+			final double bakingRatio = 0.405 * ingredients.targetPizzaHeight / initialDoughHeight;
 			//apply inverse Charles-Gay Lussac
 			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
@@ -435,7 +435,14 @@ final double fatDensity = 0.9175;
 				bakingInstruments.oven.withBakingTemperatureTop(recipe.getBakingTemperature());
 			if(bakingInstruments.oven.hasBottomHeating)
 				bakingInstruments.oven.withBakingTemperatureBottom(recipe.getBakingTemperature());
-			final Duration bakingDuration = calculateBakingDuration(ingredients, bakingInstruments, minDoughHeight, brineBoilingTemperature);
+			//FIXME
+			//[cm]
+			final double cheeseLayerThickness = 0.2;
+			//FIXME
+			//[cm]
+			final double tomatoLayerThickness = 0.2;
+			final Duration bakingDuration = calculateBakingDuration(ingredients, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
+				tomatoLayerThickness, brineBoilingTemperature);
 			recipe.withBakingDuration(bakingDuration);
 		}
 
@@ -785,12 +792,20 @@ final double fatDensity = 0.9175;
 		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
 	}
 
+	/**
+	 * @param ingredients	Ingredients data.
+	 * @param bakingInstruments	Baking instruments.
+	 * @param doughLayerThickness	Initial dough height [cm].
+	 * @param cheeseLayerThickness	Cheese layer thickness [cm].
+	 * @param tomatoLayerThickness	Tomato layer thickness [cm].
+	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
+	 * @return
+	 */
 	private Duration calculateBakingDuration(final Ingredients ingredients, final BakingInstruments bakingInstruments,
-			final double minDoughHeight, final double brineBoilingTemperature){
-		//FIXME to be calculated
-		final double cheeseLayerThickness = 0.002;
-		final double tomatoLayerThickness = 0.002;
-		final double doughLayerThickness = minDoughHeight / 100.;
+			double doughLayerThickness, double cheeseLayerThickness, double tomatoLayerThickness, final double brineBoilingTemperature){
+		cheeseLayerThickness /= 100.;
+		tomatoLayerThickness /= 100.;
+		doughLayerThickness /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
 			OvenType.FORCED_AIR, bakingInstruments.oven.bakingTemperatureTop, bakingInstruments.oven.bakingTemperatureBottom,
 			ingredients.ingredientsTemperature, ingredients.airRelativeHumidity);
