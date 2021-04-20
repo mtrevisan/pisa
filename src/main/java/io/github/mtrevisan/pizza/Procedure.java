@@ -34,7 +34,7 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 
-public class Procedure{
+public final class Procedure{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Procedure.class);
 
@@ -71,8 +71,8 @@ public class Procedure{
 			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration[] stagesWork,
 			final Duration seasoning, final LocalTime timeToBake) throws DoughException{
 		if(targetVolumeExpansionRatioAtLeaveningStage < 0 || targetVolumeExpansionRatioAtLeaveningStage >= leaveningStages.length)
-			throw DoughException.create("Target volume expansion ratio at leavening stage must be between 0 and "
-				+ (leaveningStages.length - 1));
+			throw DoughException.create("Target volume expansion ratio at leavening stage must be between 0 and {}",
+				(leaveningStages.length - 1));
 		Objects.requireNonNull(doughMaking, "Time to make the dough not set");
 		Objects.requireNonNull(seasoning, "Time to season not set");
 		Objects.requireNonNull(timeToBake, "Time to bake not set");
@@ -101,8 +101,8 @@ public class Procedure{
 			for(final StretchAndFoldStage stretchAndFoldStage : stretchAndFoldStages)
 				totalStretchAndFoldDuration = totalStretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
 			if(totalStretchAndFoldDuration.compareTo(totalLeaveningDuration) > 0)
-				LOGGER.warn("Duration of overall stretch & fold phases is longer than duration of leavening stages by "
-					+ Helper.round(totalStretchAndFoldDuration.minus(totalLeaveningDuration).toMinutes() / 60., 2) + " hrs");
+				LOGGER.warn("Duration of overall stretch & fold phases is longer than duration of leavening stages by {} hrs",
+					Helper.round(totalStretchAndFoldDuration.minus(totalLeaveningDuration).toMinutes() / 60., 2));
 		}
 
 		this.stretchAndFoldStages = stretchAndFoldStages;
@@ -115,10 +115,9 @@ public class Procedure{
 			throw DoughException.create("Missing leavening stage(s)");
 		for(final LeaveningStage stage : leaveningStages)
 			if(stage.temperature < yeastModel.getTemperatureMin() || stage.temperature > yeastModel.getTemperatureMax())
-				throw DoughException.create("Stage temperature [°C] must be between "
-					+ Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
-					+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C, was "
-					+ Helper.round(stage.temperature, 1));
+				throw DoughException.create("Stage temperature [°C] must be between {} and {} °C, was {} °C",
+					Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1),
+					Helper.round(stage.temperature, 1));
 		if(targetDoughVolumeExpansionRatio <= 0.)
 			throw DoughException.create("Target volume expansion ratio [% v/v] must be positive");
 	}

@@ -25,7 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 
-public class Flour{
+public final class Flour{
 
 	/** W. */
 	final double strength;
@@ -56,11 +56,11 @@ public class Flour{
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
-		if(strength <= 0)
+		if(strength <= 0.)
 			throw DoughException.create("Strength mush be positive");
-		if(saltContent < 0)
+		if(saltContent < 0.)
 			throw DoughException.create("Salt content must be non-negative");
-		if(fatContent < 0)
+		if(fatContent < 0.)
 			throw DoughException.create("Fat content must be non-negative");
 
 		return new Flour(strength, saltContent, fatContent);

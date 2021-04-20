@@ -29,7 +29,7 @@ import io.github.mtrevisan.pizza.utils.Helper;
 import java.time.Duration;
 
 
-public class StretchAndFoldStage{
+public final class StretchAndFoldStage{
 
 	//V_after = V_prior * (1 - VOLUME_DECREASE) [% v/v]
 	public static final double VOLUME_DECREASE_DEFAULT = 0.4187;
@@ -51,7 +51,7 @@ public class StretchAndFoldStage{
 
 	private StretchAndFoldStage(final Duration lapse){
 		this.lapse = lapse;
-		this.volumeDecrease = VOLUME_DECREASE_DEFAULT;
+		volumeDecrease = VOLUME_DECREASE_DEFAULT;
 	}
 
 	/**

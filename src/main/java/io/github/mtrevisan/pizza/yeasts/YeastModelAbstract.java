@@ -27,9 +27,6 @@ package io.github.mtrevisan.pizza.yeasts;
 
 public abstract class YeastModelAbstract{
 
-	private static final double EXP = Math.exp(1.);
-
-
 	//Temperature below which no growth occurs [°C]
 	public abstract double getTemperatureMin();
 
@@ -82,7 +79,7 @@ public abstract class YeastModelAbstract{
 	public double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){
 		final double mu = ingredientsFactor * maximumSpecificGrowth(temperature);
-		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * EXP * (lambda - time) / alpha + 1.)): 0.);
+		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * Math.E * (lambda - time) / alpha + 1.)): 0.);
 	}
 
 	@Override

@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.pizza.utils;
 
+import org.slf4j.helpers.MessageFormatter;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 
-public class Helper{
+public final class Helper{
 
 	static{
 		try{
@@ -44,6 +46,11 @@ public class Helper{
 	private Helper(){}
 
 
+	public static String format(final String message, final Object... parameters){
+		return MessageFormatter.arrayFormat(message, parameters)
+			.getMessage();
+	}
+
 	/**
 	 * Evaluate polynomial using Horner's method.
 	 *
@@ -54,16 +61,13 @@ public class Helper{
 	 * @return	The polynomial value.
 	 */
 	public static double evaluatePolynomial(final double[] c, final double x) {
-		double y = 0;
+		double y = 0.;
 		for(int i = c.length - 1; i >= 0; i --)
 			y = c[i] + y * x;
 		return y;
 	}
 
 	public static double round(final double value, final int decimalPlaces){
-		if(decimalPlaces < 0)
-			throw new IllegalArgumentException();
-
 		return BigDecimal.valueOf(value)
 			.setScale(decimalPlaces, RoundingMode.HALF_UP)
 			.doubleValue();

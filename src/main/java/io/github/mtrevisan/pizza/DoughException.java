@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -38,6 +40,10 @@ public final class DoughException extends Exception{
 
 	public static DoughException create(final String message, final Throwable cause){
 		return new DoughException(message, cause);
+	}
+
+	public static DoughException create(final String message, final Object... parameters){
+		return new DoughException(Helper.format(message, parameters));
 	}
 
 	public static DoughException create(final String message){
