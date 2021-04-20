@@ -26,36 +26,36 @@ package io.github.mtrevisan.pizza.yeasts;
 
 
 /**
- * Saccharomyces cerevisiae (strain CECT 10131) constants
- * <i>Centaurea alba</i> flower (Spain)
+ * Saccharomyces cerevisiae (strain TEMOHAYA-MI26) constants
+ * Agave fermentation (Mexico)
  *
  * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
  */
-public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
+public class SaccharomycesCerevisiaeTEMOHAYA_MI26Yeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
-		//± 0.10 °C
-		return 0.74;
+		//± 0.44 °C
+		return 0.76;
 	}
 
 	@Override
 	double getTemperatureOpt(){
-		//± 0.61 °C
-		return 32.8;
+		//± 0.35 °C
+		return 34.19;
 	}
 
 	@Override
 	public double getTemperatureMax(){
-		//± 0.10 °C
-		return 45.9;
+		//± 0.01 °C
+		return 45.96;
 	}
 
 	@Override
 	double getMaximumSpecificGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
-		//± 0.009 °C
-		return 0.449;
+		//± 0.006 °C
+		return 0.377;
 	}
 
 }

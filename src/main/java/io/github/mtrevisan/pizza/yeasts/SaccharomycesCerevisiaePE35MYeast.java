@@ -26,36 +26,36 @@ package io.github.mtrevisan.pizza.yeasts;
 
 
 /**
- * Saccharomyces cerevisiae (strain CECT 10131) constants
- * <i>Centaurea alba</i> flower (Spain)
+ * Saccharomyces cerevisiae (strain PE35 M) constants
+ * Masato fermentation (Peru)
  *
  * @see <a href="https://aem.asm.org/content/aem/77/7/2292.full.pdf">Temperature adaptation markedly determines evolution within the genus Saccharomyces</a>
  */
-public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
+public class SaccharomycesCerevisiaePE35MYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
-		//± 0.10 °C
-		return 0.74;
+		//± 0.23 °C
+		return 5.04;
 	}
 
 	@Override
 	double getTemperatureOpt(){
-		//± 0.61 °C
-		return 32.8;
+		//± 0.22 °C
+		return 29.99;
 	}
 
 	@Override
 	public double getTemperatureMax(){
-		//± 0.10 °C
-		return 45.9;
+		//± 0.12 °C
+		return 45.48;
 	}
 
 	@Override
 	double getMaximumSpecificGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
-		//± 0.009 °C
-		return 0.449;
+		//± 0.008 °C
+		return 0.375;
 	}
 
 }
