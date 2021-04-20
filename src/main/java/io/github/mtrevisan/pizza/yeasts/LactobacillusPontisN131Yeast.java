@@ -34,17 +34,17 @@ public class LactobacillusPontisN131Yeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
-		return 0.;
+		return 0.0;
 	}
 
 	@Override
 	double getTemperatureOpt(){
-		return 0.;
+		return 0.0;
 	}
 
 	@Override
 	public double getTemperatureMax(){
-		return 0.;
+		return 0.0;
 	}
 
 	@Override

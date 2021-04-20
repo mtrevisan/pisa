@@ -32,15 +32,15 @@ public class Water{
 	//[°C]
 	public static final double ABSOLUTE_ZERO = 273.15;
 
-	private static final double[] BOILING_TEMPERATURE_COEFFICIENTS = new double[]{19.46, 0.36395, -1.27769e-3, 3.21349e-6, -5.12207e-9, 4.92425e-12, -2.59915e-15, 5.7739e-19};
+	private static final double[] BOILING_TEMPERATURE_COEFFICIENTS = {19.46, 0.36395, -1.27769e-3, 3.21349e-6, -5.12207e-9, 4.92425e-12, -2.59915e-15, 5.7739e-19};
 
-	private static final double[] SPECIFIC_HEAT_A0_COEFFICIENTS = new double[]{4.193, -2.273e-4, 2.369e-6, 1.670e-10};
-	private static final double[] SPECIFIC_HEAT_AP_COEFFICIENTS = new double[]{-3.978e-5, 3.229e-7, -1.073e-11};
-	private static final double[] SPECIFIC_HEAT_AP2_COEFFICIENTS = new double[]{1.913e-9, -4.176e-11, 2.306e-13};
-	private static final double[] SPECIFIC_HEAT_B0_COEFFICIENTS = new double[]{5.020e-3, -9.961e-6, 6.815e-8};
-	private static final double[] SPECIFIC_HEAT_BT_COEFFICIENTS = new double[]{-2.605e-5, 4.585e-8, 7.642e-10};
-	private static final double[] SPECIFIC_HEAT_BT2_COEFFICIENTS = new double[]{-3.649e-8, 2.496e-10};
-	private static final double[] SPECIFIC_HEAT_BT3_COEFFICIENTS = new double[]{1.186e-6, 4.346e-9};
+	private static final double[] SPECIFIC_HEAT_A0_COEFFICIENTS = {4.193, -2.273e-4, 2.369e-6, 1.670e-10};
+	private static final double[] SPECIFIC_HEAT_AP_COEFFICIENTS = {-3.978e-5, 3.229e-7, -1.073e-11};
+	private static final double[] SPECIFIC_HEAT_AP2_COEFFICIENTS = {1.913e-9, -4.176e-11, 2.306e-13};
+	private static final double[] SPECIFIC_HEAT_B0_COEFFICIENTS = {5.020e-3, -9.961e-6, 6.815e-8};
+	private static final double[] SPECIFIC_HEAT_BT_COEFFICIENTS = {-2.605e-5, 4.585e-8, 7.642e-10};
+	private static final double[] SPECIFIC_HEAT_BT2_COEFFICIENTS = {-3.649e-8, 2.496e-10};
+	private static final double[] SPECIFIC_HEAT_BT3_COEFFICIENTS = {1.186e-6, 4.346e-9};
 
 
 	/**

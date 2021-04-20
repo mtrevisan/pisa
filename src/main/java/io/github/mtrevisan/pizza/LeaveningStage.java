@@ -29,7 +29,7 @@ import io.github.mtrevisan.pizza.utils.Helper;
 import java.time.Duration;
 
 
-public class LeaveningStage{
+public final class LeaveningStage{
 
 	//V_after = V_prior * (1 - VOLUME_DECREASE_CUT) [% v/v]
 	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;

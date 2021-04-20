@@ -27,6 +27,7 @@ package io.github.mtrevisan.pizza;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
@@ -39,7 +40,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 
 
-public class Dough{
+public final class Dough{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
 
@@ -94,7 +95,7 @@ public class Dough{
 	 * @see #HYDRATION_MIN
 	 * @see #HYDRATION_MAX
 	 */
-	private static final double[] WATER_COEFFICIENTS = new double[]{-1.292, 7.65, -6.25};
+	private static final double[] WATER_COEFFICIENTS = {-1.292, 7.65, -6.25};
 	/**
 	 * [% w/w]
 	 *
@@ -168,10 +169,10 @@ public class Dough{
 
 
 	//accuracy is ±0.001%
-	private final BracketingNthOrderBrentSolver solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
+	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
 	//accuracy is ±1 s
 	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.1, 1., 1.e-5, 1.e-5);
-	private final BracketingNthOrderBrentSolver solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
+	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
 
 
 	private final YeastModelAbstract yeastModel;
@@ -262,7 +263,7 @@ public class Dough{
 		addSalt(fat * saltContent);
 
 		if(fat < 0. || this.fat > FAT_MAX)
-			throw DoughException.create("Fat [% w/w] must be between 0 and " + Helper.round(FAT_MAX * 100., 1) + "%");
+			throw DoughException.create("Fat [% w/w] must be between 0 and {}%", Helper.round(FAT_MAX * 100., 1));
 
 		return this;
 	}
@@ -313,15 +314,15 @@ public class Dough{
 		if(water < 0.)
 			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
-			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and "
-				+ Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2) + " mg/l");
+			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and {} mg/l",
+				Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2));
 		if(pH < 0.)
 			throw DoughException.create("pH of water must be positive");
 		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
-			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and "
-				+ Helper.round(WATER_FIXED_RESIDUE_MAX, 2) + " mg/l");
+			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and {} mg/l",
+				Helper.round(WATER_FIXED_RESIDUE_MAX, 2));
 
-		if(this.water + water > 0){
+		if(this.water + water > 0.){
 			waterChlorineDioxide = (this.water * waterChlorineDioxide + water * chlorineDioxide) / (this.water + water);
 			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
 			waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
@@ -338,8 +339,8 @@ public class Dough{
 	 */
 	public Dough withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
 		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
-			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and "
-				+ Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1) + " hPa");
+			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
+				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
 
 		this.atmosphericPressure = atmosphericPressure;
 
@@ -353,12 +354,12 @@ public class Dough{
 	 */
 	private void validate() throws DoughException{
 		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
-			throw DoughException.create("Hydration [% w/w] must be between " + Helper.round(HYDRATION_MIN * 100., 1)
-				+ "% and " + Helper.round(HYDRATION_MAX * 100., 1) + "%");
+			throw DoughException.create("Hydration [% w/w] must be between {} and {}%",
+				Helper.round(HYDRATION_MIN * 100., 1), Helper.round(HYDRATION_MAX * 100., 1));
 		if(fractionOverTotal(sugar) > SUGAR_MAX)
-			throw DoughException.create("Sugar [% w/w] must be less than " + Helper.round(SUGAR_MAX * 100., 1) + "%");
+			throw DoughException.create("Sugar [% w/w] must be less than {}%", Helper.round(SUGAR_MAX * 100., 1));
 		if(fractionOverTotal(salt) > SALT_MAX)
-			throw DoughException.create("Salt [% w/w] must be less than " + Helper.round(SALT_MAX * 100., 1) + "%");
+			throw DoughException.create("Salt [% w/w] must be less than {}%", Helper.round(SALT_MAX * 100., 1));
 
 		//convert [% w/w] to [mol/l]
 		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
@@ -422,7 +423,7 @@ final double fatDensity = 0.9175;
 			final double bakingRatio = 0.405 * ingredients.targetPizzaHeight / minDoughHeight;
 			//apply inverse Charles-Gay Lussac
 			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-			//TODO calculate baking temperature (must be bakingTemperature >= maillardReactionTemperature)
+			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
 			//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 			final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
 				recipe.getSugar() / recipe.getWater(), ingredients.sugarType, atmosphericPressure);
@@ -746,9 +747,8 @@ final double fatDensity = 0.9175;
 			(doughWeight * ingredients.doughTemperature - (doughWeight - water) * ingredients.ingredientsTemperature) / water:
 			null);
 		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
-			LOGGER.warn("Water temperature (" + Helper.round(waterTemperature, 1)
-				+ " °C) is greater that maximum temperature sustainable by the yeast ("
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C), be aware of thermal shock!");
+			LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
+				Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
 
 		return Recipe.create()
 			.withFlour(flour)
@@ -762,7 +762,7 @@ final double fatDensity = 0.9175;
 	private double calculateWaterCorrection(final Ingredients ingredients){
 		double waterCorrection = 0.;
 		if(ingredients.correctForIngredients)
-			waterCorrection += this.sugar * ingredients.sugarWaterContent + this.fat * ingredients.fatWaterContent;
+			waterCorrection += sugar * ingredients.sugarWaterContent + fat * ingredients.fatWaterContent;
 		if(ingredients.correctForHumidity)
 			//NOTE: 70.62% is to obtain a humidity of 13.5%
 			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
@@ -774,7 +774,7 @@ final double fatDensity = 0.9175;
 	}
 
 	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + this.fat * ingredients.fatSaltContent: 0.);
+		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + fat * ingredients.fatSaltContent: 0.);
 	}
 
 	//TODO account for baking temperature

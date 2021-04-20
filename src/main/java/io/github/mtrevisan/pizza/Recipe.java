@@ -30,7 +30,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 
 
-public class Recipe{
+public final class Recipe{
 
 	/** Flour quantity [g]. */
 	private double flour;

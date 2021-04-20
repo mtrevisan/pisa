@@ -34,7 +34,7 @@ public class LactobacillusBrevisYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMin(){
-		return 15.;
+		return 15.0;
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class LactobacillusBrevisYeast extends YeastModelAbstract{
 
 	@Override
 	public double getTemperatureMax(){
-		return 53.;
+		return 53.0;
 	}
 
 	@Override

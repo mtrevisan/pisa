@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -38,6 +40,10 @@ public final class YeastException extends Exception{
 
 	public static YeastException create(final String message, final Throwable cause){
 		return new YeastException(message, cause);
+	}
+
+	public static YeastException create(final String message, final Object... parameters){
+		return new YeastException(Helper.format(message, parameters));
 	}
 
 	public static YeastException create(final String message){

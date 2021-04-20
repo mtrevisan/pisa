@@ -117,13 +117,13 @@ public class Ingredients{
 	}
 
 	public Ingredients withCorrectForIngredients(){
-		this.correctForIngredients = true;
+		correctForIngredients = true;
 
 		return this;
 	}
 
 	public Ingredients withCorrectForHumidity(){
-		this.correctForHumidity = true;
+		correctForHumidity = true;
 
 		return this;
 	}
@@ -164,10 +164,10 @@ public class Ingredients{
 		if(ph < 0. || ph > 14.)
 			throw DoughException.create("pH in water must be between 0 and 14");
 
-		this.waterChlorineDioxide = chlorineDioxide;
-		this.waterCalciumCarbonate = calciumCarbonate;
-		this.waterFixedResidue = fixedResidue;
-		this.waterPH = ph;
+		waterChlorineDioxide = chlorineDioxide;
+		waterCalciumCarbonate = calciumCarbonate;
+		waterFixedResidue = fixedResidue;
+		waterPH = ph;
 
 		return this;
 	}
@@ -234,7 +234,7 @@ public class Ingredients{
 
 		this.sugarType = sugarType;
 		this.sugarContent = sugarContent;
-		this.sugarWaterContent = waterContent;
+		sugarWaterContent = waterContent;
 
 		return this;
 	}
@@ -262,8 +262,8 @@ public class Ingredients{
 			throw DoughException.create("Fat salt content must be between 0 and 1");
 
 		this.fatContent = fatContent;
-		this.fatWaterContent = waterContent;
-		this.fatSaltContent = saltContent;
+		fatWaterContent = waterContent;
+		fatSaltContent = saltContent;
 
 		return this;
 	}
@@ -273,14 +273,12 @@ public class Ingredients{
 			throw DoughException.create("Missing flour");
 		if(ingredientsTemperature != null && (ingredientsTemperature <= yeastModel.getTemperatureMin()
 				|| ingredientsTemperature >= yeastModel.getTemperatureMax()))
-			throw DoughException.create("Ingredients temperature [°C] must be between "
-				+ Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C");
+			throw DoughException.create("Ingredients temperature [°C] must be between {} and {} °C",
+				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
 		if(doughTemperature != null && (doughTemperature <= yeastModel.getTemperatureMin()
 				|| doughTemperature >= yeastModel.getTemperatureMax()))
-			throw DoughException.create("Dough temperature [°C] must be between "
-				+ Helper.round(yeastModel.getTemperatureMin(), 1) + " °C and "
-				+ Helper.round(yeastModel.getTemperatureMax(), 1) + " °C");
+			throw DoughException.create("Dough temperature [°C] must be between {} and {} °C",
+				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
 	}
 
 }
