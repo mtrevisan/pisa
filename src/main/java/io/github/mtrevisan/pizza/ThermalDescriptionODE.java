@@ -7,6 +7,11 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 /**
  * @see <a href="https://www.tandfonline.com/doi/pdf/10.1081/JFP-120015599">Dumas, Mittal. Heat and mass transfer properties of pizza during baking. 2007.</a>
+ * @see <a href="https://en.wikipedia.org/wiki/Latent_heat">Latent heat</a>
+ * @see <a href="https://en.wikipedia.org/wiki/Thermal_diffusivity">Thermal diffusivity</a>
+ *
+ * https://www.engineeringtoolbox.com/conductive-heat-transfer-d_428.html
+ * https://www.researchgate.net/publication/280735585_One-Dimensional_Solar_Heat_Load_Simulation_Model_for_a_Parked_Car
  */
 public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
@@ -29,7 +34,7 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	//moisture diffusivity [m^2/s]
 	private final double moistureDiffusivityCheese, moistureDiffusivityTomato, moistureDiffusivityDough;
 
-	private final double h_rc;
+	private final double heatTransferCoeff;
 
 	/** K [W / (m * K)] */
 	private final double thermalConductivityCheese = 0.380;
@@ -60,11 +65,11 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final double moistureContentTomato0 = 3.73;
 	/** Initial moisture content [%] */
 	private final double moistureContentDough0 = 0.65;
-	/** alpha [m^2/s] */
+	/** alpha = thermal_conductivity / (rho * specific_heat_capacity) [m^2/s] */
 	private final double thermalDiffusivityCheese = 1.164e-7;
-	/** alpha [m^2/s] */
+	/** alpha = thermal_conductivity / (rho * specific_heat_capacity) [m^2/s] */
 	private final double thermalDiffusivityTomato = 1.737e-7;
-	/** alpha [m^2/s] */
+	/** alpha = thermal_conductivity / (rho * specific_heat_capacity) [m^2/s] */
 	private final double thermalDiffusivityDough = 0.128e-6;
 
 
@@ -102,9 +107,9 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 		//heat transfer coefficient:
 		if(ovenType == OvenType.FORCED_AIR)
 			//convective air speed: 1 m/s
-			h_rc = 1697.7 + (-9.66 + 0.02544 * bakingTemperatureTop) * bakingTemperatureTop;
+			heatTransferCoeff = 1697.7 + (-9.66 + 0.02544 * bakingTemperatureTop) * bakingTemperatureTop;
 		else
-			h_rc = 8066.6 + (-76.01 + 0.19536 * bakingTemperatureTop) * bakingTemperatureTop;
+			heatTransferCoeff = 8066.6 + (-76.01 + 0.19536 * bakingTemperatureTop) * bakingTemperatureTop;
 		surfaceHumidityRatio = 0.1837 + (-0.0014607 + 0.000004477 * bakingTemperatureTop) * bakingTemperatureTop;
 	}
 
@@ -145,8 +150,8 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 		//at pizza surface
 		final double moistureContentSurface = getC(9, y) - surfaceMassTransfer / (moistureDiffusivityCheese * densityCheese)
 			* (surfaceHumidityRatio - ambientHumidityRatio) * cheeseLayerThickness / (2. * moistureContentDough0);
-		final double thetaS = 1. / (h_rc + 2. * thermalConductivityCheese / cheeseLayerThickness)
-			* (h_rc + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness
+		final double thetaS = 1. / (heatTransferCoeff + 2. * thermalConductivityCheese / cheeseLayerThickness)
+			* (heatTransferCoeff + 2. * thermalConductivityCheese * getTheta(9, y) / cheeseLayerThickness
 			- 2. * moistureDiffusivityCheese * densityCheese * vaporizationLatentHeat * moistureContentDough0
 			/ (cheeseLayerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - moistureContentSurface));
 		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
