@@ -149,8 +149,8 @@ heat transfer:
 dT/dt = alpha * d^2T/dtx2
 
 at the surface:
-h * (Ta - TS) = Kc * dT/dx|x=S + Dm_c * rho_c * Lv * dm/dx|x=S
-where h is the heat transfer coefficient [W / (m^2 * K)]
+hr * (Ta - TS) = Kc * dT/dx|x=S + Dm_c * rho_c * Lv * dm/dx|x=S
+where hr is the heat transfer coefficient [W / (m^2 * K)]
 where K is the surface mass transfer coefficient [kg H2O / (m^2 * s)]
 where Dm is the moisture diffusivity [m^2 / s]
 where rho is the density [kg / m^3]
@@ -177,6 +177,22 @@ C = m / mp0
 theta = (T - T0) / (Ta - T0)
 psi = x / L
 L = Ld + Lt + Lc
+
+moisture transfer becomes:
+dC/dt = Dm / L^2 * d^2C/dpsi^2
+heat transfer becomes:
+dtheta_dt = alpha / L^2 * d^2theta/dpsi^2
+at the surface becomes:
+hr * (1 - thetaS) = Kc / L * dthetaS/dpsi + Dm_c * rho_c * Lv * md0 * / (L * (Ta - T0)) * dCS/dpsi
+
+boundary conditions:
+theta(psi, t)|t=0 = 0
+C(0 < psi < Ld / L, t)|t=0 = 1
+C(Ld / L, t)|t=0 = (md0 + mt0) / (2 * md0)
+C(Ld / L < psi < (Lt + Ld) / L, t)|t=0 = mt0 / md0
+C((Ld + Ld) / L, t)|t=0 = (mt0 + mc0) / md0
+C((Ld + Lt) / L < psi < 1, t)|t=0 = mc0 / md0
+thetaB = (Tb - T0) / (Ta - T0)
 */
 
 	//y is a list of theta and C from layer 9 to layer 1
