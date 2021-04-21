@@ -26,10 +26,25 @@ package io.github.mtrevisan.pizza.bakingpans;
 
 
 public enum BakingPanMaterial{
-	CAST_IRON,
-	ALUMINIUM,
-	STAINLESS_STEEL,
-	CERAMIC,
-	CLAY,
-	CORDIERITE_STONE
+	CAST_IRON(560.548, 52.),
+	ALUMINIUM(896.9, 237.),
+	STAINLESS_STEEL_304(490. - 530., 14. - 17.),
+	STAINLESS_STEEL_316(490. - 530., 13. - 17.),
+	//https://www.electronics-cooling.com/1999/09/the-thermal-conductivity-of-ceramics/
+	CERAMIC(850., 80. - 200.),
+	CLAY(0.33, 0.15 - 1.8),
+	CORDIERITE_STONE(800. - 850., 3.);
+
+
+	/** [J / (kg * K)] */
+	double specificHeat;
+	/** [W / (m * K)] */
+	double thermalConductivity;
+
+
+	BakingPanMaterial(final double specificHeat, final double thermalConductivity){
+		this.specificHeat = specificHeat;
+		this.thermalConductivity = thermalConductivity;
+	}
+
 }
