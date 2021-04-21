@@ -12,6 +12,8 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
  *
  * https://www.engineeringtoolbox.com/conductive-heat-transfer-d_428.html
  * https://www.researchgate.net/publication/280735585_One-Dimensional_Solar_Heat_Load_Simulation_Model_for_a_Parked_Car
+ *
+ * https://www.witpress.com/Secure/elibrary/papers/9781853129322/9781853129322008FU1.pdf
  */
 public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
@@ -139,6 +141,43 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 			//node 1, dough in contact with heated tray
 			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 1.};
 	}
+
+/*
+moisture transfer:
+dm/dt = Dm * d^2m/dt^2
+heat transfer:
+dT/dt = alpha * d^2T/dtx2
+
+at the surface:
+h * (Ta - TS) = Kc * dT/dx|x=S + Dm_c * rho_c * Lv * dm/dx|x=S
+where h is the heat transfer coefficient [W / (m^2 * K)]
+where K is the surface mass transfer coefficient [kg H2O / (m^2 * s)]
+where Dm is the moisture diffusivity [m^2 / s]
+where rho is the density [kg / m^3]
+where Lv is the latent heat of vaporization [J / kg]
+
+heat transfer at the interface between the dough and the tomato layer:
+Kd * dT/dx|x=5-6 - Kt * dT/dx|x=6-7 = dT6/dt * (rho_d * cp_d * delta_x5-6 / 2 + rho_t * cp_t * delta_x6-7 / 2)
+
+heat transfer at the interface between the tomato and the cheese layer:
+Kt * dT/dx|x=7-8 - Kc * dT/dx|x=8-9 = dT8/dt * (rho_t * cp_t * delta_x7-8 / 2 + rho_c * cp_c * delta_x8-9 / 2)
+
+moisture transfer at the top surface:
+Dm_c * rho_c * d/dx|x=S = Km_c * (Hs - Ha)
+where Hs is the pizza surface humidity ratio [kg H2O / kg dry air]
+where Ha is the air humidity ratio [kg H2O / kg dry air]
+
+moisture transfer at the interface between the dough and the tomato paste:
+Dm_d * dm/dx|x=5-6 - Dm_t * dm/dx|x=6-7 = dm6/dt * (delta_x5-6 + delta_x6-7) / 2
+
+moisture transfer at the interface between the tomato paste and the cheese layer:
+Dm_t * dm/dx|x=7-8 - Dm_c * dm/dx|x=8-9 = dm8/dt * (delta_x7-8 + delta_x8-9) / 2
+
+C = m / mp0
+theta = (T - T0) / (Ta - T0)
+psi = x / L
+L = Ld + Lt + Lc
+*/
 
 	//y is a list of theta and C from layer 9 to layer 1
 	//dydt is a list of dTheta/dt and dC/dt from layer 9 to layer 1
