@@ -163,7 +163,7 @@ heat transfer at the interface between the tomato and the cheese layer:
 Kt * dT/dx|x=7-8 - Kc * dT/dx|x=8-9 = dT8/dt * (rho_t * cp_t * delta_x7-8 / 2 + rho_c * cp_c * delta_x8-9 / 2)
 
 moisture transfer at the top surface:
-Dm_c * rho_c * d/dx|x=S = Km_c * (Hs - Ha)
+Dm_c * rho_c * dm/dx|x=S = Km_c * (Hs - Ha)
 where Hs is the pizza surface humidity ratio [kg H2O / kg dry air]
 where Ha is the air humidity ratio [kg H2O / kg dry air]
 
@@ -185,14 +185,28 @@ dtheta_dt = alpha / L^2 * d^2theta/dpsi^2
 at the surface becomes:
 hr * (1 - thetaS) = Kc / L * dthetaS/dpsi + Dm_c * rho_c * Lv * md0 * / (L * (Ta - T0)) * dCS/dpsi
 
-boundary conditions:
-theta(psi, t)|t=0 = 0
-C(0 < psi < Ld / L, t)|t=0 = 1
-C(Ld / L, t)|t=0 = (md0 + mt0) / (2 * md0)
-C(Ld / L < psi < (Lt + Ld) / L, t)|t=0 = mt0 / md0
-C((Ld + Ld) / L, t)|t=0 = (mt0 + mc0) / md0
-C((Ld + Lt) / L < psi < 1, t)|t=0 = mc0 / md0
+boundary conditions, theta(psi, t) and C(psi, t):
+theta(psi, 0) = 0
+C(0 < psi < Ld / L, 0) = 1
+C(Ld / L, 0) = (md0 + mt0) / (2 * md0)
+C(Ld / L < psi < (Lt + Ld) / L, 0) = mt0 / md0
+C((Ld + Ld) / L, 0) = (mt0 + mc0) / md0
+C((Ld + Lt) / L < psi < 1, 0) = mc0 / md0
 thetaB = (Tb - T0) / (Ta - T0)
+
+at the interface node 6 (dough-tomato):
+Kd / L * dtheta/dpsi|5-6 - Kt / L * dtheta/dpsi|6-7 = dtheta6/dt * (rho_d * cp_d * delta_x_5-6 + rho_t * cp_t * delta_x_6-7) / 2
+Dm_d / L * dC/dpsi|5-6 - Dm_t / L * dC/dpsi|6-7 = dC6/dt * (delta_x_5-6 + delta_x_6-7) / 2
+
+at the interface node 8 (tomato-cheese):
+Kt / L * dtheta/dpsi|7-8 - Kc / L * dtheta/dpsi|8-9 = dtheta8/dt * (rho_t * cp_t * delta_x_7-8 + rho_c * cp_c * delta_x_8-9) / 2
+Dm_t / L * dC/dpsi|7-8 - Dm_c / L * dC/dpsi|8-9 = dC8/dt * (delta_x_7-8 + delta_x_8-9) / 2
+
+at the bottom:
+dC/dpsi|psi=0 = 0
+
+at the surface of cheese layer:
+Dm_c * rho_c / L * dCS/dpsi * mp0 = Km_c * (HS - Ha)
 */
 
 	//y is a list of theta and C from layer 9 to layer 1
