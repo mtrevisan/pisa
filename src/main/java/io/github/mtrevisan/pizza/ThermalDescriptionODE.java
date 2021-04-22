@@ -14,6 +14,20 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
  * https://www.researchgate.net/publication/280735585_One-Dimensional_Solar_Heat_Load_Simulation_Model_for_a_Parked_Car
  *
  * https://www.witpress.com/Secure/elibrary/papers/9781853129322/9781853129322008FU1.pdf
+ *
+ * https://math.okstate.edu/people/binegar/4233/4233-l12.pdf
+ * http://www.physics.emory.edu/faculty/brody/Advanced%20Lab/phys%20222%20lecture%20notes.pdf
+ * http://dma.dima.uniroma1.it/users/lsa_adn/MATERIALE/FDheat.pdf
+ *
+ * FIXME thermal conductivity depends on temperature!
+ * https://cecs.wright.edu/~sthomas/htchapter02.pdf
+ *
+ * https://flothesof.github.io/heat-equation-cook-my-meat.html
+ * https://arxiv.org/pdf/1109.0664.pdf
+ *
+ * https://arxiv.org/ftp/arxiv/papers/1806/1806.08790.pdf
+ * https://apps.dtic.mil/dtic/tr/fulltext/u2/a243491.pdf
+ * https://www.researchgate.net/publication/275153085_Heat_and_Mass_Balance_for_Baking_Process
  */
 public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
@@ -145,7 +159,7 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 /*
 moisture transfer:
 dm/dt = Dm * d^2m/dt^2
-heat transfer:
+heat transfer (heat equation in one dimension):
 dT/dt = alpha * d^2T/dtx2
 
 at the surface:
@@ -173,6 +187,8 @@ Dm_tc * dm/dx|x=7-8 - Dm_cS * dm/dx|x=8-9 = dm8/dt * (delta_x7-8 + delta_x8-9) /
 moisture transfer at the interface between the dough and the tomato paste:
 Dm_dt * dm/dx|x=5-6 - Dm_tc * dm/dx|x=6-7 = dm6/dt * (delta_x5-6 + delta_x6-7) / 2
 
+
+let:
 C = m / mp0
 theta = (T - T0) / (Ta - T0)
 psi = x / L
@@ -207,6 +223,26 @@ Dm_dt / L * dC/dpsi|5-6 - Dm_tc / L * dC/dpsi|6-7 = dC6/dt * (delta_x_5-6 + delt
 
 at the bottom:
 dC/dpsi|psi=0 = 0
+
+
+9, cheese-surface layer (central difference approximation of the second derivative):
+dtheta9/dt = 4 * alpha_c / Lc^2 * (theta8 - 2 * theta9 + thetaS)
+dC9/dt = 4 * Dm_c / Lc^2 * (C8 - 2 * C9 + CS)
+
+7, tomato-cheese layer:
+dtheta7/dt = 4 * alpha_t / Lt^2 * (theta6 - 2 * theta7 + theta 8)
+dC7/dt = 4 * Dm_t / Lt^2 * (C6 - 2 * C7 + C8)
+
+5, dough-tomato layer:
+dtheta5/dt = 100 * alpha_d / (3 * Ld^2) * (theta4 - 3 * theta5 + 2 * theta6)
+dC5/dt = 100 * Dm_d / (3 * Ld^2) * (C4 - 3 * C5 + 2 * C6)
+
+4-2, dough layer:
+dtheta_i/dt = 25 * alpha_d / Ld^2 * (theta_i-1 - 2 * theta_i + theta_i+1)
+dC_i/dt = 25 * Dm_d / Ld^2 * (C_i-1 - 2 * C_i + C_i+1)
+
+1, bottom layer:
+dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 */
 
 	//y is a list of theta and C from layer 9 to layer 1
