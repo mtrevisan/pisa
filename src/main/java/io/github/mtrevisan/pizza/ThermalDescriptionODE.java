@@ -89,6 +89,57 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final double thermalDiffusivityDough = 0.128e-6;
 
 
+/*
+conduction:
+q = k / x * A * (T2 - T1)
+where
+q	heat transferred
+k	thermal conductivity
+x	distance between T1 and T2
+A	cross sectional area
+T2	higher temperature
+T1	lower temperature
+
+convection:
+q = A * h * (T2 - T1)
+where
+h	convective heat transfer coefficient
+
+radiation:
+q = A1 * Css * e * (T1^4 - T2^4)
+where
+A1	area exposed to the radiation
+Css	Stefan-Boltzmann constant
+e	pizza emissivity
+
+heat balance:
+qk_in + qh_in + qs_in + qr_in = qk_out + qs_out + q_ret
+where
+qk_in = k/x * (t_T_n-1 - t_T_n)	heat moving in by conduction
+qh_in = h * (Tair - t_T_n)	heat moving in by air convection
+qs_in = ms_n-1 * Hf	heat moving in by steam convection
+qr_in = Css * e * (Toven^4 - t_T_n^4)	heat moving in by radiation
+qk_out = k/x * (t_T_n - t_T_n+1)	heat moving out by conduction
+qs_out = ms_n * Hf	heat moving out by steam conduction and diffusion
+q_ret = rho * cp * x * (t+1_T_n - t_T_n) + ms_ret	heat retained
+k	pizza conductivity
+x	pizza thickness
+t_T_n-1	temperature at time t of the previous node
+t_T_n	temperature at time t of the node
+t_T_n+1	temperature at time t of the next node
+t+1_T_n	temperature of the next node after the next segment of baking time has passed
+Toven	oven temperature
+h	convective-heat heat transfer coefficient
+ms_n-1	mass of steam from the previous node that condenses giving its heat to node n
+ms_n	mass of steam from node n that condenses giving its heat to next node
+ms_ret	mass of steam retained
+Hf	heat of vaporization
+e	pizza emissivity
+Css	Stefan-Boltzmann constant
+rho	dough density
+cp	dough specific heat
+*/
+
 	ThermalDescriptionODE(final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness,
 			final OvenType ovenType, final double bakingTemperatureTop, final double bakingTemperatureBottom, final double ambientTemperature,
 			final double ambientHumidityRatio){
