@@ -158,10 +158,6 @@ cp	dough specific heat
 5270 to 6925: core, divided into (1) heat moving to and through the pan and oil layer, (2) heat moving to the surface of the dough + moisture
 loss from the first section and oil absorbed, (3) what happens in the center of the dough (moisture loss, oil absorption, temperature rise,
 steam formation), (4) temperature rise at the tomato-dough interface.
-fun h: convective-heat transfer coefficient
-fun K: conductivity for the dough
-fun ROE: density for the dough
-SPHEAT: specific heat for the dough
 */
 
 	ThermalDescriptionODE(final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness,
