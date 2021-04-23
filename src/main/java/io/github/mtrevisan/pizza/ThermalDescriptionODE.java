@@ -138,6 +138,30 @@ e	pizza emissivity
 Css	Stefan-Boltzmann constant
 rho	dough density
 cp	dough specific heat
+
+100 to 4160: input
+- dough composition
+- tomato composition
+- starting weights for dough, tomato, oil
+- thickness of raw dough
+- temperature of dough before cooking
+- final weight of dough and tomato, oil and water from the toppings
+- final thickness of the shell and crust
+- final temperature at dough-tomato interface
+- information about the pan (thikness, diameter, density, conductivity, specific heat, emissivity)
+- total cooking time
+- number of cooking zones, and temperature, length, air speed or convective-heat transfer coefficient
+- estimated diffusivity
+- number of nodes in shell
+4170 to 5140: constants make-up
+5050 to 5260: reset constants between iterations
+5270 to 6925: core, divided into (1) heat moving to and through the pan and oil layer, (2) heat moving to the surface of the dough + moisture
+loss from the first section and oil absorbed, (3) what happens in the center of the dough (moisture loss, oil absorption, temperature rise,
+steam formation), (4) temperature rise at the tomato-dough interface.
+fun h: convective-heat transfer coefficient
+fun K: conductivity for the dough
+fun ROE: density for the dough
+SPHEAT: specific heat for the dough
 */
 
 	ThermalDescriptionODE(final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness,
