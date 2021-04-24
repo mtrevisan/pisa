@@ -3,6 +3,9 @@ package io.github.mtrevisan.pizza;
 
 public class A243491{
 
+	//[°C]
+	public static final double ABSOLUTE_ZERO = 273.15;
+
 	private static final int INDEX_PROTEIN = 0;
 	private static final int INDEX_FAT = 1;
 	private static final int INDEX_CARBOHYDRATE = 2;
