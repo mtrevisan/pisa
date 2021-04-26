@@ -12,10 +12,6 @@ for(int index = 0; index < 10; index ++)
 CLOSE #1
 CLOSE #2
 
-100 CLS
-110 SCREEN 9
-120 COLOR 1, 7
-130 CLS
 140 LOCATE 1, 18
 150 PRINT "MODEL FOR ESTIMATING COOKING TIMES FOR PIZZA"
 160 LOCATE 5, 5
@@ -62,7 +58,6 @@ CLOSE #2
 530 ELSE
 	540 GOTO 10000
 550 END IF
-560 CLS
 570 LOCATE 3, 25
 580 PRINT "PARAMETER DETERMINATION MODULE"
 590 VIEW PRINT 5 TO 25
@@ -211,7 +206,6 @@ CLOSE #2
 1964 PRINT
 1965 LOCATE 15, 58
 1966 PRINT pizzaTemperatureBeforeBaking
-1970 CLS 2
 1980 LOCATE 5, 5
 1990 PRINT "POST BAKING CONDITIONS"
 2000 LOCATE 7, 10
@@ -261,7 +255,6 @@ CLOSE #2
 2430 PRINT
 2440 LOCATE 17, 47
 2450 PRINT finalTemperatureShellTop
-2460 CLS 2
 2470 LOCATE 5, 5
 2480 PRINT "BAKING CONDITIONS"
 2490 LOCATE 7, 10
@@ -328,7 +321,6 @@ CLOSE #2
 2940 PRINT
 2950 LOCATE 21, 42
 2960 PRINT ovenCookingZones
-2970 CLS 2
 2980 LOCATE 5, 5
 2990 PRINT " IS THE CONVECTIVE HEAT TRANSFER COEFFICIENTFOR EACH ZONE KNOWN (Y/N)?"
 3000 SELECTS = INPUT$(I)
@@ -347,7 +339,6 @@ END IF
 double[] ovenZoneLength = new double[ovenCookingZones];
 double[] convectiveHeatTransferCoefficientCookingZone = new double[ovenCookingZones];
 int m = 0
-CLS 2
 for(int index = 0; index < ovenCookingZones; index ++){
 	m ++;
 	3250 LOCATE 5 + (m - 1) * 5, 5
@@ -378,7 +369,6 @@ for(int index = 0; index < ovenCookingZones; index ++){
 	3500 PRINT convectiveHeatTransferCoefficientCookingZone[index]
 	IF m = 4 THEN
 		m = 0;
-		CLS 2
 	END IF
 }
 GOTO 3960
@@ -387,7 +377,6 @@ double[] ovenZoneLength = new double[ovenCookingZones];
 double[] convectiveHeatTransferCoefficientCookingZone = new double[ovenCookingZones];
 double[] ZONES = new double[ovenCookingZones];
 m = 0;
-CLS 2
 for(int index = 0; index < ovenCookingZones; index ++){
 	m ++;
 	3640 LOCATE 5 + (m - 1) * 5, 5
@@ -419,10 +408,8 @@ for(int index = 0; index < ovenCookingZones; index ++){
 	3900 convectiveHeatTransferCoefficientCookingZone[index] = convectiveHeatTransferCoefficient(ZONES(index), ovenTemperatureZone[index], AIR(), panDiameter)
 	3910 IF m = 4 THEN
 		3920 m = 0
-		3930 CLS 2
 	3940 END IF
 }
-3960 CLS 2
 3970 LOCATE 5, 5
 3980 PRINT "ESTIMATE FOR THE EFFECTIVE DIFFUSIVITY
 3990 LOCATE 6, 5
@@ -505,91 +492,53 @@ double ovenTotalLength = 0.;
 for(int index = 0; index < ovenCookingZones; index ++)
 	ovenTotalLength += ovenZoneLength[index];
 beltSpeed = totalCookingTime / ovenTotalLength;
-5050 cookingTime = 0.;
-doughSlicesExperiencingMoistureLoss = 1;
-totalMoistureLossAtTimeT = 0.;
-//mass of oil in pan at time t
-oilInPan = initialOilWeight / 1000.;
-//excess heat due to steam condensation passed to next dough slice
-excessHeat = 0.;
-outsidePanTemperatureAtT = pizzaTemperatureBeforeBaking;
-insidePanTemperatureAtT = pizzaTemperatureBeforeBaking;
-for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
-	lengthTraveledThroughAtTimeT = 0.;
-	for(int index = 0; index < ovenCookingZones; index ++){
-		lengthTraveledThroughAtTimeT += ovenZoneLength[index];
-		if(cookingTime <= lengthTraveledThroughAtTimeT * beltSpeed){
-			Zh = convectiveHeatTransferCoefficientCookingZone[index];
-			ZONETEMP = ovenTemperatureZone[index];
+while(true){
+	cookingTime = 0.;
+	doughSlicesExperiencingMoistureLoss = 1;
+	totalMoistureLossAtTimeT = 0.;
+	//mass of oil in pan at time t
+	oilInPan = initialOilWeight / 1000.;
+	//excess heat due to steam condensation passed to next dough slice
+	excessHeat = 0.;
+	outsidePanTemperatureAtT = pizzaTemperatureBeforeBaking;
+	insidePanTemperatureAtT = pizzaTemperatureBeforeBaking;
+	for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
+		lengthTraveledThroughAtTimeT = 0.;
+		for(int index = 0; index < ovenCookingZones; index ++){
+			lengthTraveledThroughAtTimeT += ovenZoneLength[index];
+			if(cookingTime <= lengthTraveledThroughAtTimeT * beltSpeed){
+				Zh = convectiveHeatTransferCoefficientCookingZone[index];
+				ZONETEMP = ovenTemperatureZone[index];
+				break;
+			}
+		}
+		outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT + ((Zh * (ZONETEMP - outsidePanTemperatureAtT) - ((patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT)) + (panEmissivity * 5.67e-8 * (Math.pow(ZONETEMP + ABSOLUTE_ZERO, 4.) - Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.)))) * (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
+		OILT = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
+		OILD = doughDensity(OILT, oil, 0);
+		OILTH = (oilInPan / OILD) / (Math.PI * Math.pow(panDiameter / 2000., 2.));
+		if(OILTH <= 0.){
+			crustEffectiveDiffusivity *= 2.;
 			break;
 		}
-	}
-	outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT + ((Zh * (ZONETEMP - outsidePanTemperatureAtT) - ((patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT)) + (panEmissivity * 5.67e-8 * (Math.pow(ZONETEMP + ABSOLUTE_ZERO, 4.) - Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.)))) * (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
-	OILT = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
-	OILD = doughDensity(OILT, oil, 0);
-	OILTH = (oilInPan / OILD) / (Math.PI * Math.pow(panDiameter / 2000., 2.));
-	if(OILTH <= 0.){
-		crustEffectiveDiffusivity *= 2.;
-		break;
-	}
-	//inside pan temperature at time t plus delta t
-	insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + ((patThermalConductivity / (panThickness / 1000.) * (outsidePanTemperatureAtT - insidePanTemperatureAtT) -KOILT, OILO, 1) / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity * panSpecificHeat + (OILTH /2) * OILD * doughSpecificHeat(OILT, oil, 0));
-	if(doughTemperature[0][0] < 100.){
-		KOIL = doughConductivity(OILT, oil, 0);
-		SPOIL = doughSpecificHeat(OILT, oil, 0);
-		doughDensity = doughDensity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
-		doughThermalConductivity = doughConductivity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
-		doughSpecificHeat = doughSpecificHeat(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
-		doughTemperature[1][0] = ((KOIL / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0]) - (doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0] - doughTemperature[0][1])) / (((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat);
-	}
-	else
-		excessHeat = 0.;
-	if(doughTemperature[1][0] > 100.){
-		heat = (doughTemperature[1][0] - 100.) * ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat;
-		doughTemperature[1][0] = 100.;
-		MSP = heat / 2444900.;
-		if(MSP + steamInVoid[0] > steamMass){
-			if(moistureContent[0] - (MSP + steamInVoid[0] - steamMass) < moistureContentCrust){
-				excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - steamMass))) * 2444900.;
-				totalMoistureLossAtTimeT += moistureContent[0] - moistureContentCrust;
-				moistureContent[0] = moistureContentCrust;
-				oilInPan -= oilAbsorbedByCrustInDT / 2.;
-				doughSlicesExperiencingMoistureLoss = 2;
-				doughComponent(1, 1) = finalCrustProteinPercent;
-				doughComponent(2, 1) = finalCrustFatPercent;
-				doughComponent(3, 1) = finalCrustCarbohydratesPercent;
-				doughComponent(4, 1) = finalCrustFiberPercent;
-				doughComponent(5, 1) = finalCrustAshPercent;
-				doughComponent(6, 1) = finalCrustMoisturePercent;
-			}
-			else{
-				PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
-				totalMoistureLossAtTimeT += MSP + steamInVoid[0] - steamMass;
-				moistureContent[0] -= MSP + steamInVoid[0] - steamMass;
-				rescale(PCMC, doughComponent(), 0);
-				steamInVoid[0] = steamMass;
-				excessHeat = 0.;
-			}
+		//inside pan temperature at time t plus delta t
+		insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + ((patThermalConductivity / (panThickness / 1000.) * (outsidePanTemperatureAtT - insidePanTemperatureAtT) -KOILT, OILO, 1) / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity * panSpecificHeat + (OILTH /2) * OILD * doughSpecificHeat(OILT, oil, 0));
+		if(doughTemperature[0][0] < 100.){
+			KOIL = doughConductivity(OILT, oil, 0);
+			SPOIL = doughSpecificHeat(OILT, oil, 0);
+			doughDensity = doughDensity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
+			doughThermalConductivity = doughConductivity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
+			doughSpecificHeat = doughSpecificHeat(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
+			doughTemperature[1][0] = ((KOIL / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0]) - (doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0] - doughTemperature[0][1])) / (((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat);
 		}
-		else{
-			steamInVoid[0] += MSP;
+		else
 			excessHeat = 0.;
-		}
-	}
-	if(doughTemperature[0][0] == 100.){
-		KOIL = doughConductivity(OILT, oil, 0);
-		SPOIL = doughSpecificHeat(OILT, oil, 0);
-		doughDensity = doughDensity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
-		doughThermalConductivity = doughConductivity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
-		doughSpecificHeat = doughSpecificHeat(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
-		doughTemperature[1][0] = ((KOIL / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0]) - (doughThermalConductivity /(doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0] - doughTemperature[0][1])) / (((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat);
-		if(moistureContent[0] > moistureContentCrust){
-			heat = (doughTemperature[1][0] - 100.) *((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) /2) * doughDensity * doughSpecificHeat;
+		if(doughTemperature[1][0] > 100.){
+			heat = (doughTemperature[1][0] - 100.) * ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat;
 			doughTemperature[1][0] = 100.;
 			MSP = heat / 2444900.;
 			if(MSP + steamInVoid[0] > steamMass){
 				if(moistureContent[0] - (MSP + steamInVoid[0] - steamMass) < moistureContentCrust){
-					excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - SF)) * 2444900.;
+					excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - steamMass))) * 2444900.;
 					totalMoistureLossAtTimeT += moistureContent[0] - moistureContentCrust;
 					moistureContent[0] = moistureContentCrust;
 					oilInPan -= oilAbsorbedByCrustInDT / 2.;
@@ -602,107 +551,142 @@ for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
 					doughComponent(6, 1) = finalCrustMoisturePercent;
 				}
 				else{
-					PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - NSF)) / CDV(1);
-					totalMoistureLossAtTimeT += MSP + steamInVoid[0] - NSF);
-					moistureContent[0] -= MSP + steamInVoid[0] - NSF;
+					PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
+					totalMoistureLossAtTimeT += MSP + steamInVoid[0] - steamMass;
+					moistureContent[0] -= MSP + steamInVoid[0] - steamMass;
 					rescale(PCMC, doughComponent(), 0);
 					steamInVoid[0] = steamMass;
 					excessHeat = 0.;
 				}
 			}
 			else{
-				steamInVoid[0] = MSP;
+				steamInVoid[0] += MSP;
 				excessHeat = 0.;
 			}
 		}
-		else
-			excessHeat = 0.;
-	}
-	for(int m = 0; m < shellNodes - 1){
-		M1 = m - 1;
-		M2 = m + 1;
-		doughDensity = doughDensity(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace);
-		doughThermalConductivity = doughConductivity(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
-		doughSpecificHeat = doughSpecificHeat(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace);
-		doughTemperature[1][m] = doughTemperature[0][m] + ((doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][M1] + doughTemperature[0][M2] - 2. * doughTemperature[0][m]) + excessHeat) / ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) * doughDensity * doughSpecificHeat);
-		if(doughSlicesExperiencingMoistureLoss <> m){
-			if(doughTemperature[1][m] > 100.){
+		if(doughTemperature[0][0] == 100.){
+			KOIL = doughConductivity(OILT, oil, 0);
+			SPOIL = doughSpecificHeat(OILT, oil, 0);
+			doughDensity = doughDensity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
+			doughThermalConductivity = doughConductivity(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
+			doughSpecificHeat = doughSpecificHeat(doughTemperature[0][0], doughComponent(), 0) * (1. - doughVoidSpace);
+			doughTemperature[1][0] = ((KOIL / OILTH) * (insidePanTemperatureAtT - doughTemperature[0][0]) - (doughThermalConductivity /(doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0] - doughTemperature[0][1])) / (((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat);
+			if(moistureContent[0] > moistureContentCrust){
+				heat = (doughTemperature[1][0] - 100.) *((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) /2) * doughDensity * doughSpecificHeat;
+				doughTemperature[1][0] = 100.;
+				MSP = heat / 2444900.;
+				if(MSP + steamInVoid[0] > steamMass){
+					if(moistureContent[0] - (MSP + steamInVoid[0] - steamMass) < moistureContentCrust){
+						excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - SF)) * 2444900.;
+						totalMoistureLossAtTimeT += moistureContent[0] - moistureContentCrust;
+						moistureContent[0] = moistureContentCrust;
+						oilInPan -= oilAbsorbedByCrustInDT / 2.;
+						doughSlicesExperiencingMoistureLoss = 2;
+						doughComponent(1, 1) = finalCrustProteinPercent;
+						doughComponent(2, 1) = finalCrustFatPercent;
+						doughComponent(3, 1) = finalCrustCarbohydratesPercent;
+						doughComponent(4, 1) = finalCrustFiberPercent;
+						doughComponent(5, 1) = finalCrustAshPercent;
+						doughComponent(6, 1) = finalCrustMoisturePercent;
+					}
+					else{
+						PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - NSF)) / CDV(1);
+						totalMoistureLossAtTimeT += MSP + steamInVoid[0] - NSF);
+						moistureContent[0] -= MSP + steamInVoid[0] - NSF;
+						rescale(PCMC, doughComponent(), 0);
+						steamInVoid[0] = steamMass;
+						excessHeat = 0.;
+					}
+				}
+				else{
+					steamInVoid[0] = MSP;
+					excessHeat = 0.;
+				}
+			}
+			else
+				excessHeat = 0.;
+		}
+		for(int m = 0; m < shellNodes - 1){
+			doughDensity = doughDensity(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace);
+			doughThermalConductivity = doughConductivity(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
+			doughSpecificHeat = doughSpecificHeat(doughTemperature[0][m], doughComponent(), m) * (1. - doughVoidSpace);
+			doughTemperature[1][m] = doughTemperature[0][m] + ((doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][m - 1] + doughTemperature[0][m + 1] - 2. * doughTemperature[0][m]) + excessHeat) / ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) * doughDensity * doughSpecificHeat);
+			if(doughSlicesExperiencingMoistureLoss <> m){
+				if(doughTemperature[1][m] > 100.){
+					heat = (doughTemperature[1][m] - 100.) * doughSliceThickness * doughDensity * doughSpecificHeat;
+					doughTemperature[1][m] = 100.;
+					MSP = heat / 2444900.;
+					if(MSP + NSIV(m) > steamMass){
+						excessHeat = ((MSP + steamInVoid[m]) - steamMass) * 2444900.;
+						steamInVoid[m] = steamMass;
+					}
+					else{
+						excessHeat = 0.;
+						NSIV(m) = steamInVoid[m] + MSP
+					}
+				}
+				else
+					excessHeat = 0.;
+			}
+			else if(doughTemperature[1][m] > 100.){
 				heat = (doughTemperature[1][m] - 100.) * doughSliceThickness * doughDensity * doughSpecificHeat;
 				doughTemperature[1][m] = 100.;
 				MSP = heat / 2444900.;
-				if(MSP + NSIV(m) > steamMass){
-					excessHeat = ((MSP + steamInVoid[m]) - steamMass) * 2444900.;
-					steamInVoid[m] = steamMass;
+				if(MSP + steamInVoid[m] > steamMass){
+					//moisture lost from slice
+					sliceMoistureLost = crustEffectiveDiffusivity(steamInVoid[H] + MSP) / Math.pow(doughSliceThickness * (m - 1.), 2.);
+					if(moistureContent[m] - sliceMoistureLost < moistureContentCrust){
+						sliceMoistureLost = moistureContent[m] - moistureContentCrust;
+						totalMoistureLossAtTimeT += sliceMoistureLost;
+						moistureContent[m] = moistureContentCrust;
+						doughSlicesExperiencingMoistureLoss ++;
+						doughComponent(1, m) = finalCrustProteinPercent;
+						doughComponent(2, m) = finalCrustFatPercent;
+						doughComponent(3, m) = finalCrustCarbohydratesPercent;
+						doughComponent(4, m) = finalCrustFiberPercent;
+						doughComponent(5, m) = finalCrustAshPercent;
+						doughComponent(6, m) = finalCrustMoisturePercent;
+						doughTemperature[1][m] = 100.;
+						excessHeat = (HSIV(m) + MSP - sliceMoistureLost - steamMass) * 2444900.;
+						oilInPan -= oilAbsorbedByCrustInDT;
+						steamInVoid[m] = steamMass;
+					}
+					else{
+						totalMoistureLossAtTimeT += sliceMoistureLost;
+						PCMC = (moistureContent[m] - (MSP + steamInVoid[m] - steamMass)) / moistureContent[m];
+						moistureContent[m] -= sliceMoistureLost;
+						excessHeat = (MSP + steamInVoid[m] - steamMass - sliceMoistureLost) * 2444900.;
+						steamInVoid[m] = steamMass;
+						rescale(PCMC, doughComponent(), m);
+					}
 				}
-				else{
-					excessHeat = 0.;
-					NSIV(m) = steamInVoid[m] + MSP
-				}
+				else
+					steamInVoid[m] += MSP;
 			}
 			else
 				excessHeat = 0.;
 		}
-		else if(doughTemperature[1][m] > 100.){
-			heat = (doughTemperature[1][m] - 100.) * doughSliceThickness * doughDensity * doughSpecificHeat;
-			doughTemperature[1][m] = 100.;
-			MSP = heat / 2444900.;
-			if(MSP + steamInVoid[m] > steamMass){
-				//moisture lost from slice
-				sliceMoistureLost = crustEffectiveDiffusivity(steamInVoid[H] + MSP) / Math.pow(doughSliceThickness * (m - 1.), 2.);
-				if(moistureContent[m] - sliceMoistureLost < moistureContentCrust){
-					sliceMoistureLost = moistureContent[m] - moistureContentCrust;
-					totalMoistureLossAtTimeT += sliceMoistureLost;
-					moistureContent[m] = moistureContentCrust;
-					doughSlicesExperiencingMoistureLoss ++;
-					doughComponent(1, m) = finalCrustProteinPercent;
-					doughComponent(2, m) = finalCrustFatPercent;
-					doughComponent(3, m) = finalCrustCarbohydratesPercent;
-					doughComponent(4, m) = finalCrustFiberPercent;
-					doughComponent(5, m) = finalCrustAshPercent;
-					doughComponent(6, m) = finalCrustMoisturePercent;
-					doughTemperature[1][m] = 100.;
-					excessHeat = (HSIV(m) + MSP - sliceMoistureLost - steamMass) * 2444900.;
-					oilInPan -= oilAbsorbedByCrustInDT;
-					steamInVoid[m] = steamMass;
-				}
-				else{
-					totalMoistureLossAtTimeT += sliceMoistureLost;
-					PCMC = (moistureContent[m] - (MSP + steamInVoid[m] - steamMass)) / moistureContent[m];
-					moistureContent[m] -= sliceMoistureLost;
-					excessHeat = (MSP + steamInVoid[m] - steamMass - sliceMoistureLost) * 2444900.;
-					steamInVoid[m] = steamMass;
-					rescale(PCMC, doughComponent(), m);
-				}
-			}
-			else
-				steamInVoid[m] += MSP;
-		}
-		else
-			excessHeat = 0.;
+		doughDensity = doughDensity(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace);
+		doughThermalConductivity = doughConductivity(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
+		doughSpecificHeat = doughSpecificHeat(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace);
+		index = shellNodes - 1;
+		doughTemperature[1][shellNodes] = doughTemperature[0][shellNodes] + (doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][index] - doughTemperature[0][shellNodes]) / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness * doughDensity * doughSpecificHeat);
+		excessHeat = 0.;
+		for(int index = 0; index < shellNodes; index ++)
+			doughTemperature[0][index] = doughTemperature[1][index];
+		outsidePanTemperatureAtT = outsidePanTemperatureAtTPlusDT;
+		insidePanTemperatureAtT = insidePanTemperatureAtTPlusDT;
 	}
-	doughDensity = doughDensity(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace);
-	doughThermalConductivity = doughConductivity(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
-	doughSpecificHeat = doughSpecificHeat(doughTemperature[0][shellNodes], doughComponent(), shellNodes - 1) * (1. - doughVoidSpace);
-	index = shellNodes - 1;
-	doughTemperature[1][shellNodes] = doughTemperature[0][shellNodes] + (doughThermalConductivity / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][index] - doughTemperature[0][shellNodes]) / (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness * doughDensity * doughSpecificHeat);
-	excessHeat = 0.;
-	for(int index = 0; index < shellNodes; index ++)
-		doughTemperature[0][index] = doughTemperature[1][index];
-	outsidePanTemperatureAtT = outsidePanTemperatureAtTPlusDT;
-	insidePanTemperatureAtT = insidePanTemperatureAtTPlusDT;
+	totalMoistureLossAtTimeT *= Math.PI * Math.pow(panDiameter / 2000., 2.);
+	if(Math.abs(totalMoistureLossAtTimeT - totalMoistureLossDuringCooking) / totalMoistureLossDuringCooking > 0.01){
+		crustEffectiveDiffusivity *= totalMoistureLossDuringCooking / totalMoistureLossAtTimeT;
+		LOGGER.log("Calculated moisture content: {}%, Calculated final temperature: {} °C", totalMoistureLossAtTimeT, doughTemperature[0][shellNodes]);
+	}
+	else if(Math.abs(doughTemperature[0][shellNodes] - finalTemperatureShellTop) / finalTemperatureShellTop > 0.01)
+		doughConductivityCorrectionFactor = finalTemperatureShellTop / doughTemperature[0][shellNodes];
+	else
+		break;
 }
-totalMoistureLossAtTimeT *= Math.PI * Math.pow(panDiameter / 2000., 2.);
-if(Math.abs(totalMoistureLossAtTimeT - totalMoistureLossDuringCooking) / totalMoistureLossDuringCooking > 0.01){
-	crustEffectiveDiffusivity *= totalMoistureLossDuringCooking / totalMoistureLossAtTimeT;
-	LOGGER.log("Calculated moisture content: {}%, Calculated final temperature: {} °C", totalMoistureLossAtTimeT, doughTemperature[0][shellNodes]);
-	GOTO 5050
-}
-if(Math.abs(doughTemperature[0][shellNodes] - finalTemperatureShellTop) / finalTemperatureShellTop > 0.01){
-	doughConductivityCorrectionFactor = finalTemperatureShellTop / doughTemperature[0][shellNodes];
-	GOTO 5050
-}
-CLS 2
 GOTO 99999
-10000 CLS
-PRINT "PROGRAM NOT READY"
+10000 PRINT "PROGRAM NOT READY"
 99999 PRINT "PROGRAM TERMINATED"
