@@ -287,6 +287,7 @@ public class A243491{
 					crustEffectiveDiffusivity *= 2.;
 					break;
 				}
+
 				//inside pan temperature at time t plus delta t
 				final double insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + (tmp - (doughConductivity(oilTemperature, oil, 1)
 					/ oilLayerThicknessAtT) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity
