@@ -160,25 +160,54 @@ public final class Dough{
 	//accuracy is ±0.001%
 	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
 
-
 	private final YeastModelAbstract yeastModel;
+
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
+	SugarType sugarType;
+	/** Raw sugar content [% w/w]. */
+	private double sugarContent = 1.;
+	/** Water content in sugar [% w/w]. */
+	private double sugarWaterContent;
+
 	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fat;
+	/** Raw fat content [% w/w]. */
+	private double fatContent = 1.;
+	/** Water content in fat [% w/w]. */
+	private double fatWaterContent;
+	/** Salt content in fat [% w/w]. */
+	private double fatSaltContent;
+
 	/** Total salt quantity w.r.t. flour [% w/w]. */
 	private double salt;
+
 	/** Total water quantity w.r.t. flour [% w/w]. */
 	private double water;
 	/** Chlorine dioxide in water [mg/l]. */
 	private double waterChlorineDioxide;
-	/** pH of water. */
+	/**
+	 * pH of water.
+	 * <p>
+	 * Hard water is more alkaline than soft water, and can decrease the activity of yeast.
+	 * Water that is slightly acid (pH a little below 7) is preferred for bread baking.
+	 * </p>
+	 */
 	private double waterPH = PURE_WATER_PH;
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
+	/**
+	 * Calcium carbonate (CaCO3) in water [mg/l] = [°F * 10] = [°I * 7] = [°dH * 5.6].
+	 *
+	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
+	 */
+	private double waterCalciumCarbonate;
 
 	/** Yeast quantity [% w/w]. */
 	double yeast;
+	private YeastType yeastType;
+	/** Raw yeast content [% w/w]. */
+	private double rawYeast = 1.;
 
 
 	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
@@ -195,16 +224,6 @@ public final class Dough{
 
 	/**
 	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
-	 * @param ingredients	The recipe ingredients.
-	 * @return	This instance.
-	 * @throws DoughException	If sugar is too low or too high.
-	 */
-	public Dough addSugar(final double sugar, final Ingredients ingredients) throws DoughException{
-		return addSugar(sugar, ingredients.sugarType, ingredients.sugarContent, ingredients.sugarWaterContent);
-	}
-
-	/**
-	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
 	 * @param sugarType	Sugar type.
 	 * @param sugarContent	Sucrose content [% w/w].
 	 * @param waterContent	Water content [% w/w].
@@ -218,18 +237,11 @@ public final class Dough{
 
 		this.sugar += sugarType.factor * sugar * sugarContent;
 		addPureWater(sugar * waterContent);
+		this.sugarType = sugarType;
+		this.sugarContent = sugarContent;
+		this.sugarWaterContent = waterContent;
 
 		return this;
-	}
-
-	/**
-	 * @param fat	Fat quantity w.r.t. flour [% w/w].
-	 * @param ingredients	The recipe ingredients.
-	 * @return	This instance.
-	 * @throws DoughException	If fat is too low or too high.
-	 */
-	public Dough addFat(final double fat, final Ingredients ingredients) throws DoughException{
-		return addFat(fat, ingredients.fatContent, ingredients.fatWaterContent, ingredients.fatSaltContent);
 	}
 
 	/**
@@ -245,6 +257,8 @@ public final class Dough{
 		this.fat += fat * fatContent;
 		addPureWater(fat * waterContent);
 		addSalt(fat * saltContent);
+		this.fatWaterContent = waterContent;
+		this.fatSaltContent = saltContent;
 
 		if(fat < 0. || this.fat > FAT_MAX)
 			throw DoughException.create("Fat [% w/w] must be between 0 and {}%", Helper.round(FAT_MAX * 100., 1));
@@ -272,17 +286,7 @@ public final class Dough{
 	 * @throws DoughException	If water is too low.
 	 */
 	public Dough addPureWater(final double water) throws DoughException{
-		return addWater(water, 0., PURE_WATER_PH, 0.);
-	}
-
-	/**
-	 * @param water	Water quantity w.r.t. flour [% w/w].
-	 * @param ingredients	The recipe ingredients.
-	 * @return	This instance.
-	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
-	 */
-	public Dough addWater(final double water, final Ingredients ingredients) throws DoughException{
-		return addWater(water, ingredients.waterChlorineDioxide, ingredients.waterPH, ingredients.waterFixedResidue);
+		return addWater(water, 0., 0., PURE_WATER_PH, 0.);
 	}
 
 	/**
@@ -293,25 +297,45 @@ public final class Dough{
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
 	 */
-	public Dough addWater(final double water, final double chlorineDioxide, final double pH, final double fixedResidue)
-			throws DoughException{
+	public Dough addWater(final double water, final double chlorineDioxide, final double calciumCarbonate, final double pH,
+			final double fixedResidue) throws DoughException{
 		if(water < 0.)
 			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and {} mg/l",
 				Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2));
-		if(pH < 0.)
-			throw DoughException.create("pH of water must be positive");
+		if(calciumCarbonate < 0.)
+			throw DoughException.create("Calcium carbonate in water must be non-negative");
+		if(pH < 0. || pH > 14.)
+			throw DoughException.create("pH of water must be between 0 and 14");
 		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
 			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and {} mg/l",
 				Helper.round(WATER_FIXED_RESIDUE_MAX, 2));
 
 		if(this.water + water > 0.){
 			waterChlorineDioxide = (this.water * waterChlorineDioxide + water * chlorineDioxide) / (this.water + water);
+			waterCalciumCarbonate = (this.water * waterCalciumCarbonate + water * calciumCarbonate) / (this.water + water);
 			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
 			waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
 		}
 		this.water += water;
+
+		return this;
+	}
+
+	/**
+	 * @param yeastType	Yeast type.
+	 * @param rawYeast	Raw yeast content [% w/w].
+	 * @return	The instance.
+	 */
+	public Dough withYeast(final YeastType yeastType, final double rawYeast) throws DoughException{
+		if(yeastType == null)
+			throw DoughException.create("Missing yeast type");
+		if(rawYeast <= 0. || rawYeast > 1.)
+			throw DoughException.create("Raw yeast quantity must be between 0 and 1");
+
+		this.yeastType = yeastType;
+		this.rawYeast = rawYeast;
 
 		return this;
 	}
@@ -664,12 +688,12 @@ public final class Dough{
 			difference;
 		final double waterCorrection = calculateWaterCorrection(ingredients);
 		do{
-			yeast = totalFlour * this.yeast / (ingredients.yeastType.factor * ingredients.rawYeast);
-			flour = totalFlour - yeast * (1. - ingredients.rawYeast);
+			yeast = totalFlour * this.yeast / (yeastType.factor * rawYeast);
+			flour = totalFlour - yeast * (1. - rawYeast);
 			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
-			sugar = totalFlour * this.sugar / (ingredients.sugarType.factor * ingredients.sugarContent);
+			sugar = totalFlour * this.sugar / (sugarType.factor * sugarContent);
 			final double fatCorrection = calculateFatCorrection(ingredients, flour);
-			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / ingredients.fatContent;
+			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / fatContent;
 			final double saltCorrection = calculateSaltCorrection(ingredients, flour);
 			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
 
@@ -699,7 +723,7 @@ public final class Dough{
 	private double calculateWaterCorrection(final Ingredients ingredients){
 		double waterCorrection = 0.;
 		if(ingredients.correctForIngredients)
-			waterCorrection += sugar * ingredients.sugarWaterContent + fat * ingredients.fatWaterContent;
+			waterCorrection += sugar * sugarWaterContent + fat * fatWaterContent;
 		if(ingredients.correctForFlourHumidity)
 			//NOTE: 70.62% is to obtain a humidity of 13.5%
 			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
@@ -711,7 +735,7 @@ public final class Dough{
 	}
 
 	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + fat * ingredients.fatSaltContent: 0.);
+		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + fat * fatSaltContent: 0.);
 	}
 
 

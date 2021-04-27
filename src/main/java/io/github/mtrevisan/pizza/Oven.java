@@ -150,7 +150,7 @@ public class Oven{
 		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 		final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
-			recipe.getSugar() / recipe.getWater(), ingredients.sugarType, ingredients.atmosphericPressure);
+			recipe.getSugar() / recipe.getWater(), dough.sugarType, ingredients.atmosphericPressure);
 		if(bakingTemperature < brineBoilingTemperature)
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else{
