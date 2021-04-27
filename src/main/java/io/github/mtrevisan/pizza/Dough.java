@@ -161,7 +161,8 @@ public final class Dough{
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
 
-	private static final double MAILLARD_REACTION_TEMPERATURE = 160.;
+	//https://www.oreilly.com/library/view/cooking-for-geeks/9781449389543/ch04.html
+	private static final double MAILLARD_REACTION_TEMPERATURE = 155.;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/

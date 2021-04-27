@@ -1,21 +1,7 @@
 //https://apps.dtic.mil/dtic/tr/fulltext/u2/a243491.pdf
 
 OPEN "A:AIR.DAT" FOR INPUT AS #1
-OPEN "A:C02.DAT" FOR INPUT AS #2
 double[][] AIR = new double[10][5];
-double[][] C02 = new double[10][3];
 for(int index = 0; index < 10; index ++)
 	INPUT #1, AIR(index, 1), AIR(index, 2), AIR(index, 3), AIR(index, 4), AIR(index,5)
-for(int index = 0; index < 10; index ++)
-	INPUT #2, C02(index, 1), C02(index, 2), C02(index, 3)
 CLOSE #1
-CLOSE #2
-
-150 PRINT "MODEL FOR ESTIMATING COOKING TIMES FOR PIZZA"
-170 PRINT "This program is for estimating the cooking time for a pizza baked in a"
-190 PRINT "pan using oil. Because of assumptions made in the development of this"
-210 PRINT "program a new value for the diffusivity and conductivity of the crust"
-230 PRINT "must be calculated for any significant changes in cooking method."
-250 PRINT "Use the arrow key to select desired program module."
-270 PRINT "( ) Determine the effective diffusivity and conductivity of the crust"
-290 PRINT "( ) Estimate new cooking time"

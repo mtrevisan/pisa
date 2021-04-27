@@ -4,6 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * @see <a href="https://apps.dtic.mil/dtic/tr/fulltext/u2/a243491.pdf">Nelson. Computer modeling of the cooking process for pizza. 1991.</a>
+ * @see <a href="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1056&context=foodscidiss">Pitchai. A finite element method based microwave heat transfer modeling of frozen multi-component foods. 2015.</a>
+ *
+ * https://www.oreilly.com/library/view/cooking-for-geeks/9781449389543/ch04.html
+ * https://www.journalofdairyscience.org/article/S0022-0302(98)75812-6/pdf
+ */
 public class A243491{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(A243491.class);
