@@ -109,7 +109,7 @@ T2	higher temperature
 T1	lower temperature
 
 radiation:
-q = A1 * Css * e * (T1^4 - T2^4)
+q = A1 * Css * e * (T2^4 - T1^4)
 where
 A1	area exposed to the radiation
 Css	Stefan-Boltzmann constant
@@ -131,6 +131,10 @@ qk_out = k/x * (t_T_n - t_T_n+1)	heat moving out by conduction
 qs_out = ms_n * Hf	heat moving out by steam conduction and diffusion
 
 q_ret = rho * cp * x * (t+1_T_n - t_T_n) + ms_ret	heat retained
+
+//system pizza + (pan + (baking sheet))
+q_in = (hasTop? (airThermalConductivity / roofDistance + convectiveHeatTransfer) * (TT - TpT(t)) + Css * e * (TT^4 - TpT(t)^4): 0)
+	+ (hasBottom? (airThermalConductivity / floorDistance + (hasBottomConvection? convectiveHeatTransfer: 0)) * (TB - TpB(t)) + (hasBottomRadiation? Css * e * (TB^4 - TpB(t)^4): 0): 0)
 
 k	pizza conductivity
 x	pizza thickness

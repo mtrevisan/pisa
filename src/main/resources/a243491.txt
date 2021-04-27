@@ -1,7 +1,0 @@
-//https://apps.dtic.mil/dtic/tr/fulltext/u2/a243491.pdf
-
-OPEN "A:AIR.DAT" FOR INPUT AS #1
-double[][] AIR = new double[10][5];
-for(int index = 0; index < 10; index ++)
-	INPUT #1, AIR(index, 1), AIR(index, 2), AIR(index, 3), AIR(index, 4), AIR(index,5)
-CLOSE #1
