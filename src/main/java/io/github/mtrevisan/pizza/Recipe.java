@@ -103,6 +103,16 @@ public final class Recipe{
 	}
 
 	/**
+	 * @param waterTemperature	Water temperature [°C].
+	 * @return	The instance.
+	 */
+	public Recipe withWaterTemperature(final Double waterTemperature){
+		this.waterTemperature = waterTemperature;
+
+		return this;
+	}
+
+	/**
 	 * @return	Water quantity [g].
 	 */
 	public double getWater(){
