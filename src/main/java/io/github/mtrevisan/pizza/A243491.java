@@ -19,18 +19,82 @@ public class A243491{
 	private static final int INDEX_WATER = 5;
 
 
-	public void doThings(int shellNodes, double initialDoughThickness, double finalShellThickness,
-			double initialDoughProtein, double initialDoughFat, double initialDoughCarbohydrate, double initialDoughFiber,
-			double initialDoughAsh, double initialDoughMoisture, double initialPizzaTemperature,
-			double panDiameter, double finalCrustThickness, double initialDoughWeight,
-			double bakedShellAndTomatoWeight, double moistureAbsorbedFromToppingsByShellWeight,
-			double initialTomatoWeight, double initialTomatoMoistureContent, double initialOilWeight, double finalOilWeight,
-			int ovenCookingZones,
-			double[] ovenZoneLength, double[] ovenTemperatureZone, double[] convectiveHeatTransferCoefficientCookingZone,
+	public void doThings(
+			//dough compositions:
+			/** dough protein component [%]. */
+			double initialDoughProtein,
+			/** dough fat component [%]. */
+			double initialDoughFat,
+			/** dough carbohydrate component [%]. */
+			double initialDoughCarbohydrate,
+			/** dough fiber component [%]. */
+			double initialDoughFiber,
+			/** dough asj component [%]. */
+			double initialDoughAsh,
+			/** dough moisture component [%]. */
+			double initialDoughMoisture,
+
+			//tomato compositions:
+			/** tomato moisture component [%]. */
+			double initialTomatoMoisture,
+
+			//pre-baking conditions:
+			/** weight of raw dough [g]. */
+			double initialDoughWeight,
+			/** weight of tomato [g]. */
+			double initialTomatoWeight,
+			/** weight of oil in pan [g]. */
+			double initialOilWeight,
+			/** thickness of shell [mm]. */
+			double initialDoughThickness,
+			/** temperature of pizza entering oven [°C]. */
+			double initialPizzaTemperature,
+
+			//post-baking conditions:
+			/** weight of oil in pan [g]. */
+			double finalOilWeight,
+			/** weight of shell and tomato [g]. */
+			double finalShellAndTomatoWeight,
+			/** weight of water from toppings [g]. */
+			double finalMoistureAbsorbedFromToppingsByShell,
+			/** thickness of shell [mm]. */
+			double finalShellThickness,
+			/** thickness of crust [mm]. */
+			double finalCrustThickness,
+			/** final tomato temperature [°C]. */
+			double finalTomatoTemperature,
+
+			//baking conditions:
+			/** pan thickness [mm]. */
+			double panThickness,
+			/** pan diameter [mm]. */
+			double panDiameter,
+			/** pan density [kg / m^3]. */
+			double panDensity,
+			/** pan thermal conductivity [W / (m * K)]. */
+			double patThermalConductivity,
+			/** pan specific heat [J / (kg * K)]. */
+			double panSpecificHeat,
+			/** pan emissivity. */
+			double panEmissivity,
+			/** total cooking time [s]. */
 			double totalCookingTime,
-			double patThermalConductivity, double panThickness, double panEmissivity, double panDensity, double panSpecificHeat,
+			/** oven temperature [°C]. */
+			double ovenTemperature,
+			/** oven air speed [m / s]. */
+			double ovenAirSpeed,
+			/** estimate for the effective diffusivity for the crust [cm^2 / s]. */
 			double crustEffectiveDiffusivity,
-			double finalTemperatureShellTop){
+
+			/** number of sections. */
+			int shellNodes,
+
+			double[][] airParams
+		){
+		//convective heat transfer coefficient [W / (m^2 * K)]
+		final double convectiveHeatTransferCoefficientCookingZone = convectiveHeatTransferCoefficient(ovenAirSpeed, ovenTemperature,
+			airParams, panDiameter);
+
 		shellNodes ++;
 		double initialDoughThicknessOverFinalDoughThickness = initialDoughThickness / finalShellThickness;
 		double doughSliceThickness = (finalShellThickness / 1000.) / (shellNodes - 1);
@@ -52,8 +116,8 @@ public class A243491{
 		//[%]
 		double doughVoidSpace = (initialDoughVolume - ((initialDoughWeight / 1000.) / doughDensity(initialPizzaTemperature, doughComponent,
 			0))) / initialDoughVolume;
-		double totalMoistureLossDuringCooking = initialDoughWeight - bakedShellAndTomatoWeight + moistureAbsorbedFromToppingsByShellWeight
-			+ initialTomatoWeight * initialTomatoMoistureContent - (initialOilWeight - finalOilWeight);
+		double totalMoistureLossDuringCooking = initialDoughWeight - finalShellAndTomatoWeight + finalMoistureAbsorbedFromToppingsByShell
+			+ initialTomatoWeight * initialTomatoMoisture - (initialOilWeight - finalOilWeight);
 		final double initialCrustMoisture = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
 			* initialDoughMoisture;
 		final double initialCrustProtein = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
@@ -105,10 +169,6 @@ public class A243491{
 			/ (finalCrustThickness / 1000.) * doughSliceThickness);
 		//mass of steam that fills the voids in the a slice of dough
 		final double steamMass = 0.5228 * doughSliceThickness;
-		double ovenTotalLength = 0.;
-		for(int index = 0; index < ovenCookingZones; index ++)
-			ovenTotalLength += ovenZoneLength[index];
-		final double beltSpeed = totalCookingTime / ovenTotalLength;
 		Double doughConductivityCorrectionFactor = null;
 		while(true){
 			int doughSlicesExperiencingMoistureLoss = 1;
@@ -121,20 +181,10 @@ public class A243491{
 			insidePanTemperatureAtT = initialPizzaTemperature;
 			Double doughSpecificHeat = null;
 			for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
-				double lengthTraveledThroughAtTimeT = 0.;
-				Double Zh = null;
-				Double ZONETEMP = null;
-				for(int index = 0; index < ovenCookingZones; index ++){
-					lengthTraveledThroughAtTimeT += ovenZoneLength[index];
-					if(cookingTime <= lengthTraveledThroughAtTimeT * beltSpeed){
-						Zh = convectiveHeatTransferCoefficientCookingZone[index];
-						ZONETEMP = ovenTemperatureZone[index];
-						break;
-					}
-				}
-				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT + (Zh * (ZONETEMP - outsidePanTemperatureAtT)
+				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT
+					+ (convectiveHeatTransferCoefficientCookingZone * (ovenTemperature - outsidePanTemperatureAtT)
 					- ((patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT))
-					+ (panEmissivity * 5.67e-8 * (Math.pow(ZONETEMP + ABSOLUTE_ZERO, 4.)
+					+ (panEmissivity * 5.67e-8 * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.)
 					- Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.)))) * (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
 				final double oilTemperature = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
 				final double oilDensity = doughDensity(oilTemperature, oil, 0);
@@ -329,8 +379,8 @@ public class A243491{
 				LOGGER.debug("Calculated moisture content: {}%, Calculated final temperature: {} °C", totalMoistureLossAtTimeT,
 					doughTemperature[0][shellNodes]);
 			}
-			else if(Math.abs(doughTemperature[0][shellNodes] - finalTemperatureShellTop) / finalTemperatureShellTop > 0.01)
-				doughConductivityCorrectionFactor = finalTemperatureShellTop / doughTemperature[0][shellNodes];
+			else if(Math.abs(doughTemperature[0][shellNodes] - finalTomatoTemperature) / finalTomatoTemperature > 0.01)
+				doughConductivityCorrectionFactor = finalTomatoTemperature / doughTemperature[0][shellNodes];
 			else
 				break;
 		}
