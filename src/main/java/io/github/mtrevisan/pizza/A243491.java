@@ -37,16 +37,16 @@ public class A243491{
 		double[][] doughComponent = new double[6][shellNodes];
 		double[][] doughTemperature = new double[2][shellNodes];
 		for(int index = 0; index < shellNodes; index ++){
-			doughComponent[0][index] = initialDoughProtein;
-			doughComponent[1][index] = initialDoughFat;
-			doughComponent[2][index] = initialDoughCarbohydrate;
-			doughComponent[3][index] = initialDoughFiber;
-			doughComponent[4][index] = initialDoughAsh;
-			doughComponent[5][index] = initialDoughMoisture;
+			doughComponent[INDEX_PROTEIN][index] = initialDoughProtein;
+			doughComponent[INDEX_FAT][index] = initialDoughFat;
+			doughComponent[INDEX_CARBOHYDRATE][index] = initialDoughCarbohydrate;
+			doughComponent[INDEX_FIBER][index] = initialDoughFiber;
+			doughComponent[INDEX_ASH][index] = initialDoughAsh;
+			doughComponent[INDEX_WATER][index] = initialDoughMoisture;
 			doughTemperature[0][index] = initialPizzaTemperature;
 		}
-		double outsidePanTemperatureAtT = initialPizzaTemperature;
-		double insidePanTemperatureAtT = initialPizzaTemperature;
+		double outsidePanTemperatureAtT;
+		double insidePanTemperatureAtT;
 		double initialDoughVolume = (initialDoughThickness / 1000.) * Math.PI * Math.pow(panDiameter / 2000., 2.);
 		final double finalCrustVolume = (finalCrustThickness / 1000.) * Math.PI * Math.pow(panDiameter / 2000., 2.);
 		//[%]
@@ -109,7 +109,7 @@ public class A243491{
 		for(int index = 0; index < ovenCookingZones; index ++)
 			ovenTotalLength += ovenZoneLength[index];
 		final double beltSpeed = totalCookingTime / ovenTotalLength;
-		double doughConductivityCorrectionFactor;
+		Double doughConductivityCorrectionFactor = null;
 		while(true){
 			int doughSlicesExperiencingMoistureLoss = 1;
 			double totalMoistureLossAtTimeT = 0.;
@@ -119,10 +119,11 @@ public class A243491{
 			double excessHeat = 0.;
 			outsidePanTemperatureAtT = initialPizzaTemperature;
 			insidePanTemperatureAtT = initialPizzaTemperature;
-			double doughSpecificHeat;
+			Double doughSpecificHeat = null;
 			for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
 				double lengthTraveledThroughAtTimeT = 0.;
-				double Zh, ZONETEMP;
+				Double Zh = null;
+				Double ZONETEMP = null;
 				for(int index = 0; index < ovenCookingZones; index ++){
 					lengthTraveledThroughAtTimeT += ovenZoneLength[index];
 					if(cookingTime <= lengthTraveledThroughAtTimeT * beltSpeed){
@@ -147,7 +148,7 @@ public class A243491{
 					* (outsidePanTemperatureAtT - insidePanTemperatureAtT) - (doughConductivity(oilTemperature, oil, 1)
 					/ oilLayerThicknessAtT) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity
 					* panSpecificHeat + (oilLayerThicknessAtT / 2.) * oilDensity * specificHeat(oilTemperature, oil, 0));
-				double doughDensity;
+				Double doughDensity = null;
 				if(doughTemperature[0][0] < 100.){
 					final double oilThermalConductivity = doughConductivity(oilTemperature, oil, 0);
 					final double oilSpecificHeat = specificHeat(oilTemperature, oil, 0);
@@ -174,12 +175,12 @@ public class A243491{
 							moistureContent[0] = moistureContentCrust;
 							oilInPan -= oilAbsorbedByCrustInDT / 2.;
 							doughSlicesExperiencingMoistureLoss = 2;
-							doughComponent[0][0] = finalCrustProteinPercent;
-							doughComponent[1][0] = finalCrustFatPercent;
-							doughComponent[2][0] = finalCrustCarbohydratesPercent;
-							doughComponent[3][0] = finalCrustFiberPercent;
-							doughComponent[4][0] = finalCrustAshPercent;
-							doughComponent[5][0] = finalCrustMoisturePercent;
+							doughComponent[INDEX_PROTEIN][0] = finalCrustProteinPercent;
+							doughComponent[INDEX_FAT][0] = finalCrustFatPercent;
+							doughComponent[INDEX_CARBOHYDRATE][0] = finalCrustCarbohydratesPercent;
+							doughComponent[INDEX_FIBER][0] = finalCrustFiberPercent;
+							doughComponent[INDEX_ASH][0] = finalCrustAshPercent;
+							doughComponent[INDEX_WATER][0] = finalCrustMoisturePercent;
 						}
 						else{
 							final double PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
@@ -219,12 +220,12 @@ public class A243491{
 								moistureContent[0] = moistureContentCrust;
 								oilInPan -= oilAbsorbedByCrustInDT / 2.;
 								doughSlicesExperiencingMoistureLoss = 2;
-								doughComponent[0][0] = finalCrustProteinPercent;
-								doughComponent[1][0] = finalCrustFatPercent;
-								doughComponent[2][0] = finalCrustCarbohydratesPercent;
-								doughComponent[3][0] = finalCrustFiberPercent;
-								doughComponent[4][0] = finalCrustAshPercent;
-								doughComponent[5][0] = finalCrustMoisturePercent;
+								doughComponent[INDEX_PROTEIN][0] = finalCrustProteinPercent;
+								doughComponent[INDEX_FAT][0] = finalCrustFatPercent;
+								doughComponent[INDEX_CARBOHYDRATE][0] = finalCrustCarbohydratesPercent;
+								doughComponent[INDEX_FIBER][0] = finalCrustFiberPercent;
+								doughComponent[INDEX_ASH][0] = finalCrustAshPercent;
+								doughComponent[INDEX_WATER][0] = finalCrustMoisturePercent;
 							}
 							else{
 								final double PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
@@ -282,12 +283,12 @@ public class A243491{
 								totalMoistureLossAtTimeT += sliceMoistureLost;
 								moistureContent[m] = moistureContentCrust;
 								doughSlicesExperiencingMoistureLoss ++;
-								doughComponent[0][m] = finalCrustProteinPercent;
-								doughComponent[1][m] = finalCrustFatPercent;
-								doughComponent[2][m] = finalCrustCarbohydratesPercent;
-								doughComponent[3][m] = finalCrustFiberPercent;
-								doughComponent[4][m] = finalCrustAshPercent;
-								doughComponent[5][m] = finalCrustMoisturePercent;
+								doughComponent[INDEX_PROTEIN][m] = finalCrustProteinPercent;
+								doughComponent[INDEX_FAT][m] = finalCrustFatPercent;
+								doughComponent[INDEX_CARBOHYDRATE][m] = finalCrustCarbohydratesPercent;
+								doughComponent[INDEX_FIBER][m] = finalCrustFiberPercent;
+								doughComponent[INDEX_ASH][m] = finalCrustAshPercent;
+								doughComponent[INDEX_WATER][m] = finalCrustMoisturePercent;
 								doughTemperature[1][m] = 100.;
 								excessHeat = (steamInVoid[m] + MSP - sliceMoistureLost - steamMass) * 2444900.;
 								oilInPan -= oilAbsorbedByCrustInDT;
