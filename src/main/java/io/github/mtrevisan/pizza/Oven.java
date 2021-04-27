@@ -43,7 +43,7 @@ public class Oven{
 	/**
 	 * [s]
 	 *
-	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double, double, double)
+	 * @see #calculateBakingDuration(Ingredients, double, BakingInstruments, double, double, double, double)
 	 */
 	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
@@ -140,13 +140,13 @@ public class Oven{
 		//FIXME
 		final double fatDensity = 0.9175;
 		final double doughVolume = recipe.doughWeight() / dough.density(recipe.getFlour(), recipe.doughWeight(), fatDensity,
-			ingredients.ingredientsTemperature, ingredients.atmosphericPressure);
+			dough.ingredientsTemperature, ingredients.atmosphericPressure);
 		//[cm]
 		final double initialDoughHeight = doughVolume / totalBakingPansArea;
 		//FIXME the factor accounts for water content and gases produced by levain
 		final double bakingRatio = 0.405 * targetPizzaHeight / initialDoughHeight;
 		//apply inverse Charles-Gay Lussac
-		final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
+		final double bakingTemperature = bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 		final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
@@ -170,8 +170,8 @@ public class Oven{
 		//FIXME
 		//[cm]
 		final double tomatoLayerThickness = 0.2;
-		final Duration bakingDuration = calculateBakingDuration(ingredients, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
-			tomatoLayerThickness, brineBoilingTemperature);
+		final Duration bakingDuration = calculateBakingDuration(ingredients, dough.ingredientsTemperature, bakingInstruments,
+			initialDoughHeight, cheeseLayerThickness, tomatoLayerThickness, brineBoilingTemperature);
 		recipe.withBakingDuration(bakingDuration);
 		return recipe;
 	}
@@ -193,17 +193,17 @@ public class Oven{
 	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
 	 * @return
 	 */
-	private Duration calculateBakingDuration(final Ingredients ingredients, final BakingInstruments bakingInstruments,
-			double doughLayerThickness, double cheeseLayerThickness, double tomatoLayerThickness, final double brineBoilingTemperature){
+	private Duration calculateBakingDuration(final Ingredients ingredients, final double temperature,
+			final BakingInstruments bakingInstruments, double doughLayerThickness, double cheeseLayerThickness, double tomatoLayerThickness,
+			final double brineBoilingTemperature){
 		cheeseLayerThickness /= 100.;
 		tomatoLayerThickness /= 100.;
 		doughLayerThickness /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
-			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, ingredients.ingredientsTemperature,
+			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, temperature,
 			ingredients.airRelativeHumidity);
 
-		final double bbt = (brineBoilingTemperature - ingredients.ingredientsTemperature)
-			/ (bakingTemperatureTop - ingredients.ingredientsTemperature);
+		final double bbt = (brineBoilingTemperature - temperature) / (bakingTemperatureTop - temperature);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)

@@ -209,6 +209,13 @@ public final class Dough{
 	/** Raw yeast content [% w/w]. */
 	private double rawYeast = 1.;
 
+	Flour flour;
+
+	/** Temperature of ingredients [°C]. */
+	double ingredientsTemperature;
+	/** Desired dough temperature [°C]. */
+	private double doughTemperature;
+
 
 	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
 		return new Dough(yeastModel);
@@ -341,6 +348,47 @@ public final class Dough{
 	}
 
 	/**
+	 * @param flour	Flour data.
+	 * @return	The instance.
+	 */
+	public Dough withFlour(final Flour flour) throws DoughException{
+		if(flour == null)
+			throw DoughException.create("Missing flour");
+
+		this.flour = flour;
+
+		return this;
+	}
+
+	/**
+	 * @param ingredientsTemperature	Temperature of ingredients [°C].
+	 * @return	The instance.
+	 */
+	public Dough withIngredientsTemperature(final double ingredientsTemperature) throws DoughException{
+		if(ingredientsTemperature <= yeastModel.getTemperatureMin() || yeastModel.getTemperatureMax() <= ingredientsTemperature)
+			throw DoughException.create("Ingredients temperature [°C] must be between {} and {} °C",
+				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
+
+		this.ingredientsTemperature = ingredientsTemperature;
+
+		return this;
+	}
+
+	/**
+	 * @param doughTemperature	Desired dough temperature [°C].
+	 * @return	The instance.
+	 */
+	public Dough withDoughTemperature(final double doughTemperature) throws DoughException{
+		if(doughTemperature <= yeastModel.getTemperatureMin() || yeastModel.getTemperatureMax() <= doughTemperature)
+			throw DoughException.create("Dough temperature [°C] must be between {} and {} °C",
+				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
+
+		this.doughTemperature = doughTemperature;
+
+		return this;
+	}
+
+	/**
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 *
 	 * @throws DoughException	If validation fails.
@@ -377,7 +425,6 @@ public final class Dough{
 		if(procedure == null)
 			throw new IllegalArgumentException("Procedure must be valued");
 		validate();
-		ingredients.validate(yeastModel);
 		procedure.validate(yeastModel);
 
 		//calculate yeast:
@@ -704,10 +751,8 @@ public final class Dough{
 		}while(Math.abs(difference) > DOUGH_WEIGHT_PRECISION);
 
 		//calculate water temperature:
-		final Double waterTemperature = (ingredients.doughTemperature != null && ingredients.ingredientsTemperature != null?
-			(doughWeight * ingredients.doughTemperature - (doughWeight - water) * ingredients.ingredientsTemperature) / water:
-			null);
-		if(waterTemperature != null && waterTemperature >= yeastModel.getTemperatureMax())
+		final double waterTemperature = (doughWeight * doughTemperature - (doughWeight - water) * ingredientsTemperature) / water;
+		if(waterTemperature >= yeastModel.getTemperatureMax())
 			LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
 				Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
 
@@ -730,12 +775,12 @@ public final class Dough{
 		return waterCorrection;
 	}
 
-	private double calculateFatCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.fatContent: 0.);
+	private double calculateFatCorrection(final Ingredients ingredients, final double flourWeight){
+		return (ingredients.correctForIngredients? flourWeight * flour.fatContent: 0.);
 	}
 
-	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
-		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + fat * fatSaltContent: 0.);
+	private double calculateSaltCorrection(final Ingredients ingredients, final double flourWeight){
+		return (ingredients.correctForIngredients? flourWeight * flour.saltContent + fat * fatSaltContent: 0.);
 	}
 
 

@@ -41,16 +41,16 @@ class OvenTest{
 	@Test
 	void twoStagesWithHeightReal() throws DoughException, YeastException{
 		final Ingredients ingredients = new Ingredients()
-			.withIngredientsTemperature(16.7)
-			.withAirRelativeHumidity(0.55)
-			.withDoughTemperature(27.)
-			.withFlour(Flour.create(260.));
+			.withAirRelativeHumidity(0.55);
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
 			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.);
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(260.))
+			.withIngredientsTemperature(16.7)
+			.withDoughTemperature(27.);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))

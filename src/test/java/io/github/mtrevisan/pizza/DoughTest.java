@@ -144,16 +144,16 @@ class DoughTest{
 	@Test
 	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException{
 		final Ingredients ingredients = new Ingredients()
-			.withIngredientsTemperature(16.7)
-			.withDoughTemperature(27.)
-			.withFlour(Flour.create(260.))
 			.withAtmosphericPressure(1012.1);
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
 			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.);
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(260.))
+			.withIngredientsTemperature(16.7)
+			.withDoughTemperature(27.);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
@@ -196,15 +196,15 @@ class DoughTest{
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
 		final Ingredients ingredients = new Ingredients()
 			.withCorrectForIngredients()
-			.withIngredientsTemperature(16.9)
-			.withFlour(Flour.create(230., 0.001, 0.0008))
 			.withAtmosphericPressure(1007.1);
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			.addSugar(0.003, SugarType.SUCROSE, 0.998, 0.0005)
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0., 0.002)
-			.withYeast(YeastType.INSTANT_DRY, 1.);
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(230., 0.001, 0.0008))
+			.withIngredientsTemperature(16.9);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l))

@@ -25,7 +25,6 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
-import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 
 public class Ingredients{
@@ -33,11 +32,6 @@ public class Ingredients{
 	/** Standard atmosphere [hPa]. */
 	static final double ONE_ATMOSPHERE = 1013.25;
 
-
-	/** Temperature of ingredients [°C]. */
-	Double ingredientsTemperature;
-	/** Desired dough temperature [°C]. */
-	Double doughTemperature;
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
 	boolean correctForIngredients;
@@ -48,29 +42,7 @@ public class Ingredients{
 	/** Atmospheric pressure [hPa]. */
 	double atmosphericPressure = ONE_ATMOSPHERE;
 
-	Flour flour;
 
-
-
-	/**
-	 * @param ingredientsTemperature	Temperature of ingredients [°C].
-	 * @return	The instance.
-	 */
-	public Ingredients withIngredientsTemperature(final double ingredientsTemperature){
-		this.ingredientsTemperature = ingredientsTemperature;
-
-		return this;
-	}
-
-	/**
-	 * @param doughTemperature	Desired dough temperature [°C].
-	 * @return	The instance.
-	 */
-	public Ingredients withDoughTemperature(final double doughTemperature){
-		this.doughTemperature = doughTemperature;
-
-		return this;
-	}
 
 	public Ingredients withCorrectForIngredients(){
 		correctForIngredients = true;
@@ -107,32 +79,6 @@ public class Ingredients{
 		this.atmosphericPressure = atmosphericPressure;
 
 		return this;
-	}
-
-	/**
-	 * @param flour	Flour data.
-	 * @return	The instance.
-	 */
-	public Ingredients withFlour(final Flour flour) throws DoughException{
-		if(flour == null)
-			throw DoughException.create("Missing flour");
-
-		this.flour = flour;
-
-		return this;
-	}
-
-	void validate(final YeastModelAbstract yeastModel) throws DoughException{
-		if(flour == null)
-			throw DoughException.create("Missing flour");
-		if(ingredientsTemperature != null && (ingredientsTemperature <= yeastModel.getTemperatureMin()
-				|| ingredientsTemperature >= yeastModel.getTemperatureMax()))
-			throw DoughException.create("Ingredients temperature [°C] must be between {} and {} °C",
-				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
-		if(doughTemperature != null && (doughTemperature <= yeastModel.getTemperatureMin()
-				|| doughTemperature >= yeastModel.getTemperatureMax()))
-			throw DoughException.create("Dough temperature [°C] must be between {} and {} °C",
-				Helper.round(yeastModel.getTemperatureMin(), 1), Helper.round(yeastModel.getTemperatureMax(), 1));
 	}
 
 }
