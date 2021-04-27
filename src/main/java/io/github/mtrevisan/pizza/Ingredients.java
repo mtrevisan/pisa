@@ -30,19 +30,23 @@ import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 public class Ingredients{
 
+	/** Standard atmosphere [hPa]. */
+	static final double ONE_ATMOSPHERE = 1013.25;
+
+
 	/** Temperature of ingredients [°C]. */
 	Double ingredientsTemperature;
 	/** Desired dough temperature [°C]. */
 	Double doughTemperature;
-	/** Desired pizza height [cm]. */
-	Double targetPizzaHeight;
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
 	boolean correctForIngredients;
 	/** Whether to correct for humidity in the flour. */
-	boolean correctForHumidity;
+	boolean correctForFlourHumidity;
 	/** Relative humidity of the air [% w/w]. */
 	Double airRelativeHumidity;
+	/** Atmospheric pressure [hPa]. */
+	double atmosphericPressure = ONE_ATMOSPHERE;
 
 	/** Chlorine dioxide in water [mg/l]. */
 	Double waterChlorineDioxide;
@@ -106,24 +110,14 @@ public class Ingredients{
 		return this;
 	}
 
-	/**
-	 * @param targetPizzaHeight	Desired pizza height [cm].
-	 * @return	The instance.
-	 */
-	public Ingredients withTargetPizzaHeight(final double targetPizzaHeight){
-		this.targetPizzaHeight = targetPizzaHeight;
-
-		return this;
-	}
-
 	public Ingredients withCorrectForIngredients(){
 		correctForIngredients = true;
 
 		return this;
 	}
 
-	public Ingredients withCorrectForHumidity(){
-		correctForHumidity = true;
+	public Ingredients withCorrectForFlourHumidity(){
+		correctForFlourHumidity = true;
 
 		return this;
 	}
@@ -134,6 +128,21 @@ public class Ingredients{
 	 */
 	public Ingredients withAirRelativeHumidity(final double airRelativeHumidity){
 		this.airRelativeHumidity = airRelativeHumidity;
+
+		return this;
+	}
+
+	/**
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
+	 * @return	This instance.
+	 * @throws DoughException	If pressure is negative or above maximum.
+	 */
+	public Ingredients withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
+		if(atmosphericPressure < 0. || atmosphericPressure >= Dough.ATMOSPHERIC_PRESSURE_MAX)
+			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
+				Helper.round(Dough.ATMOSPHERIC_PRESSURE_MAX, 1));
+
+		this.atmosphericPressure = atmosphericPressure;
 
 		return this;
 	}

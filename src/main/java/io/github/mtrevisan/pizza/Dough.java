@@ -31,8 +31,6 @@ import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
-import org.apache.commons.math3.ode.FirstOrderIntegrator;
-import org.apache.commons.math3.ode.nonstiff.GraggBulirschStoerIntegrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +59,6 @@ public final class Dough{
 		+ MOLECULAR_WEIGHT_OXYGEN * 6.;
 	/** [g/mol] */
 	static final double MOLECULAR_WEIGHT_SODIUM_CHLORIDE = MOLECULAR_WEIGHT_SODIUM + MOLECULAR_WEIGHT_CHLORINE;
-
-	/** Standard atmosphere [hPa]. */
-	static final double ONE_ATMOSPHERE = 1013.25;
 
 
 	/**
@@ -127,19 +122,19 @@ public final class Dough{
 	public static final double PURE_WATER_PH = 5.4;
 
 	/**
-	 * @see #atmosphericPressureFactor()
+	 * @see #atmosphericPressureFactor(double)
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
 	private static final double PRESSURE_FACTOR_K = 1.46;
 	/**
-	 * @see #atmosphericPressureFactor()
+	 * @see #atmosphericPressureFactor(double)
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
 	private static final double PRESSURE_FACTOR_M = 2.031;
 	/**
 	 * Minimum inhibitory pressure [hPa].
 	 *
-	 * @see #atmosphericPressureFactor()
+	 * @see #atmosphericPressureFactor(double)
 	 * @see #PRESSURE_FACTOR_K
 	 * @see #PRESSURE_FACTOR_M
 	 */
@@ -148,21 +143,12 @@ public final class Dough{
 	/**
 	 * [% w/w]
 	 *
-	 * @see #calculateYeast(Procedure)
+	 * @see #calculateYeast(Procedure, double)
 	 */
 	private static final double SOLVER_YEAST_MAX = 1.;
-	/**
-	 * [s]
-	 *
-	 * @see #calculateBakingDuration(Ingredients, BakingInstruments, double, double, double, double)
-	 */
-	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
-
-	//https://www.oreilly.com/library/view/cooking-for-geeks/9781449389543/ch04.html
-	private static final double MAILLARD_REACTION_TEMPERATURE = 155.;
 
 	//densities: http://www.fao.org/3/a-ap815e.pdf
 	//plot graphs: http://www.shodor.org/interactivate/activities/SimplePlot/
@@ -173,9 +159,6 @@ public final class Dough{
 
 	//accuracy is ±0.001%
 	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
-	//accuracy is ±1 s
-	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.1, 1., 1.e-5, 1.e-5);
-	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
 
 
 	private final YeastModelAbstract yeastModel;
@@ -193,8 +176,6 @@ public final class Dough{
 	private double waterPH = PURE_WATER_PH;
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
-	/** Atmospheric pressure [hPa]. */
-	private double atmosphericPressure = ONE_ATMOSPHERE;
 
 	/** Yeast quantity [% w/w]. */
 	double yeast;
@@ -336,21 +317,6 @@ public final class Dough{
 	}
 
 	/**
-	 * @param atmosphericPressure	Atmospheric pressure [hPa].
-	 * @return	This instance.
-	 * @throws DoughException	If pressure is negative or above maximum.
-	 */
-	public Dough withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
-		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
-			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
-				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
-
-		this.atmosphericPressure = atmosphericPressure;
-
-		return this;
-	}
-
-	/**
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 *
 	 * @throws DoughException	If validation fails.
@@ -377,29 +343,23 @@ public final class Dough{
 	/**
 	 * @param ingredients	The recipe ingredients.
 	 * @param procedure	The recipe procedure.
-	 * @param bakingInstruments	Baking instruments.
+	 * @param doughWeight	Desired dough weight [g].
 	 * @return	The recipe.
 	 */
-	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final BakingInstruments bakingInstruments)
+	public Recipe createRecipe(final Ingredients ingredients, final Procedure procedure, final double doughWeight)
 			throws DoughException, YeastException{
 		if(ingredients == null)
 			throw new IllegalArgumentException("Ingredients must be valued");
 		if(procedure == null)
 			throw new IllegalArgumentException("Procedure must be valued");
-		if(ingredients.targetPizzaHeight != null && bakingInstruments.oven == null)
-			throw new IllegalArgumentException("Oven must be valued if target pizza height is specified");
 		validate();
 		ingredients.validate(yeastModel);
 		procedure.validate(yeastModel);
-		bakingInstruments.validate();
 
 		//calculate yeast:
-		calculateYeast(procedure);
+		calculateYeast(procedure, ingredients.atmosphericPressure);
 
 		//calculate ingredients:
-		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
-		//FIXME
-		final double doughWeight = totalBakingPansArea * 0.76222;
 		final Recipe recipe = calculateIngredients(ingredients, doughWeight);
 
 		//calculate times:
@@ -414,46 +374,6 @@ public final class Dough{
 		}
 		recipe.withStageStartEndInstants(stageStartEndInstants)
 			.withDoughMakingInstant(last.minus(procedure.doughMaking));
-
-		if(ingredients.targetPizzaHeight != null && bakingInstruments.oven != null){
-			//calculate baking temperature:
-			//FIXME
-final double fatDensity = 0.9175;
-			final double doughVolume = doughWeight / doughDensity(recipe.getFlour(), doughWeight, fatDensity, ingredients.ingredientsTemperature);
-			//[cm]
-			final double initialDoughHeight = doughVolume / totalBakingPansArea;
-			//FIXME the factor accounts for water content and gases produced by levain
-			final double bakingRatio = 0.405 * ingredients.targetPizzaHeight / initialDoughHeight;
-			//apply inverse Charles-Gay Lussac
-			final double bakingTemperature = bakingRatio * (ingredients.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-			//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
-			//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-			final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
-				recipe.getSugar() / recipe.getWater(), ingredients.sugarType, atmosphericPressure);
-			if(bakingTemperature < brineBoilingTemperature)
-				LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
-			else{
-				//https://bakerpedia.com/processes/maillard-reaction/
-				if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
-					LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
-
-				recipe.withBakingTemperature(bakingTemperature);
-			}
-			if(bakingInstruments.oven.hasTopHeating)
-				bakingInstruments.oven.withBakingTemperatureTop(recipe.getBakingTemperature());
-			if(bakingInstruments.oven.hasBottomHeating)
-				bakingInstruments.oven.withBakingTemperatureBottom(recipe.getBakingTemperature());
-			//FIXME
-			//[cm]
-			final double cheeseLayerThickness = 0.2;
-			//FIXME
-			//[cm]
-			final double tomatoLayerThickness = 0.2;
-			final Duration bakingDuration = calculateBakingDuration(ingredients, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
-				tomatoLayerThickness, brineBoilingTemperature);
-			recipe.withBakingDuration(bakingDuration);
-		}
-
 		return recipe;
 	}
 
@@ -462,8 +382,9 @@ final double fatDensity = 0.9175;
 	 * temperature.
 	 *
 	 * @param procedure	Data for procedure.
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 */
-	void calculateYeast(final Procedure procedure) throws YeastException{
+	void calculateYeast(final Procedure procedure, final double atmosphericPressure) throws YeastException{
 		try{
 			final UnivariateFunction f = yeast -> {
 				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
@@ -482,7 +403,7 @@ final double fatDensity = 0.9175;
 						//avoid modifying `lambda` if the temperature is the same
 						double currentVolume = 0.;
 						if(previousStage.temperature != currentStage.temperature){
-							final double ingredientsFactor = ingredientsFactor(previousStage.temperature);
+							final double ingredientsFactor = ingredientsFactor(previousStage.temperature, atmosphericPressure);
 							final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
 								previousStage.temperature, ingredientsFactor);
 							lambda = Math.max(lambda - previousStage.duration.toMinutes() / 60., 0.);
@@ -504,7 +425,7 @@ final double fatDensity = 0.9175;
 							stretchAndFoldIndex ++;
 							stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
 
-							final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
+							final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
 							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
 								.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactor);
 							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
@@ -518,7 +439,7 @@ final double fatDensity = 0.9175;
 					}
 				}
 
-				final double ingredientsFactor = ingredientsFactor(currentStage.temperature);
+				final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
 				if(ingredientsFactor == 0.)
 					return Double.POSITIVE_INFINITY;
 
@@ -545,7 +466,7 @@ final double fatDensity = 0.9175;
 	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The estimated lag [hrs].
 	 */
-	double maximumRelativeVolumeExpansionRatio(final double yeast){
+	private double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
@@ -591,9 +512,10 @@ final double fatDensity = 0.9175;
 	 * </p>
 	 *
 	 * @param temperature	Temperature [°C].
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
-	private double ingredientsFactor(final double temperature){
+	private double ingredientsFactor(final double temperature, final double atmosphericPressure){
 		final double kSugar = sugarFactor(temperature);
 		final double kFat = fatFactor();
 		final double kSalt = saltFactor();
@@ -602,7 +524,7 @@ final double fatDensity = 0.9175;
 		final double kWaterPH = waterPHFactor(temperature);
 		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
-		final double kAtmosphericPressure = atmosphericPressureFactor();
+		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
 		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
 	}
 
@@ -639,7 +561,7 @@ final double fatDensity = 0.9175;
 	 *
 	 * @return	Correction factor.
 	 */
-	double fatFactor(){
+	private double fatFactor(){
 		//0 <= fat <= FAT_MAX
 		//1+fat/300?
 		return 1.;
@@ -691,7 +613,7 @@ final double fatDensity = 0.9175;
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	double waterPHFactor(final double temperature){
+	private double waterPHFactor(final double temperature){
 		/**
 		 * base is pH 5.4±0.1, 20 mg/l glucose
 		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
@@ -716,7 +638,7 @@ final double fatDensity = 0.9175;
 	 *
 	 * @return	Correction factor.
 	 */
-	double waterFixedResidueFactor(){
+	private double waterFixedResidueFactor(){
 		//0 <= fixedResidue <= WATER_FIXED_RESIDUE_MAX
 		return 1.;
 	}
@@ -726,7 +648,7 @@ final double fatDensity = 0.9175;
 	 *
 	 * @return	Correction factor.
 	 */
-	double atmosphericPressureFactor(){
+	double atmosphericPressureFactor(final double atmosphericPressure){
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}
@@ -778,7 +700,7 @@ final double fatDensity = 0.9175;
 		double waterCorrection = 0.;
 		if(ingredients.correctForIngredients)
 			waterCorrection += sugar * ingredients.sugarWaterContent + fat * ingredients.fatWaterContent;
-		if(ingredients.correctForHumidity)
+		if(ingredients.correctForFlourHumidity)
 			//NOTE: 70.62% is to obtain a humidity of 13.5%
 			waterCorrection += Flour.estimatedHumidity(ingredients.airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
 		return waterCorrection;
@@ -790,50 +712,6 @@ final double fatDensity = 0.9175;
 
 	private double calculateSaltCorrection(final Ingredients ingredients, final double flour){
 		return (ingredients.correctForIngredients? flour * ingredients.flour.saltContent + fat * ingredients.fatSaltContent: 0.);
-	}
-
-	//TODO account for baking temperature
-	// https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-	//initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
-	//volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
-	private double calculateCharlesGayLussacVolumeExpansion(final double initialTemperature, final double finalTemperature){
-		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
-	}
-
-	/**
-	 * @param ingredients	Ingredients data.
-	 * @param bakingInstruments	Baking instruments.
-	 * @param doughLayerThickness	Initial dough height [cm].
-	 * @param cheeseLayerThickness	Cheese layer thickness [cm].
-	 * @param tomatoLayerThickness	Tomato layer thickness [cm].
-	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
-	 * @return
-	 */
-	private Duration calculateBakingDuration(final Ingredients ingredients, final BakingInstruments bakingInstruments,
-			double doughLayerThickness, double cheeseLayerThickness, double tomatoLayerThickness, final double brineBoilingTemperature){
-		cheeseLayerThickness /= 100.;
-		tomatoLayerThickness /= 100.;
-		doughLayerThickness /= 100.;
-		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
-			OvenType.FORCED_AIR, bakingInstruments.oven.bakingTemperatureTop, bakingInstruments.oven.bakingTemperatureBottom,
-			ingredients.ingredientsTemperature, ingredients.airRelativeHumidity);
-
-		final double bbt = (brineBoilingTemperature - ingredients.ingredientsTemperature)
-			/ (bakingInstruments.oven.bakingTemperatureTop - ingredients.ingredientsTemperature);
-		final UnivariateFunction f = time -> {
-			final double[] y = ode.getInitialState();
-			if(time > 0.)
-				integrator.integrate(ode, 0., y, time, y);
-
-			//https://blog.thermoworks.com/bread/homemade-bread-temperature-is-key/
-			//assure each layer has at least reached the water boiling temperature
-			double min = y[0];
-			for(int i = 2; i < y.length; i += 2)
-				min = Math.min(y[i], min);
-			return min - bbt;
-		};
-		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
-		return Duration.ofSeconds((long)time);
 	}
 
 
@@ -848,8 +726,10 @@ final double fatDensity = 0.9175;
 	 * @param dough	Final dough weight [g].
 	 * @param fatDensity	Density of the fat [kg/l].
 	 * @param temperature	Temperature of the dough [°C].
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 */
-	public double doughDensity(final double flour, final double dough, final double fatDensity, final double temperature){
+	double density(final double flour, final double dough, final double fatDensity, final double temperature,
+			final double atmosphericPressure){
 		//TODO
 		//density of flour + salt + sugar + water
 		double doughDensity = 1.41

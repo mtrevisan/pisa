@@ -272,6 +272,14 @@ public final class Recipe{
 	}
 
 
+	/**
+	 * @return	The total dough weight [g].
+	 */
+	public double doughWeight(){
+		return flour + water + yeast + sugar + fat + salt;
+	}
+
+
 	@Override
 	public String toString(){
 		final StringBuilder sb = new StringBuilder("[");
