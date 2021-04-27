@@ -24,15 +24,15 @@ public class A243491{
 
 	/** Specific gas constant for dry air [J / (kg * K)]. */
 	private static final double R_DRY_AIR = 287.05;
-	/** Specific gas constant for water vapour [J / (kg * K)]. */
-	private static final double R_WATER_VAPOUR = 461.495;
+	/** Specific gas constant for water vapor [J / (kg * K)]. */
+	private static final double R_WATER_VAPOR = 461.495;
 
-	private static final double[] WATER_VAPOUR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
+	private static final double[] WATER_VAPOR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
 	private static final double[] AIR_VISCOSITY_COEFFICIENTS = {170.258, 0.605434, -1.33200e-3};
 	private static final double[] AIR_VISCOSITY_PRESSURE_COEFFICIENTS = {-2.44358e-3, 1.17237, 0.125541};
 	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
 	private static final double[] AIR_SPECIFIC_HEAT_COEFFICIENTS = {0.251625, -9.2525e-5, 2.1334e-7, -1.0043e-10};
-	private static final double[] WATER_VAPOUR_SPECIFIC_HEAT_COEFFICIENTS = {0.452219, -1.29224e-4, 4.17008e-7, -2.00401e-10};
+	private static final double[] WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS = {0.452219, -1.29224e-4, 4.17008e-7, -2.00401e-10};
 	private static final double[] AIR_PRANDTL_COEFFICIENTS = {1.393e9, 322000., -1200., 1.1};
 
 	/** Ratio of molar mass of water to molar mass of air. */
@@ -40,6 +40,82 @@ public class A243491{
 	/** Specific heat of water [J / (g * K)]. */
 	private static final double WATER_SPECIFIC_HEAT = 4.184;
 
+
+	public static void main(String[] a){
+		A243491 test = new A243491();
+
+		double initialDoughProtein = 0.12;
+		/** dough fat component [%]. */
+		double initialDoughFat = 0.06;
+		/** dough carbohydrate component [%]. */
+		double initialDoughCarbohydrate = 0.5;
+		/** dough fiber component [%]. */
+		double initialDoughFiber = 0.01;
+		/** dough asj component [%]. */
+		double initialDoughAsh = 0.02;
+		/** dough moisture component [%]. */
+		double initialDoughMoisture = 0.7;
+
+		//tomato compositions:
+		/** tomato moisture component [%]. */
+		double initialTomatoMoisture = 0.8;
+
+		//pre-baking conditions:
+		/** weight of raw dough [g]. */
+		double initialDoughWeight = 0.7;
+		/** weight of tomato [g]. */
+		double initialTomatoWeight = 0.2;
+		/** weight of oil in pan [g]. */
+		double initialOilWeight = 0.;
+		/** thickness of shell [mm]. */
+		double initialDoughThickness = 10.;
+		/** temperature of pizza entering oven [°C]. */
+		double initialPizzaTemperature = 23.;
+
+		//post-baking conditions:
+		/** weight of oil in pan [g]. */
+		double finalOilWeight = 0.;
+		/** weight of shell and tomato [g]. */
+		double finalShellAndTomatoWeight = 0.;
+		/** weight of water from toppings [g]. */
+		double finalMoistureAbsorbedFromToppingsByShell = 0.;
+		/** thickness of shell [mm]. */
+		double finalShellThickness = 20.;
+		/** thickness of crust [mm]. */
+		double finalCrustThickness = 0.5;
+		/** final tomato temperature [°C]. */
+		double finalTomatoTemperature = 0.;
+
+		//baking conditions:
+		/** pan thickness [mm]. */
+		double panThickness = 0.;
+		/** pizza diameter [mm]. */
+		double pizzaDiameter = 2. * Math.sqrt(220. * 250. / Math.PI);
+		/** pan density [kg / m^3]. */
+		double panDensity = 0.;
+		/** pan thermal conductivity [W / (m * K)]. */
+		double patThermalConductivity = 0.;
+		/** pan specific heat [J / (kg * K)]. */
+		double panSpecificHeat = 0.;
+		/** pan emissivity. */
+		double panEmissivity = 0.;
+		/** total cooking time [s]. */
+		double totalCookingTime = 12. * 60.;
+		/** oven temperature [°C]. */
+		double ovenTemperature = 220.;
+		/** air pressure [hPa]. */
+		double airPressure = 1013.25;
+		/** air relative humidity [%]. */
+		double airRelativeHumidity = 0.5;
+		/** oven air speed [m / s]. */
+		double ovenAirSpeed = 2.;
+		/** estimate for the effective diffusivity for the crust [cm^2 / s]. */
+		double crustEffectiveDiffusivity = 0.;
+
+		/** number of sections. */
+		int shellNodes = 10;
+		test.doThings(initialDoughProtein, initialDoughFat, initialDoughCarbohydrate, initialDoughFiber, initialDoughAsh, initialDoughMoisture, initialTomatoMoisture, initialDoughWeight, initialTomatoWeight, initialOilWeight, initialDoughThickness, initialPizzaTemperature, finalOilWeight, finalShellAndTomatoWeight, finalMoistureAbsorbedFromToppingsByShell, finalShellThickness, finalCrustThickness, finalTomatoTemperature, panThickness, pizzaDiameter, panDensity, patThermalConductivity, panSpecificHeat, panEmissivity, totalCookingTime, ovenTemperature, airPressure, airRelativeHumidity, ovenAirSpeed, crustEffectiveDiffusivity, shellNodes);
+	}
 
 	public void doThings(
 			//dough compositions:
@@ -107,6 +183,7 @@ public class A243491{
 			double airPressure,
 			/** air relative humidity [%]. */
 			double airRelativeHumidity,
+			/** oven air speed [m / s]. */
 			double ovenAirSpeed,
 			/** estimate for the effective diffusivity for the crust [cm^2 / s]. */
 			double crustEffectiveDiffusivity,
@@ -136,22 +213,17 @@ public class A243491{
 		double initialDoughVolume = (initialDoughThickness / 1000.) * Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
 		final double finalCrustVolume = (finalCrustThickness / 1000.) * Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
 		//[%]
-		double doughVoidSpace = (initialDoughVolume - ((initialDoughWeight / 1000.) / doughDensity(initialPizzaTemperature, doughComponent,
-			0))) / initialDoughVolume;
+		double doughVoidSpace = 1. - initialDoughWeight / (1000. * initialDoughVolume * doughDensity(initialPizzaTemperature, doughComponent,
+			0));
 		double totalMoistureLossDuringCooking = initialDoughWeight - finalShellAndTomatoWeight + finalMoistureAbsorbedFromToppingsByShell
 			+ initialTomatoWeight * initialTomatoMoisture - (initialOilWeight - finalOilWeight);
-		final double initialCrustMoisture = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughMoisture;
-		final double initialCrustProtein = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughProtein;
-		final double initialCrustFat = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughFat;
-		final double initialCrustCarbohydrates = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughCarbohydrate;
-		final double initialCrustFiber = finalCrustVolume * (initialDoughWeight /(initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughFiber;
-		final double initialCrustAsh = finalCrustVolume * (initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace)))
-			* initialDoughAsh;
+		final double tmp0 = finalCrustVolume * initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace));
+		final double initialCrustMoisture = tmp0 * initialDoughMoisture;
+		final double initialCrustProtein = tmp0 * initialDoughProtein;
+		final double initialCrustFat = tmp0 * initialDoughFat;
+		final double initialCrustCarbohydrates = tmp0 * initialDoughCarbohydrate;
+		final double initialCrustFiber = tmp0 * initialDoughFiber;
+		final double initialCrustAsh = tmp0 * initialDoughAsh;
 		final double finalCrustMoisture = initialCrustMoisture - totalMoistureLossDuringCooking;
 		final double finalCrustFat = initialCrustFat + (initialOilWeight - finalOilWeight);
 		//[%]
@@ -203,9 +275,9 @@ public class A243491{
 			insidePanTemperatureAtT = initialPizzaTemperature;
 			Double doughSpecificHeat = null;
 			for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
+				final double tmp = (patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT);
 				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT
-					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT)
-					- ((patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT))
+					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT) - tmp
 					+ (panEmissivity * 5.67e-8 * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.)
 					- Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.)))) * (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
 				final double oilTemperature = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
@@ -216,8 +288,7 @@ public class A243491{
 					break;
 				}
 				//inside pan temperature at time t plus delta t
-				final double insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + ((patThermalConductivity / (panThickness / 1000.))
-					* (outsidePanTemperatureAtT - insidePanTemperatureAtT) - (doughConductivity(oilTemperature, oil, 1)
+				final double insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + (tmp - (doughConductivity(oilTemperature, oil, 1)
 					/ oilLayerThicknessAtT) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity
 					* panSpecificHeat + (oilLayerThicknessAtT / 2.) * oilDensity * specificHeat(oilTemperature, oil, 0));
 				Double doughDensity = null;
@@ -241,8 +312,9 @@ public class A243491{
 					doughTemperature[1][0] = 100.;
 					final double MSP = heat / 2444900.;
 					if(MSP + steamInVoid[0] > steamMass){
-						if(moistureContent[0] - (MSP + steamInVoid[0] - steamMass) < moistureContentCrust){
-							excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - steamMass))) * 2444900.;
+						final double tmp2 = moistureContent[0] - (MSP + steamInVoid[0] - steamMass);
+						if(tmp2 < moistureContentCrust){
+							excessHeat = (moistureContentCrust - tmp2) * 2444900.;
 							totalMoistureLossAtTimeT += moistureContent[0] - moistureContentCrust;
 							moistureContent[0] = moistureContentCrust;
 							oilInPan -= oilAbsorbedByCrustInDT / 2.;
@@ -255,7 +327,7 @@ public class A243491{
 							doughComponent[INDEX_WATER][0] = finalCrustMoisturePercent;
 						}
 						else{
-							final double PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
+							final double PCMC = tmp2 / moistureContent[0];
 							totalMoistureLossAtTimeT += MSP + steamInVoid[0] - steamMass;
 							moistureContent[0] -= MSP + steamInVoid[0] - steamMass;
 							rescale(PCMC, doughComponent, 0);
@@ -286,8 +358,9 @@ public class A243491{
 						doughTemperature[1][0] = 100.;
 						final double MSP = heat / 2444900.;
 						if(MSP + steamInVoid[0] > steamMass){
-							if(moistureContent[0] - (MSP + steamInVoid[0] - steamMass) < moistureContentCrust){
-								excessHeat = (moistureContentCrust - (moistureContent[0] - (MSP + steamInVoid[0] - steamMass))) * 2444900.;
+							final double tmp2 = moistureContent[0] - (MSP + steamInVoid[0] - steamMass);
+							if(tmp2 < moistureContentCrust){
+								excessHeat = (moistureContentCrust - tmp2) * 2444900.;
 								totalMoistureLossAtTimeT += moistureContent[0] - moistureContentCrust;
 								moistureContent[0] = moistureContentCrust;
 								oilInPan -= oilAbsorbedByCrustInDT / 2.;
@@ -300,7 +373,7 @@ public class A243491{
 								doughComponent[INDEX_WATER][0] = finalCrustMoisturePercent;
 							}
 							else{
-								final double PCMC = (moistureContent[0] - (MSP + steamInVoid[0] - steamMass)) / moistureContent[0];
+								final double PCMC = tmp2 / moistureContent[0];
 								totalMoistureLossAtTimeT += (MSP + steamInVoid[0] - steamMass);
 								moistureContent[0] -= MSP + steamInVoid[0] - steamMass;
 								rescale(PCMC, doughComponent, 0);
@@ -322,7 +395,7 @@ public class A243491{
 						* doughConductivityCorrectionFactor;
 					doughSpecificHeat = specificHeat(doughTemperature[0][m], doughComponent, m) * (1. - doughVoidSpace);
 					doughTemperature[1][m] = doughTemperature[0][m] + ((doughThermalConductivity / (doughSliceThickness
-						* initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][m - 1] + doughTemperature[0][m + 1]
+						* initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][m] + doughTemperature[0][m + 1]
 						- 2. * doughTemperature[0][m]) + excessHeat) / ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)
 						* doughDensity * doughSpecificHeat);
 					if(doughSlicesExperiencingMoistureLoss != m){
@@ -390,8 +463,7 @@ public class A243491{
 					* initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][shellNodes - 1] - doughTemperature[0][shellNodes])
 					/ (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness * doughDensity * doughSpecificHeat);
 				excessHeat = 0.;
-				for(int index = 0; index < shellNodes; index ++)
-					doughTemperature[0][index] = doughTemperature[1][index];
+				System.arraycopy(doughTemperature[1], 0, doughTemperature[0], 0, shellNodes);
 				outsidePanTemperatureAtT = outsidePanTemperatureAtTPlusDT;
 				insidePanTemperatureAtT = insidePanTemperatureAtTPlusDT;
 			}
@@ -429,12 +501,12 @@ public class A243491{
 	 * @param pizzaDiameter   pizza diameter [mm].
 	 * @return	convective heat transfer [W / (m^2 * K)].
 	 */
-	static double convectiveHeatTransfer(final double airTemperature, final double airPressure, final double airRelativeHumidity,
+	private double convectiveHeatTransfer(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
 		//calculate air density [kg / m^3]
 		final double dryAirDensity = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));
-		final double waterVapourPressure = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOUR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
-		final double moistDensity = airRelativeHumidity * waterVapourPressure / (R_WATER_VAPOUR * (airTemperature + ABSOLUTE_ZERO));
+		final double waterVaporPressure = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
+		final double moistDensity = airRelativeHumidity * waterVaporPressure / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
 		final double airDensity = dryAirDensity + moistDensity;
 
 		//calculate air dynamic viscosity [N * s / m^2]
@@ -450,24 +522,21 @@ public class A243491{
 		//specificHeat * airViscosity / airConductivity;
 		final double prandtlNumber = 1.e9 / Helper.evaluatePolynomial(AIR_PRANDTL_COEFFICIENTS, airTemperature);
 
-		//[cal / (g * K)]
-		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
-		//[cal / (g * K)]
-		final double specificHeatWater = Helper.evaluatePolynomial(WATER_VAPOUR_SPECIFIC_HEAT_COEFFICIENTS,
-			airTemperature + ABSOLUTE_ZERO);
-		//[J / (kg * K)]
-		//air relative humidity is transformed into mole fraction of water vapour in air
-		double specificHeat = WATER_SPECIFIC_HEAT * (specificHeatAir + airRelativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWater
-			- specificHeatAir)) / (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * airRelativeHumidity);
-		final double prandtlNumber2 = 1000. * specificHeat * airViscosity / airConductivity;
+//		//https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf
+//		//[cal / (g * K)]
+//		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
+//		//[cal / (g * K)]
+//		final double specificHeatWater = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
+//			airTemperature + ABSOLUTE_ZERO);
+//		//[J / (kg * K)]
+//		final double specificHeat = WATER_SPECIFIC_HEAT
+//			* (specificHeatAir + airRelativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWater - specificHeatAir))
+//			/ (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * airRelativeHumidity);
+//		final double prandtlNumber2 = 1000. * specificHeat * airViscosity / airConductivity;
 
 		final double reynoldsNumber = airDensity * airSpeed * pizzaDiameter / airViscosity;
 
 		return (airConductivity / pizzaDiameter) * 0.228 * Math.pow(reynoldsNumber, 0.731) * Math.pow(prandtlNumber, 0.333);
-	}
-
-	public static void main(String[] a){
-		A243491.convectiveHeatTransfer(20., 1000., 50., 0., 20.);
 	}
 
 	private double doughConductivity(final double temperature, final double[][] params, final int index){
