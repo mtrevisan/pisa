@@ -27,5 +27,5 @@ package io.github.mtrevisan.pizza;
 
 public enum OvenType{
 	NATURAL_CONVECTION,
-	FORCED_AIR
+	FORCED_CONVECTION
 }

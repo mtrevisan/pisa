@@ -107,7 +107,8 @@ public class Water{
 		final double bt2 = Helper.evaluatePolynomial(SPECIFIC_HEAT_BT2_COEFFICIENTS, temperature);
 		final double bt3 = Helper.evaluatePolynomial(SPECIFIC_HEAT_BT3_COEFFICIENTS, temperature);
 		return 1000. * (a0 + (ap + ap2 * pressure) * pressure)
-			- (temperature + ABSOLUTE_ZERO) * (b0 + bt * temperature * salinity + bt2 * temperature * salinity * salinity + bt3 * salinity * pressure);
+			- (temperature + ABSOLUTE_ZERO) * (b0 + bt * temperature * salinity + bt2 * temperature * salinity * salinity
+			+ bt3 * salinity * pressure);
 	}
 
 }

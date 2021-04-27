@@ -123,11 +123,10 @@ public class Oven{
 	 * @param recipe	Recipe.
 	 * @param targetPizzaHeight	Desired pizza height [cm].
 	 * @param bakingInstruments	Baking instruments.
-	 * @return	The recipe with baking temperature and duration.
-	 * @throws DoughException
-	 * @throws YeastException
+	 * @return	The baking instructions.
+	 * @throws DoughException	If validation fails.
 	 */
-	public Recipe bakeRecipe(final Dough dough, final Recipe recipe, final double targetPizzaHeight,
+	public BakingInstructions bakeRecipe(final Dough dough, final Recipe recipe, final double targetPizzaHeight,
 			final BakingInstruments bakingInstruments) throws DoughException{
 		validate();
 
@@ -138,8 +137,7 @@ public class Oven{
 		//calculate baking temperature:
 		//FIXME
 		final double fatDensity = 0.9175;
-		final double doughVolume = recipe.doughWeight() / dough.density(recipe.getFlour(), recipe.doughWeight(), fatDensity,
-			dough.ingredientsTemperature, dough.atmosphericPressure);
+		final double doughVolume = recipe.doughWeight() / recipe.density(fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
 		//[cm]
 		final double initialDoughHeight = doughVolume / totalBakingPansArea;
 		//FIXME the factor accounts for water content and gases produced by levain
@@ -150,6 +148,7 @@ public class Oven{
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 		final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
 			recipe.getSugar() / recipe.getWater(), dough.sugarType, dough.atmosphericPressure);
+		final BakingInstructions instructions = BakingInstructions.create();
 		if(bakingTemperature < brineBoilingTemperature)
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else{
@@ -157,12 +156,14 @@ public class Oven{
 			if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
 				LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
 
-			recipe.withBakingTemperature(bakingTemperature);
+			instructions.withBakingTemperature(bakingTemperature);
 		}
 		if(hasTopHeating)
-			withBakingTemperatureTop(recipe.getBakingTemperature());
+			//FIXME
+			withBakingTemperatureTop(220.);
 		if(hasBottomHeating)
-			withBakingTemperatureBottom(recipe.getBakingTemperature());
+			//FIXME
+			withBakingTemperatureBottom(220.);
 		//FIXME
 		//[cm]
 		final double cheeseLayerThickness = 0.2;
@@ -171,8 +172,8 @@ public class Oven{
 		final double tomatoLayerThickness = 0.2;
 		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
 			tomatoLayerThickness, brineBoilingTemperature);
-		recipe.withBakingDuration(bakingDuration);
-		return recipe;
+		instructions.withBakingDuration(bakingDuration);
+		return instructions;
 	}
 
 	//TODO account for baking temperature
@@ -190,7 +191,7 @@ public class Oven{
 	 * @param cheeseLayerThickness	Cheese layer thickness [cm].
 	 * @param tomatoLayerThickness	Tomato layer thickness [cm].
 	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
-	 * @return
+	 * @return	Baking duration.
 	 */
 	private Duration calculateBakingDuration(final Dough dough, final BakingInstruments bakingInstruments, double doughLayerThickness,
 			double cheeseLayerThickness, double tomatoLayerThickness, final double brineBoilingTemperature){
@@ -198,7 +199,7 @@ public class Oven{
 		tomatoLayerThickness /= 100.;
 		doughLayerThickness /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
-			OvenType.FORCED_AIR, bakingTemperatureTop, bakingTemperatureBottom, dough.ingredientsTemperature,
+			OvenType.FORCED_CONVECTION, bakingTemperatureTop, bakingTemperatureBottom, dough.ingredientsTemperature,
 			dough.airRelativeHumidity);
 
 		final double bbt = (brineBoilingTemperature - dough.ingredientsTemperature) / (bakingTemperatureTop - dough.ingredientsTemperature);

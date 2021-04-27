@@ -37,9 +37,9 @@ public enum BakingPanMaterial{
 
 
 	/** [J / (kg * K)] */
-	double specificHeat;
+	final double specificHeat;
 	/** [W / (m * K)] */
-	double thermalConductivity;
+	final double thermalConductivity;
 
 
 	BakingPanMaterial(final double specificHeat, final double thermalConductivity){

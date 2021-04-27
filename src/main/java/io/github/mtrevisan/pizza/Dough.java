@@ -78,7 +78,7 @@ public final class Dough{
 	 *
 	 * @see #fatFactor()
 	 */
-	static final double FAT_MAX = 1.;
+	private static final double FAT_MAX = 1.;
 
 	/**
 	 * (should be 2.04 mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
@@ -161,7 +161,8 @@ public final class Dough{
 
 
 	//accuracy is ±0.001%
-	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01, 5);
+	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01,
+		5);
 
 	private final YeastModelAbstract yeastModel;
 
@@ -169,14 +170,14 @@ public final class Dough{
 	private double sugar;
 	SugarType sugarType;
 	/** Raw sugar content [% w/w]. */
-	private double sugarContent = 1.;
+	private double rawSugar = 1.;
 	/** Water content in sugar [% w/w]. */
 	private double sugarWaterContent;
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fat;
 	/** Raw fat content [% w/w]. */
-	private double fatContent = 1.;
+	private double rawFat = 1.;
 	/** Water content in fat [% w/w]. */
 	private double fatWaterContent;
 	/** Salt content in fat [% w/w]. */
@@ -255,9 +256,9 @@ public final class Dough{
 			throw DoughException.create("Sugar [% w/w] must be positive");
 
 		this.sugar += sugarType.factor * sugar * sugarContent;
-		addPureWater(sugar * waterContent);
+		addWater(sugar * waterContent, 0., 0., Dough.PURE_WATER_PH, 0.);
 		this.sugarType = sugarType;
-		this.sugarContent = sugarContent;
+		this.rawSugar = sugarContent;
 		this.sugarWaterContent = waterContent;
 
 		return this;
@@ -273,12 +274,12 @@ public final class Dough{
 	 */
 	public Dough addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
 			throws DoughException{
-		this.fatContent = (this.fat * this.fatContent + fat * fatContent) / (this.fat + fat);
+		this.rawFat = (this.fat * this.rawFat + fat * fatContent) / (this.fat + fat);
 		this.fatWaterContent = (this.fat * this.fatWaterContent + fat * waterContent) / (this.fat + fat);
 		this.fatSaltContent = (this.fat * this.fatSaltContent + fat * saltContent) / (this.fat + fat);
 
 		this.fat += fat * fatContent;
-		addPureWater(fat * waterContent);
+		addWater(fat * waterContent, 0., 0., Dough.PURE_WATER_PH, 0.);
 		addSalt(fat * saltContent);
 
 		if(fat < 0. || this.fat > FAT_MAX)
@@ -299,15 +300,6 @@ public final class Dough{
 		this.salt += salt;
 
 		return this;
-	}
-
-	/**
-	 * @param water	Water quantity w.r.t. flour [% w/w].
-	 * @return	This instance.
-	 * @throws DoughException	If water is too low.
-	 */
-	public Dough addPureWater(final double water) throws DoughException{
-		return addWater(water, 0., 0., PURE_WATER_PH, 0.);
 	}
 
 	/**
@@ -781,13 +773,15 @@ public final class Dough{
 		double yeast, flour, water, sugar, fat, salt,
 			difference;
 		final double waterCorrection = calculateWaterCorrection();
+		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
+		final double sugarFactor = this.sugar / (sugarType.factor * rawSugar);
 		do{
-			yeast = totalFlour * this.yeast / (yeastType.factor * rawYeast);
+			yeast = totalFlour * yeastFactor;
 			flour = totalFlour - yeast * (1. - rawYeast);
 			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
-			sugar = totalFlour * this.sugar / (sugarType.factor * sugarContent);
+			sugar = totalFlour * sugarFactor;
 			final double fatCorrection = calculateFatCorrection(flour);
-			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / fatContent;
+			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / rawFat;
 			final double saltCorrection = calculateSaltCorrection(flour);
 			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
 
@@ -819,13 +813,13 @@ public final class Dough{
 	}
 
 	private double calculateWaterCorrection(){
-		double waterCorrection = 0.;
+		double correction = 0.;
 		if(correctForIngredients)
-			waterCorrection += sugar * sugarWaterContent + fat * fatWaterContent;
+			correction += sugar * sugarWaterContent + fat * fatWaterContent;
 		if(correctForFlourHumidity)
 			//FIXME: 70.62% is to obtain a humidity of 13.5%
-			waterCorrection += Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
-		return waterCorrection;
+			correction += Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
+		return correction;
 	}
 
 	private double calculateFatCorrection(final double flourWeight){
@@ -834,39 +828,6 @@ public final class Dough{
 
 	private double calculateSaltCorrection(final double flourWeight){
 		return (correctForIngredients? flourWeight * flour.saltContent + fat * fatSaltContent: 0.);
-	}
-
-
-	/**
-	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
-	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
-	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
-	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
-	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
-	 *
-	 * @param flour	Flour weight [g].
-	 * @param dough	Final dough weight [g].
-	 * @param fatDensity	Density of the fat [kg/l].
-	 * @param temperature	Temperature of the dough [°C].
-	 * @param atmosphericPressure	Atmospheric pressure [hPa].
-	 */
-	double density(final double flour, final double dough, final double fatDensity, final double temperature,
-			final double atmosphericPressure){
-		//TODO
-		//density of flour + salt + sugar + water
-		double doughDensity = 1.41
-			- 0.00006762 * atmosphericPressure
-			+ 0.00640 * salt
-//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
-//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
-			- 0.00260 * water;
-
-		final double pureWaterDensity = 999.84259 + (6.793952e-2 + (-9.09529e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * temperature)
-			* temperature) * temperature) * temperature) * temperature;
-
-		//account for fat
-		final double fraction = fat * flour / dough;
-		return 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
 	}
 
 }

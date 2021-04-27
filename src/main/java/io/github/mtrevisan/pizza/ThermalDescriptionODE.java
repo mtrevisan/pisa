@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2019-2020 Mauro Trevisan
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.pizza;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
@@ -170,22 +194,22 @@ cp	dough specific heat
 		moistureDiffusivityCheese = 0.7e-10;
 		//for tomato paste
 		//FIXME depends on current temperature?
-		moistureDiffusivityTomato = (ovenType == OvenType.FORCED_AIR?
+		moistureDiffusivityTomato = (ovenType == OvenType.FORCED_CONVECTION?
 			9.9646e-10 * Math.exp(-605.93 / ambientTemperature):
 			1.7738e-10 * Math.exp(-1212.71 / ambientTemperature));
 		//for dough
 		//FIXME depends on current temperature?
-		moistureDiffusivityDough = (ovenType == OvenType.FORCED_AIR?
+		moistureDiffusivityDough = (ovenType == OvenType.FORCED_CONVECTION?
 			7.0582e-8 * Math.exp(-1890.68 / ambientTemperature):
 			1.4596e-9 * Math.exp(-420.34 / ambientTemperature));
 
 		//FIXME depends on current temperature?
-		surfaceMassTransfer = (ovenType == OvenType.FORCED_AIR?
+		surfaceMassTransfer = (ovenType == OvenType.FORCED_CONVECTION?
 			4.6332 * Math.exp(-277.5 / ambientTemperature):
 			4.5721 * Math.exp(-292.8 / ambientTemperature));
 
 		//heat transfer coefficient:
-		if(ovenType == OvenType.FORCED_AIR)
+		if(ovenType == OvenType.FORCED_CONVECTION)
 			//convective air speed: 1 m/s
 			heatTransferCoeff = 1697.7 + (-9.66 + 0.02544 * bakingTemperatureTop) * bakingTemperatureTop;
 		else
@@ -234,11 +258,11 @@ where Dm is the moisture diffusivity [m^2 / s]
 where rho is the density [kg / m^3]
 where Lv is the latent heat of vaporization [J / kg]
 
-heat transfer at the interface between the dough and the tomato layer:
-Kd * dT/dx|x=5-6 - Kt * dT/dx|x=6-7 = dT6/dt * (rho_d * cp_d * delta_x5-6 / 2 + rho_t * cp_t * delta_x6-7 / 2)
+heat transfer at the interface between the crust and the tomato layer:
+Kd * dT/dx|x=5-6 - Kt * dT/dx|x=6-7 = dT6/dt * (rho_d * cp_d * delta_x5-6 + rho_t * cp_t * delta_x6-7) / 2
 
 heat transfer at the interface between the tomato and the cheese layer:
-Kt * dT/dx|x=7-8 - Kc * dT/dx|x=8-9 = dT8/dt * (rho_t * cp_t * delta_x7-8 / 2 + rho_c * cp_c * delta_x8-9 / 2)
+Kt * dT/dx|x=7-8 - Kc * dT/dx|x=8-9 = dT8/dt * (rho_t * cp_t * delta_x7-8 + rho_c * cp_c * delta_x8-9) / 2
 
 moisture transfer at the top surface:
 Dm_cS * rho_c * dm/dx|x=S = Km_c * (Hs - Ha)
@@ -248,7 +272,7 @@ where Ha is the air humidity ratio [kg H2O / kg dry air]
 moisture transfer at the interface between the tomato and the cheese layer:
 Dm_tc * dm/dx|x=7-8 - Dm_cS * dm/dx|x=8-9 = dm8/dt * (delta_x7-8 + delta_x8-9) / 2
 
-moisture transfer at the interface between the dough and the tomato paste:
+moisture transfer at the interface between the crust and the tomato paste:
 Dm_dt * dm/dx|x=5-6 - Dm_tc * dm/dx|x=6-7 = dm6/dt * (delta_x5-6 + delta_x6-7) / 2
 
 
@@ -281,7 +305,7 @@ at the interface node 8 (tomato-cheese):
 Kt / L * dtheta/dpsi|7-8 - Kc / L * dtheta/dpsi|8-9 = dtheta8/dt * (rho_t * cp_t * delta_x_7-8 + rho_c * cp_c * delta_x_8-9) / 2
 Dm_tc / L * dC/dpsi|7-8 - Dm_cS / L * dC/dpsi|8-9 = dC8/dt * (delta_x_7-8 + delta_x_8-9) / 2
 
-at the interface node 6 (dough-tomato):
+at the interface node 6 (crust-tomato):
 Kd / L * dtheta/dpsi|5-6 - Kt / L * dtheta/dpsi|6-7 = dtheta6/dt * (rho_d * cp_d * delta_x_5-6 + rho_t * cp_t * delta_x_6-7) / 2
 Dm_dt / L * dC/dpsi|5-6 - Dm_tc / L * dC/dpsi|6-7 = dC6/dt * (delta_x_5-6 + delta_x_6-7) / 2
 
@@ -297,11 +321,11 @@ dC9/dt = 4 * Dm_c / Lc^2 * (C8 - 2 * C9 + CS)
 dtheta7/dt = 4 * alpha_t / Lt^2 * (theta6 - 2 * theta7 + theta 8)
 dC7/dt = 4 * Dm_t / Lt^2 * (C6 - 2 * C7 + C8)
 
-5, dough-tomato layer:
+5, crust-tomato layer:
 dtheta5/dt = 100 * alpha_d / (3 * Ld^2) * (theta4 - 3 * theta5 + 2 * theta6)
 dC5/dt = 100 * Dm_d / (3 * Ld^2) * (C4 - 3 * C5 + 2 * C6)
 
-4-2, dough layer:
+4-2, crust layer:
 dtheta_i/dt = 25 * alpha_d / Ld^2 * (theta_i-1 - 2 * theta_i + theta_i+1)
 dC_i/dt = 25 * Dm_d / Ld^2 * (C_i-1 - 2 * C_i + C_i+1)
 

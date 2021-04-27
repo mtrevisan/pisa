@@ -26,7 +26,6 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.utils.Helper;
 
-import java.time.Duration;
 import java.time.LocalTime;
 
 
@@ -53,10 +52,6 @@ public final class Recipe{
 	private LocalTime[][] stageStartEndInstants;
 	/** Time to start seasoning the pizza. */
 	private LocalTime seasoningInstant;
-
-	/** Baking temperature [°C]. */
-	private Double bakingTemperature;
-	private Duration bakingDuration;
 
 
 	public static Recipe create(){
@@ -248,45 +243,39 @@ public final class Recipe{
 
 
 	/**
-	 * @param bakingTemperature	Baking temperature [°C].
-	 * @return	The instance.
-	 */
-	public Recipe withBakingTemperature(final double bakingTemperature){
-		this.bakingTemperature = bakingTemperature;
-
-		return this;
-	}
-
-	/**
-	 * @return	Baking temperature [°C].
-	 */
-	public Double getBakingTemperature(){
-		return bakingTemperature;
-	}
-
-	/**
-	 * @param bakingDuration	Baking duration.
-	 * @return	The instance.
-	 */
-	public Recipe withBakingDuration(final Duration bakingDuration){
-		this.bakingDuration = bakingDuration;
-
-		return this;
-	}
-
-	/**
-	 * @return	Baking temperature [°C].
-	 */
-	public Duration getBakingDuration(){
-		return bakingDuration;
-	}
-
-
-	/**
 	 * @return	The total dough weight [g].
 	 */
 	public double doughWeight(){
 		return flour + water + yeast + sugar + fat + salt;
+	}
+
+	/**
+	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
+	 * @see <a href="https://core.ac.uk/download/pdf/197306213.pdf">Kubota, Matsumoto, Kurisu, Sizuki, Hosaka. The equations regarding temperature and concentration of the density and viscosity of sugar, salt and skim milk solutions. 1980.</a>
+	 * @see <a href="https://shodhganga.inflibnet.ac.in/bitstream/10603/149607/15/10_chapter%204.pdf">Density studies of sugar solutions</a>
+	 * @see <a href="https://www.researchgate.net/publication/280063894_Mathematical_modelling_of_density_and_viscosity_of_NaCl_aqueous_solutions">Simion, Grigoras, Rosu, Gavrila. Mathematical modelling of density and viscosity of NaCl aqueous solutions. 2014.</a>
+	 * @see <a href="https://www.researchgate.net/publication/233266779_Temperature_and_Concentration_Dependence_of_Density_of_Model_Liquid_Foods">Darros-Barbosa, Balaban, Teixeira.Temperature and concentration dependence of density of model liquid foods. 2003.</a>
+	 *
+	 * @param fatDensity	Density of the fat [kg/l].
+	 * @param temperature	Temperature of the dough [°C].
+	 * @param atmosphericPressure	Atmospheric pressure [hPa].
+	 */
+	double density(final double fatDensity, final double temperature, final double atmosphericPressure){
+		//TODO
+		//density of flour + salt + sugar + water
+		double doughDensity = 1.41
+			- 0.00006762 * atmosphericPressure
+			+ 0.00640 * salt
+			//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
+			//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
+			- 0.00260 * water;
+
+		final double pureWaterDensity = 999.84259 + (6.793952e-2 + (-9.09529e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * temperature)
+			* temperature) * temperature) * temperature) * temperature;
+
+		//account for fat
+		final double fraction = fat * flour / doughWeight();
+		return 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
 	}
 
 
@@ -309,9 +298,7 @@ public final class Recipe{
 			+ ", salt: " + Helper.round(salt, 2) + " g"
 			+ ", dough making: " + doughMakingInstant
 			+ ", stages: " + sb
-			+ ", seasoning: " + seasoningInstant
-			+ (bakingTemperature != null? " baking at " + Helper.round(bakingTemperature, 1) + " °C"
-				+ (bakingDuration != null? " for " + bakingDuration.toSeconds() + " s": ""): "");
+			+ ", seasoning: " + seasoningInstant;
 	}
 
 }
