@@ -301,9 +301,10 @@ public class A243491{
 			for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
 				final double tmp = (patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT);
 				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT
-					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT) - tmp
-					+ (panEmissivity * 5.67e-8 * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.)
-					- Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.)))) * (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
+					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT)
+					- tmp
+					+ (panEmissivity * 5.67e-8 * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.) - Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.))))
+					* (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
 				final double oilTemperature = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
 				final double oilDensity = doughDensity(oilTemperature, oil, 0);
 				final double oilLayerThicknessAtT = (oilInPan / oilDensity) / (Math.PI * Math.pow(pizzaDiameter / 2000., 2.));
@@ -313,8 +314,9 @@ public class A243491{
 				}
 
 				//inside pan temperature at time t plus delta t
-				final double insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT + (tmp - (doughConductivity(oilTemperature, oil, 1)
-					/ oilLayerThicknessAtT) * (insidePanTemperatureAtT - doughTemperature[0][0])) / ((panThickness / 1000.) * panDensity
+				final double insidePanTemperatureAtTPlusDT = insidePanTemperatureAtT
+					+ (tmp - (doughConductivity(oilTemperature, oil, 1) / oilLayerThicknessAtT) * (insidePanTemperatureAtT - doughTemperature[0][0]))
+					/ ((panThickness / 1000.) * panDensity
 					* panSpecificHeat + (oilLayerThicknessAtT / 2.) * oilDensity * specificHeat(oilTemperature, oil, 0));
 				Double doughDensity = null;
 				if(doughTemperature[0][0] < 100.){
@@ -331,9 +333,10 @@ public class A243491{
 				}
 				else
 					excessHeat = 0.;
+
 				if(doughTemperature[1][0] > 100.){
-					final double heat = (doughTemperature[1][0] - 100.) * ((doughSliceThickness
-						* initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat;
+					final double heat = (doughTemperature[1][0] - 100.)
+						* (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness / 2.) * doughDensity * doughSpecificHeat;
 					doughTemperature[1][0] = 100.;
 					final double MSP = heat / 2444900.;
 					if(MSP + steamInVoid[0] > steamMass){
@@ -365,6 +368,7 @@ public class A243491{
 						excessHeat = 0.;
 					}
 				}
+
 				if(doughTemperature[0][0] == 100.){
 					final double oilThermalConductivity = doughConductivity(oilTemperature, oil, 0);
 					final double oilSpecificHeat = specificHeat(oilTemperature, oil, 0);
@@ -374,12 +378,11 @@ public class A243491{
 					doughSpecificHeat = specificHeat(doughTemperature[0][0], doughComponent, 0) * (1. - doughVoidSpace);
 					doughTemperature[1][0] = ((oilThermalConductivity / oilLayerThicknessAtT)
 						* (insidePanTemperatureAtT - doughTemperature[0][0]) - (doughThermalConductivity
-						/ (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0]
-						- doughTemperature[0][1])) / (((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) / 2.)
-						* doughDensity * doughSpecificHeat);
+						/ (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness)) * (doughTemperature[0][0] - doughTemperature[0][1]))
+						/ ((doughSliceThickness * initialDoughThicknessOverFinalDoughThickness / 2.) * doughDensity * doughSpecificHeat);
 					if(moistureContent[0] > moistureContentCrust){
-						final double heat = (doughTemperature[1][0] - 100.) *((doughSliceThickness
-							* initialDoughThicknessOverFinalDoughThickness) / 2.) * doughDensity * doughSpecificHeat;
+						final double heat = (doughTemperature[1][0] - 100.)
+							* (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness / 2.) * doughDensity * doughSpecificHeat;
 						doughTemperature[1][0] = 100.;
 						final double MSP = heat / 2444900.;
 						if(MSP + steamInVoid[0] > steamMass){
@@ -414,6 +417,7 @@ public class A243491{
 					else
 						excessHeat = 0.;
 				}
+
 				for(int m = 0; m < shellNodes - 1; m ++){
 					doughDensity = doughDensity(doughTemperature[0][m], doughComponent, m) * (1. - doughVoidSpace);
 					final double doughThermalConductivity = doughConductivity(doughTemperature[0][m], doughComponent, m) * (1. - doughVoidSpace)
@@ -479,6 +483,7 @@ public class A243491{
 					else
 						excessHeat = 0.;
 				}
+
 				doughDensity = doughDensity(doughTemperature[0][shellNodes], doughComponent, shellNodes - 1) * (1. - doughVoidSpace);
 				final double doughThermalConductivity = doughConductivity(doughTemperature[0][shellNodes], doughComponent, shellNodes - 1)
 					* (1. - doughVoidSpace) * doughConductivityCorrectionFactor;
@@ -492,6 +497,7 @@ public class A243491{
 				outsidePanTemperatureAtT = outsidePanTemperatureAtTPlusDT;
 				insidePanTemperatureAtT = insidePanTemperatureAtTPlusDT;
 			}
+
 			totalMoistureLossAtTimeT *= Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
 			if(Math.abs(totalMoistureLossAtTimeT - totalMoistureLossDuringCooking) / totalMoistureLossDuringCooking > 0.01){
 				crustEffectiveDiffusivity *= totalMoistureLossDuringCooking / totalMoistureLossAtTimeT;

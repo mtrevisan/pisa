@@ -114,8 +114,53 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 
 /*
+https://www.sciencedirect.com/topics/engineering/convection-heat-transfer
+https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-050-thermal-energy-fall-2002/lecture-notes/10_part3.pdf
+https://www.cantorsparadise.com/the-heat-equation-a76d7773a0b5
+https://www.sfu.ca/~mbahrami/ENSC%20388/Notes/
+
+general formula:
+DQ = (Ts - Tinf) / R	[W]
+where
 conduction:
-q = k / x * A * (T2 - T1)
+R = L / (k * A)	[K / W]
+k = thermal conductivity
+convection:
+R = 1 / (h * A)	[K / W]
+h = convective heat transfer coefficient
+radiation:
+R = 1 / (eps * sigma * (Ts^2 + Tinf^2) * (Ts + Tinf) * A)	[K / W]
+sigma = 5.67e-8 [W / (m^2 * K^4)] Stefan-Boltzmann constant
+eps = emissivity
+
+heat must be constant, so Qin = Qout
+but the pizza must be heated, so heat must be absorbed by the pizza, so the heat is entering the pizza (exiting by moisture evaporation: about 20%)
+
+---
+
+if one slab of constant material has Toven on both sides:
+(T(x) - Toven) / (alpha * L^2 / k) = (x / L - x^2 / L^2) / 2
+
+---
+
+heat equation:
+dT/dt = k / (rho * c) * d^2T/dx^2 = alpha * d^2T/dx^2
+where
+k	thermal conductivity
+rho	density
+c	specific heat capacity
+alpha	diffusivity
+
+one solution is (where T(0, t) = T(L, t) = 0)
+T(x, t) = sum(n=1 to inf, An * sin(n * pi * x / L) * e^(-k * n^2 * pi^2 / (rho * c* L^2)))
+where the coefficients An are chosen such that it satisfies the initial conditions:
+T(x, 0) = sum(n=1 to inf, An * sin(n * pi * x / L))
+that is a Fourier sine series expansion with An = (2 / L) * int(0 to L, T(x, 0) * sin(n * pi * x / L), dx)
+*/
+
+/*
+conduction:
+dq/dt = k / x * A * (T2 - T1) = k * A * dT/dx
 where
 q	heat transferred
 k	thermal conductivity
@@ -157,8 +202,13 @@ qs_out = ms_n * Hf	heat moving out by steam conduction and diffusion
 q_ret = rho * cp * x * (t+1_T_n - t_T_n) + ms_ret	heat retained
 
 //system pizza + (pan + (baking sheet))
-q_in = (hasTop? (airThermalConductivity / roofDistance + convectiveHeatTransfer) * (TT - TpT(t)) + Css * e * (TT^4 - TpT(t)^4): 0)
-	+ (hasBottom? (airThermalConductivity / floorDistance + (hasBottomConvection? convectiveHeatTransfer: 0)) * (TB - TpB(t)) + (hasBottomRadiation? Css * e * (TB^4 - TpB(t)^4): 0): 0)
+q_in_top = (airThermalConductivity / roofDistance + airConvectiveHeatTransfer) * (TT - TpT(t)) + Css * e * (TT^4 - TpT(t)^4) + steamMassIn * steamConvectiveHeatTransfer
+q_in_tomato = (cheeseThermalConductivity / cheeseThickness) * (TpT(t) - TcT(t)) + steamMassIn * steamConvectiveHeatTransfer
+q_in_dough = (doughThermalConductivity / doughThickness) * (TcT(t) - TdT(t)) + steamMassIn * steamConvectiveHeatTransfer
+q_in_bottom = (airThermalConductivity / floorDistance + airConvectiveHeatTransfer) * (TB - TpB(t)) + Css * e * (TB^4 - TpB(t)^4)
+qk_out = airThermalConductivity / x * (t_T_n - t_T_n+1)
+q_out_top = steamMassOut * steamConvectiveHeatTransfer
+q_ret = rho * cp * x * (t+1_T_n - t_T_n) + ms_ret
 
 k	pizza conductivity
 x	pizza thickness

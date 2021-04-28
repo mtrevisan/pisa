@@ -27,9 +27,12 @@ package io.github.mtrevisan.pizza.bakingpans;
 
 public enum BakingPanMaterial{
 	CAST_IRON(560.548, 52.),
+
 	ALUMINIUM(896.9, 237.),
+
 	STAINLESS_STEEL_304(490. - 530., 14. - 17.),
 	STAINLESS_STEEL_316(490. - 530., 13. - 17.),
+
 	//https://www.electronics-cooling.com/1999/09/the-thermal-conductivity-of-ceramics/
 	CERAMIC(850., 80. - 200.),
 	CLAY(0.33, 0.15 - 1.8),
