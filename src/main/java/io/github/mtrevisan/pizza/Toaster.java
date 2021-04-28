@@ -26,6 +26,8 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 
+import java.time.Duration;
+
 
 /*
 https://www.cpp.edu/~lllee/TK3111heat.pdf pag 114 + 136 (Unsteady State Conduction!!!)
@@ -59,6 +61,18 @@ qtotal = qtop + qbottom = 1064.6 W
 */
 public class Toaster{
 
+	//Stefan-Boltzmann constant [W / (m^2 * K^4)]
+	private static final double SIGMA = 5.670374419e-8;
+
+
+	public static void main(String[] a){
+		new Toaster(
+			0.002, 0.002, 0.009, 0.016,
+			BakingPanMaterial.ALUMINIUM, 0.001, 0.033,
+			OvenType.FORCED_CONVECTION, 760., 0.0256, 760., 0.0256,
+			21.1, 0.5);
+	}
+
 	Toaster(
 				//pizza
 				final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness, final double pizzaArea,
@@ -68,29 +82,32 @@ public class Toaster{
 				final OvenType ovenType, final double bakingTemperatureTop, final double topDistance, final double bakingTemperatureBottom, final double bottomDistance,
 				//ambient
 				final double ambientTemperature, final double ambientHumidityRatio){
-		//[K^-1]
-		final double thermalExpansionCoeff = 1.55e-3;
+		//thermal expansion coefficient [K^-1]
+		final double thermalExpansion = 1.55e-3;
 		//[m / s^2]
 		final double gravity = 9.807;
 		//kinematic viscosity [m^2 / s]
 		final double nu = 7.64e-5;
 		//diffusivity [m^2 / s]
-		final double alpha = 1.09e-4;
-		final double Ra_top = calculateRayleighNumber(bakingTemperatureTop, topDistance, ambientTemperature, thermalExpansionCoeff,
-			gravity, nu, alpha);
-		final double Ra_bottom = calculateRayleighNumber(bakingTemperatureBottom, bottomDistance, ambientTemperature, thermalExpansionCoeff,
-			gravity, nu, alpha);
+		final double alphaAir = 1.09e-4;
+		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, topDistance, ambientTemperature,
+			thermalExpansion, gravity, nu, alphaAir);
+		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, bottomDistance, ambientTemperature,
+			thermalExpansion, gravity, nu, alphaAir);
 
 		//[W / (m * K)]
 		final double airThermalConductivity = 5.49e-2;
-		//Nusselt number (10^4 <= Ra <= 10^7, Pr >= 0.7, or 10^7 <= Ra <= 10^11)
-		final double nusseltTop = (Ra_top <= 1.e7? 0.52 * Math.pow(Ra_top, 0.2): 0.15 * Math.pow(Ra_top, 1. / 3.));
-		//Nusselt number (10^4 <= Ra <= 10^9, Pr >= 0.7)
-		final double nusseltBottom = 0.54 * Math.pow(Ra_bottom, 0.25);
+		final double nusseltNumberTop = (rayleighNumberTop <= 1.e7?
+			//10^4 <= Ra <= 10^7, Pr >= 0.7
+			0.52 * Math.pow(rayleighNumberTop, 0.2):
+			//10^7 <= Ra <= 10^11
+			0.15 * Math.pow(rayleighNumberTop, 1. / 3.));
+		//10^4 <= Ra <= 10^9, Pr >= 0.7
+		final double nusseltNumberBottom = 0.54 * Math.pow(rayleighNumberBottom, 0.25);
 		//convective thermal coefficient [W / (m^2 * K)]
-		final double h_top = airThermalConductivity * nusseltTop / topDistance;
+		final double h_top = airThermalConductivity * nusseltNumberTop / topDistance;
 		//convective thermal coefficient [W / (m^2 * K)]
-		final double h_bottom = airThermalConductivity * nusseltBottom / topDistance;
+		final double h_bottom = airThermalConductivity * nusseltNumberBottom / topDistance;
 		//cheese thermal conductivity [W / (m * K)]
 		final double thermalConductivityCheese = 0.384;
 		//tomato thermal conductivity [W / (m * K)]
@@ -98,29 +115,66 @@ public class Toaster{
 		//dough thermal conductivity [W / (m * K)]
 		final double thermalConductivityDough = 0.262;
 		//[K / W]
-		final double R_top_air = 1. / (h_top * pizzaArea);
+		final double thermalResistanceTopAir = 1. / (h_top * pizzaArea);
 		//[K / W]
-		final double R_cheese = cheeseLayerThickness / (thermalConductivityCheese * pizzaArea);
+		final double thermalResistanceCheese = cheeseLayerThickness / (thermalConductivityCheese * pizzaArea);
 		//[K / W]
-		final double R_tomato = tomatoLayerThickness / (thermalConductivityTomato * pizzaArea);
+		final double thermalResistanceTomato = tomatoLayerThickness / (thermalConductivityTomato * pizzaArea);
 		//[K / W]
-		final double R_dough_top = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
+		final double thermalResistanceDoughTop = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]
-		final double R_bottom_air = 1. / (h_bottom * pizzaArea);
+		final double thermalResistanceBottomAir = 1. / (h_bottom * pizzaArea);
 		//[K / W]
-		final double R_pan = panThickness / (panMaterial.thermalConductivity * panArea);
+		final double thermalResistancePan = panThickness / (panMaterial.thermalConductivity * panArea);
 		//[K / W]
-		final double R_dough_bottom = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
+		final double thermalResistanceDoughBottom = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]
-		final double R_top = R_top_air + R_cheese + R_tomato + R_dough_top;
+		final double thermalResistanceTop = thermalResistanceTopAir + thermalResistanceCheese + thermalResistanceTomato
+			+ thermalResistanceDoughTop;
 		//[K / W]
-		final double R_bottom = R_bottom_air + R_pan + R_dough_bottom;
+		final double thermalResistanceBottom = thermalResistanceBottomAir + thermalResistancePan + thermalResistanceDoughBottom;
 
-		//FIXME what if bakingTemperatureTop != bakingTemperatureBottom?
-		//energy required to bring the dough to 73.9 °C [W]
-		final double qx = (bakingTemperatureTop - 73.9) / (R_top + R_bottom);
+		//[°C]
+		final double desiredInnerTemperature = 73.9;
+		//energy required to bring the dough to 73.9 °C by convection [W]
+		final double energyTop = (bakingTemperatureTop - desiredInnerTemperature) / thermalResistanceTop;
+		final double energyBottom = (bakingTemperatureBottom - desiredInnerTemperature) / thermalResistanceBottom;
+		final double energyTotal = energyTop + energyBottom;
 
-		//TODO
+
+		//proportion of the radiation which leaves surface 1 that strikes surface 2
+		final double viewFactor12 = 0.87;
+		final double emissivityNichromeWire = 0.87;
+		final double emissivityPizza = 0.5;
+		double factor = 1. / ((1. - emissivityNichromeWire) / (emissivityNichromeWire * pizzaArea) + 1. / (pizzaArea * viewFactor12)
+			+ (1. - emissivityPizza) / (emissivityPizza * pizzaArea));
+		//energy transferred by radiation to the top surface [W]
+		final double energy12Top = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+		final double emissivityAluminumAlloy = 0.8;
+		factor = 1. / ((1. - emissivityNichromeWire) / (emissivityNichromeWire * pizzaArea) + 1. / (pizzaArea * viewFactor12)
+			+ (1. - emissivityAluminumAlloy) / (emissivityAluminumAlloy * pizzaArea));
+		//energy transferred by radiation to the bottom surface [W]
+		final double energy12Bottom = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+
+		final double length = cheeseLayerThickness + tomatoLayerThickness + doughLayerThickness / 2.;
+		final double biotNumberCheese = h_top * length / thermalConductivityCheese;
+		final double biotNumberDough = h_bottom * length / thermalConductivityDough;
+		//NOTE: Biot number should be less than about 0.1 to consider lumped-heat capacity calculations...
+
+		final double xiCheese = 0.3618;
+		final double cCheese = 1.0218;
+		final double xiDough = 0.5553;
+		final double cDough = 1.0511;
+		final double theta = (desiredInnerTemperature - bakingTemperatureTop) / (ambientTemperature - bakingTemperatureTop);
+		final double fourierNumberCheese = Math.log(theta / cCheese) / -Math.pow(xiCheese, 2.);
+		final double fourierNumberDough = Math.log(theta / cDough) / -Math.pow(xiDough, 2.);
+		//diffusivity [m^2 / s]
+		final double alpha2 = 1.3e-7;
+		final Duration tCheese = Duration.ofSeconds((long)(fourierNumberCheese * Math.pow(cheeseLayerThickness, 2.) / alpha2));
+		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(doughLayerThickness, 2.) / alpha2));
+
+		System.out.println(tCheese);
+		System.out.println(tDough);
 	}
 
 	private double calculateRayleighNumber(final double bakingTemperatureTop, final double topDistance, final double ambientTemperature,
