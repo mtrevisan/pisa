@@ -25,9 +25,6 @@
 package io.github.mtrevisan.pizza.bakingpans;
 
 
-import java.util.Objects;
-
-
 public class CircularBakingPan extends BakingPanAbstract{
 
 	/** Baking pan diameter [cm]. */
