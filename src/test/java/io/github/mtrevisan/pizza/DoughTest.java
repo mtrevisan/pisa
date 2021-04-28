@@ -46,7 +46,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2.,
 			0,
 			Duration.ZERO, new Duration[]{Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		Assertions.assertThrows(YeastException.class, () -> dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE),
+		Assertions.assertThrows(YeastException.class, () -> dough.calculateYeast(procedure),
 			"No yeast quantity will ever be able to produce the given expansion ratio");
 	}
 
@@ -58,7 +58,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2.,
 			0,
 			Duration.ZERO, new Duration[]{Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 
 		Assertions.assertEquals(0.011_83, dough.yeast, 0.000_01);
 	}
@@ -72,7 +72,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
 			1,
 			Duration.ZERO, new Duration[]{Duration.ZERO, Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 
 		Assertions.assertEquals(0.006_38, dough.yeast, 0.000_01);
 	}
@@ -86,11 +86,11 @@ class DoughTest{
 		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
 			0,
 			Duration.ZERO, new Duration[]{Duration.ZERO, Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 		final double yeast1 = dough.yeast;
 		procedure = Procedure.create(new LeaveningStage[]{stage1}, 2., 0,
 			Duration.ZERO, new Duration[]{Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 		final double yeast2 = dough.yeast;
 
 		Assertions.assertEquals(0.011_83, yeast1, 0.000_01);
@@ -106,7 +106,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
 			1,
 			Duration.ZERO, new Duration[]{Duration.ZERO, Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 
 		Assertions.assertEquals(0.006_14, dough.yeast, 0.000_01);
 	}
@@ -121,7 +121,7 @@ class DoughTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
 			1,
 			Duration.ZERO, new Duration[]{Duration.ZERO, Duration.ZERO}, Duration.ZERO, LocalTime.NOON);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 
 		Assertions.assertEquals(0.043_27, dough.yeast, 0.000_01);
 	}
@@ -143,7 +143,7 @@ class DoughTest{
 			1,
 			Duration.ZERO, new Duration[]{Duration.ZERO, Duration.ZERO}, Duration.ZERO, LocalTime.NOON)
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		dough.calculateYeast(procedure, Dough.ONE_ATMOSPHERE);
+		dough.calculateYeast(procedure);
 
 		Assertions.assertEquals(0.010_13, dough.yeast, 0.000_01);
 	}

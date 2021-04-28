@@ -146,7 +146,7 @@ public final class Dough{
 	/**
 	 * [% w/w]
 	 *
-	 * @see #calculateYeast(Procedure, double)
+	 * @see #calculateYeast(Procedure)
 	 */
 	private static final double SOLVER_YEAST_MAX = 1.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
@@ -467,7 +467,7 @@ public final class Dough{
 		procedure.validate(yeastModel);
 
 		//calculate yeast:
-		calculateYeast(procedure, atmosphericPressure);
+		calculateYeast(procedure);
 
 		//calculate ingredients:
 		final Recipe recipe = calculateIngredients(doughWeight);
@@ -492,73 +492,11 @@ public final class Dough{
 	 * temperature.
 	 *
 	 * @param procedure	Data for procedure.
-	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 */
 	@SuppressWarnings("ThrowInsideCatchBlockWhichIgnoresCaughtException")
-	void calculateYeast(final Procedure procedure, final double atmosphericPressure) throws YeastException{
+	void calculateYeast(final Procedure procedure) throws YeastException{
 		try{
-			final UnivariateFunction f = yeast -> {
-				final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-				double lambda = estimatedLag(yeast);
-				LeaveningStage currentStage = procedure.leaveningStages[0];
-				double volumeExpansionRatio = 0.;
-				Duration duration = Duration.ZERO;
-				if(procedure.targetVolumeExpansionRatioAtLeaveningStage > 0){
-					int stretchAndFoldIndex = 0;
-					Duration stretchAndFoldDuration = Duration.ZERO;
-					for(int i = 1; i < procedure.leaveningStages.length; i ++){
-						final LeaveningStage previousStage = procedure.leaveningStages[i - 1];
-						duration = duration.plus(previousStage.duration);
-						currentStage = procedure.leaveningStages[i];
-
-						//avoid modifying `lambda` if the temperature is the same
-						double currentVolume = 0.;
-						if(previousStage.temperature != currentStage.temperature){
-							final double ingredientsFactor = ingredientsFactor(previousStage.temperature, atmosphericPressure);
-							final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
-								previousStage.temperature, ingredientsFactor);
-							lambda = Math.max(lambda - previousStage.duration.toMinutes() / 60., 0.);
-							currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
-								currentStage.temperature, ingredientsFactor);
-
-							volumeExpansionRatio += previousVolume - currentVolume;
-						}
-						//account for stage volume decrease
-						volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
-
-						//apply stretch&fold volume reduction:
-						double stretchAndFoldVolumeDecrease = 0.;
-						while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
-							final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
-							if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration) > 0)
-								break;
-
-							stretchAndFoldIndex ++;
-							stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
-
-							final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
-							final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
-								.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactor);
-							stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
-								* stretchAndFoldStage.volumeDecrease;
-						}
-						volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
-
-						//early exit if target volume expansion ratio references an inner stage
-						if(i == procedure.targetVolumeExpansionRatioAtLeaveningStage)
-							break;
-					}
-				}
-
-				final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
-				if(ingredientsFactor == 0.)
-					return Double.POSITIVE_INFINITY;
-
-				//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
-				volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
-					alpha, currentStage.temperature, ingredientsFactor);
-				return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
-			};
+			final UnivariateFunction f = yeast -> calculateYeast(yeast, procedure);
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
 		catch(final NoBracketingException e){
@@ -567,6 +505,69 @@ public final class Dough{
 		catch(final TooManyEvaluationsException e){
 			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver");
 		}
+	}
+
+	private double calculateYeast(final double yeast, final Procedure procedure){
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
+		double lambda = estimatedLag(yeast);
+		LeaveningStage currentStage = procedure.leaveningStages[0];
+		double volumeExpansionRatio = 0.;
+		Duration duration = Duration.ZERO;
+		if(procedure.targetVolumeExpansionRatioAtLeaveningStage > 0){
+			int stretchAndFoldIndex = 0;
+			Duration stretchAndFoldDuration = Duration.ZERO;
+			for(int i = 1; i < procedure.leaveningStages.length; i ++){
+				final LeaveningStage previousStage = procedure.leaveningStages[i - 1];
+				duration = duration.plus(previousStage.duration);
+				currentStage = procedure.leaveningStages[i];
+
+				//avoid modifying `lambda` if the temperature is the same
+				double currentVolume = 0.;
+				if(previousStage.temperature != currentStage.temperature){
+					final double ingredientsFactor = ingredientsFactor(previousStage.temperature, atmosphericPressure);
+					final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+						previousStage.temperature, ingredientsFactor);
+					lambda = Math.max(lambda - previousStage.duration.toMinutes() / 60., 0.);
+					currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+						currentStage.temperature, ingredientsFactor);
+
+					volumeExpansionRatio += previousVolume - currentVolume;
+				}
+				//account for stage volume decrease
+				volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
+
+				//apply stretch&fold volume reduction:
+				double stretchAndFoldVolumeDecrease = 0.;
+				while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
+					final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
+					if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration) > 0)
+						break;
+
+					stretchAndFoldIndex ++;
+					stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
+
+					final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
+					final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
+						.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactor);
+					stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
+						* stretchAndFoldStage.volumeDecrease;
+				}
+				volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
+
+				//early exit if target volume expansion ratio references an inner stage
+				if(i == procedure.targetVolumeExpansionRatioAtLeaveningStage)
+					break;
+			}
+		}
+
+		final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
+		if(ingredientsFactor == 0.)
+			return Double.POSITIVE_INFINITY;
+
+		//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
+		volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
+			alpha, currentStage.temperature, ingredientsFactor);
+		return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
 	}
 
 	/**

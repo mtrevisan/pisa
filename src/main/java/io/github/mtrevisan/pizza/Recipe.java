@@ -266,8 +266,8 @@ public final class Recipe{
 		final double doughDensity = 1.41
 			- 0.00006762 * atmosphericPressure
 			+ 0.00640 * salt
-			//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
-			//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
+//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
+//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
 			- 0.00260 * water;
 
 		final double pureWaterDensity = 999.84259 + (6.793952e-2 + (-9.09529e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * temperature)
