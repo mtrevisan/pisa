@@ -79,8 +79,13 @@ public final class BakingInstructions{
 
 	@Override
 	public String toString(){
-		return (bakingTemperature != null? "baking at " + Helper.round(bakingTemperature, 1) + " °C"
-				+ (bakingDuration != null? " for " + bakingDuration.toSeconds() + " s": ""): "");
+		final StringBuilder sb = new StringBuilder();
+		if(bakingTemperature != null){
+			sb.append("baking at ").append(Helper.round(bakingTemperature, 1)).append(" °C");
+			if(bakingDuration != null)
+				sb.append(" for ").append(bakingDuration.toSeconds()).append(" s");
+		}
+		return sb.toString();
 	}
 
 }

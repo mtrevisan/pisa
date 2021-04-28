@@ -32,7 +32,7 @@ public class BakingInstruments{
 	BakingPanAbstract[] bakingPans;
 
 
-	public BakingInstruments withBakingPans(final BakingPanAbstract[] bakingPans) throws DoughException{
+	public final BakingInstruments withBakingPans(final BakingPanAbstract[] bakingPans) throws DoughException{
 		if(bakingPans == null || bakingPans.length == 0)
 			throw DoughException.create("Missing baking pans");
 
@@ -41,12 +41,12 @@ public class BakingInstruments{
 		return this;
 	}
 
-	public void validate() throws DoughException{
+	public final void validate() throws DoughException{
 		if(bakingPans == null)
 			throw DoughException.create("At least one baking pan must be given");
 	}
 
-	public double getBakingPansTotalArea(){
+	public final double getBakingPansTotalArea(){
 		double area = 0.;
 		if(bakingPans != null)
 			for(final BakingPanAbstract bakingPan : bakingPans)

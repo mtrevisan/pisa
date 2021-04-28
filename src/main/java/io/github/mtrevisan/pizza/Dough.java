@@ -256,10 +256,10 @@ public final class Dough{
 			throw DoughException.create("Sugar [% w/w] must be positive");
 
 		this.sugar += sugarType.factor * sugar * sugarContent;
-		addWater(sugar * waterContent, 0., 0., Dough.PURE_WATER_PH, 0.);
+		addWater(sugar * waterContent, 0., 0., PURE_WATER_PH, 0.);
 		this.sugarType = sugarType;
-		this.rawSugar = sugarContent;
-		this.sugarWaterContent = waterContent;
+		rawSugar = sugarContent;
+		sugarWaterContent = waterContent;
 
 		return this;
 	}
@@ -274,12 +274,12 @@ public final class Dough{
 	 */
 	public Dough addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
 			throws DoughException{
-		this.rawFat = (this.fat * this.rawFat + fat * fatContent) / (this.fat + fat);
-		this.fatWaterContent = (this.fat * this.fatWaterContent + fat * waterContent) / (this.fat + fat);
-		this.fatSaltContent = (this.fat * this.fatSaltContent + fat * saltContent) / (this.fat + fat);
+		rawFat = (this.fat * rawFat + fat * fatContent) / (this.fat + fat);
+		fatWaterContent = (this.fat * fatWaterContent + fat * waterContent) / (this.fat + fat);
+		fatSaltContent = (this.fat * fatSaltContent + fat * saltContent) / (this.fat + fat);
 
 		this.fat += fat * fatContent;
-		addWater(fat * waterContent, 0., 0., Dough.PURE_WATER_PH, 0.);
+		addWater(fat * waterContent, 0., 0., PURE_WATER_PH, 0.);
 		addSalt(fat * saltContent);
 
 		if(fat < 0. || this.fat > FAT_MAX)
@@ -422,9 +422,9 @@ public final class Dough{
 	 * @throws DoughException	If pressure is negative or above maximum.
 	 */
 	public Dough withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
-		if(atmosphericPressure < 0. || atmosphericPressure >= Dough.ATMOSPHERIC_PRESSURE_MAX)
+		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
-				Helper.round(Dough.ATMOSPHERIC_PRESSURE_MAX, 1));
+				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
 
 		this.atmosphericPressure = atmosphericPressure;
 
@@ -494,6 +494,7 @@ public final class Dough{
 	 * @param procedure	Data for procedure.
 	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 */
+	@SuppressWarnings("ThrowInsideCatchBlockWhichIgnoresCaughtException")
 	void calculateYeast(final Procedure procedure, final double atmosphericPressure) throws YeastException{
 		try{
 			final UnivariateFunction f = yeast -> {

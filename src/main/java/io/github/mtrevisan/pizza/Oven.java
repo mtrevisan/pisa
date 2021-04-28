@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 
 
-public class Oven{
+public final class Oven{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Oven.class);
 
@@ -73,7 +73,7 @@ public class Oven{
 
 	private Oven(){}
 
-	public Oven withOvenType(final OvenType ovenType) throws DoughException{
+	public final Oven withOvenType(final OvenType ovenType) throws DoughException{
 		if(ovenType == null)
 			throw DoughException.create("Missing oven type");
 
@@ -82,19 +82,19 @@ public class Oven{
 		return this;
 	}
 
-	public Oven withHasTopHeating(){
-		this.hasTopHeating = true;
+	public final Oven withHasTopHeating(){
+		hasTopHeating = true;
 
 		return this;
 	}
 
-	public Oven withHasBottomHeating(){
-		this.hasBottomHeating = true;
+	public final Oven withHasBottomHeating(){
+		hasBottomHeating = true;
 
 		return this;
 	}
 
-	public Oven withBakingTemperatureTop(final double bakingTemperatureTop) throws DoughException{
+	public final Oven withBakingTemperatureTop(final double bakingTemperatureTop) throws DoughException{
 		if(bakingTemperatureTop <= 0.)
 			throw DoughException.create("Baking top temperature too low");
 
@@ -103,7 +103,7 @@ public class Oven{
 		return this;
 	}
 
-	public Oven withBakingTemperatureBottom(final double bakingTemperatureBottom) throws DoughException{
+	public final Oven withBakingTemperatureBottom(final double bakingTemperatureBottom) throws DoughException{
 		if(bakingTemperatureBottom <= 0.)
 			throw DoughException.create("Baking bottom temperature too low");
 
@@ -112,7 +112,7 @@ public class Oven{
 		return this;
 	}
 
-	public void validate() throws DoughException{
+	public final void validate() throws DoughException{
 		if(ovenType == null)
 			throw DoughException.create("Oven type must be given");
 	}
@@ -126,9 +126,10 @@ public class Oven{
 	 * @return	The baking instructions.
 	 * @throws DoughException	If validation fails.
 	 */
-	public BakingInstructions bakeRecipe(final Dough dough, final Recipe recipe, final double targetPizzaHeight,
+	public final BakingInstructions bakeRecipe(final Dough dough, final Recipe recipe, final double targetPizzaHeight,
 			final BakingInstruments bakingInstruments) throws DoughException{
 		validate();
+		bakingInstruments.validate();
 
 		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 

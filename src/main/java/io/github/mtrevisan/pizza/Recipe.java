@@ -263,7 +263,7 @@ public final class Recipe{
 	double density(final double fatDensity, final double temperature, final double atmosphericPressure){
 		//TODO
 		//density of flour + salt + sugar + water
-		double doughDensity = 1.41
+		final double doughDensity = 1.41
 			- 0.00006762 * atmosphericPressure
 			+ 0.00640 * salt
 			//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)

@@ -218,11 +218,11 @@ cp	dough specific heat
 	}
 
 	@Override
-	public int getDimension(){
+	public final int getDimension(){
 		return 18;
 	}
 
-	public double[] getInitialState(){
+	public final double[] getInitialState(){
 		//array of initial temperature (as (T - ambientTemperature) / (bakingTemperatureTop - ambientTemperature)) and moisture content
 		//by column
 		return new double[]{
@@ -336,7 +336,7 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	//y is a list of theta and C from layer 9 to layer 1
 	//dydt is a list of dTheta/dt and dC/dt from layer 9 to layer 1
 	@Override
-	public void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
+	public final void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
 			DimensionMismatchException{
 		//finite difference equations:
 
