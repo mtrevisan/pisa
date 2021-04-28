@@ -33,6 +33,7 @@ import java.time.Duration;
 https://www.cpp.edu/~lllee/TK3111heat.pdf pag 114 + 136 (Unsteady State Conduction!!!)
 https://skill-lync.com/projects/Solving-the-2D-heat-conduction-equation-for-steady-state-and-unsteady-state-using-iterative-methods-75446
 https://www.researchgate.net/publication/333582112_THE_DESIGN_OF_A_PIZZA_TOASTER
+http://facstaff.cbu.edu/rprice/lectures/unsteady.html
 
 convection top
 air
@@ -45,19 +46,6 @@ convection bottom
 
 Lumped-heat assumed!
 The desired midplane temperature was 73.9 °C as set in the food industry for cooked food(8)
-
-heat transfer - convection:
-qtop = DT / Rtop = 80.734 W
-qbottom = DT / Rbottom = 200.916 W
-qtotal = qtop + qbottom = 281.65 W
-Ti = 21.1 °C
-DT = Tinf - Tmid = 760 - 74 = 686.111 K
-
-heat transfer - radiation:
-eps1 = 0.87, eps2 = 0.5, F12 = 0.8
-qtop = sigma * (T1^4 - T2^4) / ((1 - eps1) / (eps1 * A) + 1 / (A * F12) + (1 - eps2) / (eps2 * A)) = 433.71 W
-qbottom = same (eps2 = 0.8) = 630.92 W
-qtotal = qtop + qbottom = 1064.6 W
 */
 public class Toaster{
 
@@ -69,7 +57,7 @@ public class Toaster{
 		new Toaster(
 			0.002, 0.002, 0.009, 0.016,
 			BakingPanMaterial.ALUMINIUM, 0.001, 0.033,
-			OvenType.FORCED_CONVECTION, 760., 0.0256, 760., 0.0256,
+			OvenType.FORCED_CONVECTION, 760., 0.0254, 760., 0.0254,
 			21.1, 0.5);
 	}
 
@@ -115,7 +103,7 @@ public class Toaster{
 		//dough thermal conductivity [W / (m * K)]
 		final double thermalConductivityDough = 0.262;
 		//[K / W]
-		final double thermalResistanceTopAir = 1. / (h_top * pizzaArea);
+		final double thermalResistanceTopAir = topDistance / (h_top * pizzaArea);
 		//[K / W]
 		final double thermalResistanceCheese = cheeseLayerThickness / (thermalConductivityCheese * pizzaArea);
 		//[K / W]
@@ -123,7 +111,7 @@ public class Toaster{
 		//[K / W]
 		final double thermalResistanceDoughTop = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]
-		final double thermalResistanceBottomAir = 1. / (h_bottom * pizzaArea);
+		final double thermalResistanceBottomAir = bottomDistance / (h_bottom * pizzaArea);
 		//[K / W]
 		final double thermalResistancePan = panThickness / (panMaterial.thermalConductivity * panArea);
 		//[K / W]
@@ -139,7 +127,6 @@ public class Toaster{
 		//energy required to bring the dough to 73.9 °C by convection [W]
 		final double energyTop = (bakingTemperatureTop - desiredInnerTemperature) / thermalResistanceTop;
 		final double energyBottom = (bakingTemperatureBottom - desiredInnerTemperature) / thermalResistanceBottom;
-		final double energyTotal = energyTop + energyBottom;
 
 
 		//proportion of the radiation which leaves surface 1 that strikes surface 2
@@ -156,24 +143,21 @@ public class Toaster{
 		//energy transferred by radiation to the bottom surface [W]
 		final double energy12Bottom = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
 
-		final double length = cheeseLayerThickness + tomatoLayerThickness + doughLayerThickness / 2.;
-		final double biotNumberCheese = h_top * length / thermalConductivityCheese;
-		final double biotNumberDough = h_bottom * length / thermalConductivityDough;
+		//Biot number represents the ratio of heat transfer resistance in the interior of the system (L / k in Bi = h * L / k) to the
+		//resistance between the surroundings and the system surface (1 / h).
+		//Therefore, small Bi represents the case were the surface film impedes heat transport and large Bi the case where conduction through
+		//and out of the solid is the limiting factor.
+		final double biotNumberDough = h_bottom * (doughLayerThickness / 2.) / thermalConductivityDough;
 		//NOTE: Biot number should be less than about 0.1 to consider lumped-heat capacity calculations...
 
-		final double xiCheese = 0.3618;
-		final double cCheese = 1.0218;
 		final double xiDough = 0.5553;
 		final double cDough = 1.0511;
 		final double theta = (desiredInnerTemperature - bakingTemperatureTop) / (ambientTemperature - bakingTemperatureTop);
-		final double fourierNumberCheese = Math.log(theta / cCheese) / -Math.pow(xiCheese, 2.);
 		final double fourierNumberDough = Math.log(theta / cDough) / -Math.pow(xiDough, 2.);
-		//diffusivity [m^2 / s]
+		//thermal diffusivity = thermalConductivity / (density * specificHeat) [m^2 / s]
 		final double alpha2 = 1.3e-7;
-		final Duration tCheese = Duration.ofSeconds((long)(fourierNumberCheese * Math.pow(cheeseLayerThickness, 2.) / alpha2));
 		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(doughLayerThickness, 2.) / alpha2));
 
-		System.out.println(tCheese);
 		System.out.println(tDough);
 	}
 
