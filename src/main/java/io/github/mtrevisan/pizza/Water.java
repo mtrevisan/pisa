@@ -27,7 +27,7 @@ package io.github.mtrevisan.pizza;
 import io.github.mtrevisan.pizza.utils.Helper;
 
 
-public class Water{
+public final class Water{
 
 	//[°C]
 	public static final double ABSOLUTE_ZERO = 273.15;
@@ -42,6 +42,8 @@ public class Water{
 	private static final double[] SPECIFIC_HEAT_BT2_COEFFICIENTS = {-3.649e-8, 2.496e-10};
 	private static final double[] SPECIFIC_HEAT_BT3_COEFFICIENTS = {1.186e-6, 4.346e-9};
 
+
+	private Water(){}
 
 	/**
 	 * @see <a href="https://journals.ametsoc.org/view/journals/bams/98/7/bams-d-16-0174.1.xml">Methods for computing the boiling temperature of water at varying pressures</a>

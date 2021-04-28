@@ -45,19 +45,16 @@ public class CircularBakingPan extends BakingPanAbstract{
 	}
 
 	private CircularBakingPan(final double diameter, final BakingPanMaterial material, final double thickness){
+		super(material, thickness);
+
 		if(diameter <= 0.)
 			throw new IllegalArgumentException("Diameter must be positive");
-		Objects.requireNonNull(material, "Material must be present");
-		if(thickness <= 0.)
-			throw new IllegalArgumentException("Thickness must be positive");
 
 		this.diameter = diameter;
-		this.material = material;
-		this.thickness = thickness;
 	}
 
 	@Override
-	public double area(){
+	public final double area(){
 		return Math.PI * diameter * diameter / 4.;
 	}
 

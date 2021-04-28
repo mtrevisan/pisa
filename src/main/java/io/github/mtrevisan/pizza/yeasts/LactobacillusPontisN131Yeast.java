@@ -33,22 +33,22 @@ package io.github.mtrevisan.pizza.yeasts;
 public class LactobacillusPontisN131Yeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMin(){
+	public final double getTemperatureMin(){
 		return 0.0;
 	}
 
 	@Override
-	double getTemperatureOpt(){
+	final double getTemperatureOpt(){
 		return 0.0;
 	}
 
 	@Override
-	public double getTemperatureMax(){
+	public final double getTemperatureMax(){
 		return 0.0;
 	}
 
 	@Override
-	double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificGrowthRate(){
 		//± 0.01 hrs^-1
 		return 0.45;
 	}

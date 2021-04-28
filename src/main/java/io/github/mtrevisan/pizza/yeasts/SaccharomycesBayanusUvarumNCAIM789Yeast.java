@@ -34,25 +34,25 @@ package io.github.mtrevisan.pizza.yeasts;
 public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMin(){
+	public final double getTemperatureMin(){
 		//± 0.39 °C
 		return 0.93;
 	}
 
 	@Override
-	double getTemperatureOpt(){
+	final double getTemperatureOpt(){
 		//± 0.23 °C
 		return 26.78;
 	}
 
 	@Override
-	public double getTemperatureMax(){
+	public final double getTemperatureMax(){
 		//± 0.10 °C
 		return 37.02;
 	}
 
 	@Override
-	double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
 		//± 0.012 °C
 		return 0.307;

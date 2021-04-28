@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza.bakingpans;
 
+import java.util.Objects;
+
 
 public abstract class BakingPanAbstract{
 
@@ -34,9 +36,18 @@ public abstract class BakingPanAbstract{
 	protected boolean hasBakingSheet;
 
 
+	protected BakingPanAbstract(final BakingPanMaterial material, final double thickness){
+		Objects.requireNonNull(material, "Material must be present");
+		if(thickness <= 0.)
+			throw new IllegalArgumentException("Thickness must be positive");
+
+		this.material = material;
+		this.thickness = thickness;
+	}
+
 	public abstract double area();
 
-	public boolean hasBakingSheet(){
+	public final boolean hasBakingSheet(){
 		return hasBakingSheet;
 	}
 

@@ -50,7 +50,7 @@ public abstract class YeastModelAbstract{
 	 * @param temperature	Temperature [°C].
 	 * @return	Volume expansion ratio.
 	 */
-	public double maximumSpecificGrowth(final double temperature){
+	public final double maximumSpecificGrowth(final double temperature){
 		final double tMin = getTemperatureMin();
 		final double tMax = getTemperatureMax();
 		if(temperature <= tMin || tMax <= temperature)
@@ -76,14 +76,14 @@ public abstract class YeastModelAbstract{
 	 * @param ingredientsFactor	Factor to account for other ingredients effects.
 	 * @return	Volume expansion ratio (∆V / V).
 	 */
-	public double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
+	public final double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){
 		final double mu = ingredientsFactor * maximumSpecificGrowth(temperature);
 		return (alpha > 0. && time > 0.? alpha * Math.exp(-Math.exp(mu * Math.E * (lambda - time) / alpha + 1.)): 0.);
 	}
 
 	@Override
-	public String toString(){
+	public final String toString(){
 		return getClass().getSimpleName() + "{T(" + getTemperatureMin() + ", " + getTemperatureOpt() + ", " + getTemperatureMax()
 			+ "), μ: " + getMaximumSpecificGrowthRate() + "}";
 	}

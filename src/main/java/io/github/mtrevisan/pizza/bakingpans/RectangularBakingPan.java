@@ -25,9 +25,6 @@
 package io.github.mtrevisan.pizza.bakingpans;
 
 
-import java.util.Objects;
-
-
 public class RectangularBakingPan extends BakingPanAbstract{
 
 	/** Baking pan edge 1 dimension [cm]. */
@@ -49,20 +46,17 @@ public class RectangularBakingPan extends BakingPanAbstract{
 	}
 
 	private RectangularBakingPan(final double edge1, final double edge2, final BakingPanMaterial material, final double thickness){
+		super(material, thickness);
+
 		if(edge1 <= 0. || edge2 <= 0.)
 			throw new IllegalArgumentException("Edges must be positive");
-		Objects.requireNonNull(material, "Material must be present");
-		if(thickness <= 0.)
-			throw new IllegalArgumentException("Thickness must be positive");
 
 		this.edge1 = edge1;
 		this.edge2 = edge2;
-		this.material = material;
-		this.thickness = thickness;
 	}
 
 	@Override
-	public double area(){
+	public final double area(){
 		return edge1 * edge2;
 	}
 

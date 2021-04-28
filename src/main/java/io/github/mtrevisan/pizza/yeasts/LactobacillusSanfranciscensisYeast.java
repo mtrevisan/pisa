@@ -33,25 +33,25 @@ package io.github.mtrevisan.pizza.yeasts;
 public class LactobacillusSanfranciscensisYeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMin(){
+	public final double getTemperatureMin(){
 		//± 1.5 °C
 		return 4.5;
 	}
 
 	@Override
-	double getTemperatureOpt(){
+	final double getTemperatureOpt(){
 		//± 0.5 °C
 		return 32.5;
 	}
 
 	@Override
-	public double getTemperatureMax(){
+	public final double getTemperatureMax(){
 		//± 0.1 °C
 		return 41.0;
 	}
 
 	@Override
-	double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificGrowthRate(){
 		return 0.71;
 	}
 

@@ -34,25 +34,25 @@ package io.github.mtrevisan.pizza.yeasts;
 public class SaccharomycesCerevisiaePE35MYeast extends YeastModelAbstract{
 
 	@Override
-	public double getTemperatureMin(){
+	public final double getTemperatureMin(){
 		//± 0.23 °C
 		return 5.04;
 	}
 
 	@Override
-	double getTemperatureOpt(){
+	final double getTemperatureOpt(){
 		//± 0.22 °C
 		return 29.99;
 	}
 
 	@Override
-	public double getTemperatureMax(){
+	public final double getTemperatureMax(){
 		//± 0.12 °C
 		return 45.48;
 	}
 
 	@Override
-	double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
 		//± 0.008 °C
 		return 0.375;
