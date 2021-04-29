@@ -60,12 +60,12 @@ public class Toaster{
 
 	private static final double[] AIR_SPECIFIC_HEAT_COEFFICIENTS = {0.251625, -9.2525e-5, 2.1334e-7, -1.0043e-10};
 	private static final double[] WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS = {0.452219, -1.29224e-4, 4.17008e-7, -2.00401e-10};
-	/** Specific heat of water [J / (g * K)]. */
-	private static final double WATER_SPECIFIC_HEAT = 4.184;
 	/** Ratio of molar mass of water to molar mass of air. */
-	private static final double WATER_AIR_MOLAR_MASS_RATIO = 0.622;
+	private static final double WATER_AIR_MOLAR_MASS_RATIO = 18.01528 / 28.97;
 
 	private static final double[] WATER_VAPOR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
+
+	private static final double[] WATER_SPECIFIC_HEAT_COEFFICIENTS = {0.2366, 2.37e-4, -6.723e-6, 8.118e-8, -4.984e-10, 1.422e-12, -1.5612e-15};
 
 	private static final double[] AIR_VISCOSITY_PRESSURE_COEFFICIENTS = {-2.44358e-10, 1.17237e-11, 1.25541e-16};
 
@@ -177,21 +177,21 @@ public class Toaster{
 		System.out.println(tDough);
 	}
 
-	private double calculateRadiationFactor(double area, final double emissivity, final double viewFactor12){
-		return 1. / ((1. - EMISSIVITY_NICHROME_WIRE) / (EMISSIVITY_NICHROME_WIRE * area) + 1. / (area * viewFactor12)
+	private double calculateRadiationFactor(double area, final double emissivity, final double viewFactor){
+		return 1. / ((1. - EMISSIVITY_NICHROME_WIRE) / (EMISSIVITY_NICHROME_WIRE * area) + 1. / (area * viewFactor)
 			+ (1. - emissivity) / (emissivity * area));
 	}
 
-	private double calculateNusseltNumberTop(final double rayleighNumberTop){
-		return (rayleighNumberTop <= 1.e7?
+	private double calculateNusseltNumberTop(final double rayleighNumber){
+		return (rayleighNumber <= 1.e7?
 			//10^4 <= Ra <= 10^7, Pr >= 0.7
-			0.52 * Math.pow(rayleighNumberTop, 0.2):
+			0.52 * Math.pow(rayleighNumber, 0.2):
 			//10^7 <= Ra <= 10^11
-			0.15 * Math.pow(rayleighNumberTop, 1. / 3.));
+			0.15 * Math.pow(rayleighNumber, 1. / 3.));
 	}
 
-	private double calculateNusseltNumberBottom(final double rayleighNumberBottom){
-		return 0.54 * Math.pow(rayleighNumberBottom, 0.25);
+	private double calculateNusseltNumberBottom(final double rayleighNumber){
+		return 0.54 * Math.pow(rayleighNumber, 0.25);
 	}
 
 	/**
@@ -212,11 +212,11 @@ public class Toaster{
 	private double calculateRayleighNumber(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double distanceFromHeatSource, final double initialTemperature, final double gravity){
 		//thermal expansion coefficient [K^-1]
-		final double thermalExpansion = airThermalExpansion(airTemperature, airRelativeHumidity);
+		final double thermalExpansion = calculateAirThermalExpansion(airTemperature, airRelativeHumidity);
 		final double density = calculateAirDensity(airTemperature, airPressure, airRelativeHumidity);
 		final double kinematicViscosity = calculateKinematicViscosity(airTemperature, airPressure, density);
-		final double thermalconductivity = calculateAirThermalConductivity(airTemperature);
-		final double thermalDiffusivity = calculateAirThermalDiffusivity(thermalconductivity, airTemperature, density);
+		final double thermalConductivity = calculateAirThermalConductivity(airTemperature);
+		final double thermalDiffusivity = calculateAirThermalDiffusivity(thermalConductivity, airTemperature, density);
 		//FIXME this is only for natural convection!
 		return gravity * thermalExpansion * (airTemperature - initialTemperature) * Math.pow(distanceFromHeatSource, 3.)
 			/ (kinematicViscosity * thermalDiffusivity);
@@ -224,57 +224,64 @@ public class Toaster{
 
 	//https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf
 	//cds.cern.ch/record/732229/files/0404117.pdf?version=2
-	private double airThermalExpansion(final double airTemperature, final double airRelativeHumidity){
+	private double calculateAirThermalExpansion(final double temperature, final double relativeHumidity){
 		//[cal / (g * K)]
-		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
+		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
 		//[cal / (g * K)]
-		final double specificHeatWater = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
-			airTemperature + ABSOLUTE_ZERO);
+		final double specificHeatWaterVapor = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
+			temperature + ABSOLUTE_ZERO);
 		//[J / (kg * K)]
-		final double specificHeat = WATER_SPECIFIC_HEAT
-			* (specificHeatAir + airRelativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWater - specificHeatAir))
-			/ (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * airRelativeHumidity);
-		return specificHeat * 0.001;
+		return calculateWaterSpecificHeat(temperature)
+			* (specificHeatAir + relativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWaterVapor - specificHeatAir))
+			/ (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * relativeHumidity);
 	}
 
-	private double calculateAirDensity(final double airTemperature, final double airPressure, final double airRelativeHumidity){
-		final double densityDryAir = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));
-		final double vaporPressureWater = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
-		final double densityMoist = airRelativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Specific heat of water [J / (g * K)].
+	 */
+	private double calculateWaterSpecificHeat(final double temperature){
+		return 1. / Helper.evaluatePolynomial(WATER_SPECIFIC_HEAT_COEFFICIENTS, temperature);
+	}
+
+	private double calculateAirDensity(final double temperature, final double pressure, final double relativeHumidity){
+		final double densityDryAir = pressure * 100. / (R_DRY_AIR * (temperature + ABSOLUTE_ZERO));
+		final double vaporPressureWater = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, temperature), 8.);
+		final double densityMoist = relativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (temperature + ABSOLUTE_ZERO));
 		return densityDryAir + densityMoist;
 	}
 
 	/**
 	 * @see <a href="https://www.govinfo.gov/content/pkg/GOVPUB-C13-1e519f3df711118b18efd158bf34023b/pdf/GOVPUB-C13-1e519f3df711118b18efd158bf34023b.pdf">Interpolation formulas for viscosity of six gases: air, nitrogen, carbon dioxide, helium, argon, and oxygen</a>
 	 *
-	 * @param airTemperature	Temperature [°C].
-	 * @param airDensity	Air density [kg / m^3].
+	 * @param temperature	Temperature [°C].
+	 * @param density	Air density [kg / m^3].
 	 * @return	The kinematic viscosity [m^2 / s].
 	 */
-	private double calculateKinematicViscosity(final double airTemperature, final double airPressure, final double airDensity){
+	private double calculateKinematicViscosity(final double temperature, final double pressure, final double density){
 		//Sutherland equation
-		final double temp = airTemperature + ABSOLUTE_ZERO;
+		final double temp = temperature + ABSOLUTE_ZERO;
 		final double dynamicViscosity0 = 1.458e-6 * temp * Math.sqrt(temp) / (temp + 110.4);
-		final double dynamicViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, airPressure);
-		return (dynamicViscosity0 + dynamicViscosityP) / airDensity;
+		final double dynamicViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, pressure);
+		return (dynamicViscosity0 + dynamicViscosityP) / density;
 	}
 
-	private double calculateAirThermalConductivity(final double airTemperature){
-		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
+	private double calculateAirThermalConductivity(final double temperature){
+		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
 	}
 
 	/**
 	 * @see <a href="https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf">Calculation methods for the physical properties of air used in the calibration of microphones</a>
 	 *
 	 * @param thermalConductivity	Air thermal conductivity [W / (m * K)].
-	 * @param airTemperature	Air temperature [°C].
-	 * @param airDensity	Air density [kg / m^3].
+	 * @param temperature	Air temperature [°C].
+	 * @param density	Air density [kg / m^3].
 	 * @return	The air thermal diffusivity [m^2 / s].
 	 */
-	private double calculateAirThermalDiffusivity(final double thermalConductivity, final double airTemperature, final double airDensity){
+	private double calculateAirThermalDiffusivity(final double thermalConductivity, final double temperature, final double density){
 		//specific thermal capacity at constant pressure [J / (kg * K)]
-		final double specificHeat = 1002.5 + 275.e-6 * Math.pow(airTemperature + ABSOLUTE_ZERO - 200., 2.);
-		return thermalConductivity / (specificHeat * airDensity);
+		final double specificHeat = 1002.5 + 275.e-6 * Math.pow(temperature + ABSOLUTE_ZERO - 200., 2.);
+		return thermalConductivity / (specificHeat * density);
 	}
 
 	private double calculateConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
