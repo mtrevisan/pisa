@@ -118,7 +118,7 @@ public class A243491{
 		/** pan density [kg / m^3]. */
 		double panDensity = 0.;
 		/** pan thermal conductivity [W / (m * K)]. */
-		double patThermalConductivity = 0.;
+		double panThermalConductivity = 0.;
 		/** pan specific heat [J / (kg * K)]. */
 		double panSpecificHeat = 0.;
 		/** pan emissivity. */
@@ -138,7 +138,7 @@ public class A243491{
 
 		/** number of sections. */
 		int shellNodes = 10;
-		test.doThings(initialDoughProtein, initialDoughFat, initialDoughCarbohydrate, initialDoughFiber, initialDoughAsh, initialDoughMoisture, initialTomatoMoisture, initialDoughWeight, initialTomatoWeight, initialOilWeight, initialDoughThickness, initialPizzaTemperature, finalOilWeight, finalShellAndTomatoWeight, finalMoistureAbsorbedFromToppingsByShell, finalShellThickness, finalCrustThickness, finalTomatoTemperature, panThickness, pizzaDiameter, panDensity, patThermalConductivity, panSpecificHeat, panEmissivity, totalCookingTime, ovenTemperature, airPressure, airRelativeHumidity, ovenAirSpeed, crustEffectiveDiffusivity, shellNodes);
+		test.doThings(initialDoughProtein, initialDoughFat, initialDoughCarbohydrate, initialDoughFiber, initialDoughAsh, initialDoughMoisture, initialTomatoMoisture, initialDoughWeight, initialTomatoWeight, initialOilWeight, initialDoughThickness, initialPizzaTemperature, finalOilWeight, finalShellAndTomatoWeight, finalMoistureAbsorbedFromToppingsByShell, finalShellThickness, finalCrustThickness, finalTomatoTemperature, panThickness, pizzaDiameter, panDensity, panThermalConductivity, panSpecificHeat, panEmissivity, totalCookingTime, ovenTemperature, airPressure, airRelativeHumidity, ovenAirSpeed, crustEffectiveDiffusivity, shellNodes);
 	}
 
 	public void doThings(
@@ -194,7 +194,7 @@ public class A243491{
 			/** pan density [kg / m^3]. */
 			double panDensity,
 			/** pan thermal conductivity [W / (m * K)]. */
-			double patThermalConductivity,
+			double panThermalConductivity,
 			/** pan specific heat [J / (kg * K)]. */
 			double panSpecificHeat,
 			/** pan emissivity. */
@@ -299,7 +299,7 @@ public class A243491{
 			insidePanTemperatureAtT = initialPizzaTemperature;
 			Double doughSpecificHeat = null;
 			for(int cookingTime = 0; cookingTime < totalCookingTime; cookingTime ++){
-				final double tmp = (patThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT);
+				final double tmp = (panThermalConductivity / (panThickness / 1000.)) * (outsidePanTemperatureAtT - insidePanTemperatureAtT);
 				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT
 					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT)
 					- tmp

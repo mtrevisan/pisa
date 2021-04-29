@@ -25,6 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
+import io.github.mtrevisan.pizza.utils.Helper;
 
 import java.time.Duration;
 
@@ -49,6 +50,20 @@ The desired midplane temperature was 73.9 °C as set in the food industry for co
 */
 public class Toaster{
 
+	//[°C]
+	public static final double ABSOLUTE_ZERO = 273.15;
+
+	/** Specific gas constant for dry air [J / (kg * K)]. */
+	private static final double R_DRY_AIR = 287.05;
+	/** Specific gas constant for water vapor [J / (kg * K)]. */
+	private static final double R_WATER_VAPOR = 461.495;
+
+	private static final double[] WATER_VAPOR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
+
+	private static final double[] AIR_VISCOSITY_PRESSURE_COEFFICIENTS = {-2.44358e-10, 1.17237e-11, 1.25541e-16};
+
+	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
+
 	//[m / s^2]
 	private static final double STANDARD_GRAVITATIONAL_ACCELERATION = 9.80665;
 	//[m]
@@ -63,26 +78,26 @@ public class Toaster{
 			0.002, 0.002, 0.009, 0.016,
 			BakingPanMaterial.ALUMINIUM, 0.001, 0.033,
 			OvenType.FORCED_CONVECTION, 760., 0.0254, 760., 0.0254,
-			20.85, 0.5, 45.723851, 27.);
+			20.85, 1013.25, 0.5, 45.723851, 27.);
 //		new Toaster(
 //			0.002, 0.001, 0.015, 0.042,
 //			BakingPanMaterial.ALUMINIUM, 0.001, 0.068,
 //			OvenType.FORCED_CONVECTION, 220., 0.15, 220., 0.15,
-//			17., 0.5, 45.723851, 27.);
+//			17., 1013.25, 0.5, 45.723851, 27.);
 	}
 
 	Toaster(
-				//pizza
-				final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness, final double pizzaArea,
-				//pan
-				final BakingPanMaterial panMaterial, final double panThickness, final double panArea,
-				//oven
-				final OvenType ovenType, final double bakingTemperatureTop, final double topDistance, final double bakingTemperatureBottom, final double bottomDistance,
-				//ambient
-				final double ambientTemperature, final double ambientHumidityRatio, final double latitude, final double altitude){
+		//pizza
+		final double cheeseLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness, final double pizzaArea,
+		//pan
+		final BakingPanMaterial panMaterial, final double panThickness, final double panArea,
+		//oven
+		final OvenType ovenType, final double bakingTemperatureTop, final double topDistance, final double bakingTemperatureBottom, final double bottomDistance,
+		//ambient
+		final double ambientTemperature, final double airPressure, final double airRelativeHumidity, final double latitude, final double altitude){
 		final double gravity = calculateGravity(latitude, altitude);
-		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, topDistance, ambientTemperature, gravity);
-		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, bottomDistance, ambientTemperature, gravity);
+		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, airPressure, airRelativeHumidity, topDistance, ambientTemperature, gravity);
+		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, airPressure, airRelativeHumidity, bottomDistance, ambientTemperature, gravity);
 
 		//[W / (m * K)]
 		final double airThermalConductivity = 5.49e-2;
@@ -179,16 +194,52 @@ public class Toaster{
 		return g0 - 3.086e-6 * altitude;
 	}
 
-	private double calculateRayleighNumber(final double bakingTemperatureTop, final double topDistance, final double ambientTemperature,
-			final double gravity){
+	private double calculateRayleighNumber(final double airTemperature, final double airPressure, final double airRelativeHumidity,
+			final double distanceFromHeatSource, final double initialTemperature, final double gravity){
 		//thermal expansion coefficient [K^-1]
 		final double thermalExpansion = 1.55e-3;
-		//kinematic viscosity [m^2 / s]
-		final double nu = 7.64e-5;
-		//air diffusivity [m^2 / s]
-		final double alpha = 1.09e-4;
+		final double airDensity = calculateAirDensity(airTemperature, airPressure, airRelativeHumidity);
+		final double airKinematicViscosity = calculateKinematicViscosity(airTemperature, airPressure, airDensity);
+		final double airThermalDiffusivity = calculateAirThermalDiffusivity(airTemperature, airDensity);
 		//FIXME this is only for natural convection!
-		return thermalExpansion * gravity * (bakingTemperatureTop - ambientTemperature) * Math.pow(topDistance, 3.) / (nu * alpha);
+		return thermalExpansion * gravity * (airTemperature - initialTemperature) * Math.pow(distanceFromHeatSource, 3.) / (airKinematicViscosity * airThermalDiffusivity);
+	}
+
+	private double calculateAirDensity(final double airTemperature, final double airPressure, final double airRelativeHumidity){
+		final double dryAirDensity = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));
+		final double waterVaporPressure = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
+		final double moistDensity = airRelativeHumidity * waterVaporPressure / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
+		return dryAirDensity + moistDensity;
+	}
+
+	/**
+	 * @see <a href="https://www.govinfo.gov/content/pkg/GOVPUB-C13-1e519f3df711118b18efd158bf34023b/pdf/GOVPUB-C13-1e519f3df711118b18efd158bf34023b.pdf">Interpolation formulas for viscosity of six gases: air, nitrogen, carbon dioxide, helium, argon, and oxygen</a>
+	 *
+	 * @param airTemperature	Temperature [°C].
+	 * @param airDensity	Air density [kg / m^3].
+	 * @return	The kinematic viscosity [m^2 / s].
+	 */
+	private double calculateKinematicViscosity(final double airTemperature, final double airPressure, final double airDensity){
+		//Sutherland equation
+		final double temp = airTemperature + ABSOLUTE_ZERO;
+		final double dynamicViscosity0 = 1.458e-6 * temp * Math.sqrt(temp) / (temp + 110.4);
+		final double dynamicViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, airPressure);
+		return (dynamicViscosity0 + dynamicViscosityP) / airDensity;
+	}
+
+	/**
+	 * @see <a href="https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf">Calculation methods for the physical properties of air used in the calibration of microphones</a>
+	 *
+	 * @param airTemperature	Air temperature [°C].
+	 * @param airDensity	Air density [kg / m^3].
+	 * @return	The air thermal diffusivity [m^2 / s].
+	 */
+	private double calculateAirThermalDiffusivity(final double airTemperature, final double airDensity){
+		//[W / (m * K)]
+		final double airThermalConductivity = Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
+		//specific thermal capacity at constant pressure [J / (kg * K)]
+		final double airSpecificHeat = 1002.5 + 275.e-6 * Math.pow(airTemperature + ABSOLUTE_ZERO - 200., 2.);
+		return airThermalConductivity / (airSpecificHeat * airDensity);
 	}
 
 }
