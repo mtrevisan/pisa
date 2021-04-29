@@ -41,7 +41,7 @@ public class RectangularBakingPan extends BakingPanAbstract{
 	public static RectangularBakingPan createWithBakingSheet(final double edge1, final double edge2, final BakingPanMaterial material,
 			final double thickness){
 		final RectangularBakingPan pan = create(edge1, edge2, material, thickness);
-		pan.hasBakingSheet = true;
+		pan.hasBakingParchmentPaper = true;
 		return pan;
 	}
 

@@ -36,14 +36,16 @@ https://skill-lync.com/projects/Solving-the-2D-heat-conduction-equation-for-stea
 https://www.researchgate.net/publication/333582112_THE_DESIGN_OF_A_PIZZA_TOASTER
 http://facstaff.cbu.edu/rprice/lectures/unsteady.html
 
-convection top
+model:
+convection + radiation top
 air
 mozzarella
 tomato
 crust
+(baking paper)
 tray
 air
-convection bottom
+convection + radiation bottom
 
 Lumped-heat assumed!
 The desired midplane temperature was 73.9 °C as set in the food industry for cooked food(8)
@@ -110,18 +112,21 @@ public class Toaster{
 		final double nusseltNumberTop = calculateNusseltNumberTop(rayleighNumberTop);
 		//10^4 <= Ra <= 10^9, Pr >= 0.7
 		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
-		//convective thermal coefficient [W / (m^2 * K)]
+		//top air thermal conductivity [W / (m * K)]
 		final double airThermalConductivityTop = calculateAirThermalConductivity(bakingTemperatureTop);
-		final double h_top = airThermalConductivityTop * nusseltNumberTop / topDistance;
 		//convective thermal coefficient [W / (m^2 * K)]
+		final double h_top = airThermalConductivityTop * nusseltNumberTop / topDistance;
+		//bottom air thermal conductivity [W / (m * K)]
 		final double airThermalConductivityBottom = calculateAirThermalConductivity(bakingTemperatureBottom);
+		//convective thermal coefficient [W / (m^2 * K)]
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
 		//mozzarella thermal conductivity [W / (m * K)]
 		final double thermalConductivityMozzarella = calculateConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
-			//tomato thermal conductivity [W / (m * K)]
+		//tomato thermal conductivity [W / (m * K)]
 		final double thermalConductivityTomato = calculateConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
 		//dough thermal conductivity [W / (m * K)]
 		final double thermalConductivityDough = calculateConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
+
 		//[K / W]
 		final double thermalResistanceTopAir = topDistance / (h_top * pizzaArea);
 		//[K / W]
@@ -142,22 +147,24 @@ public class Toaster{
 		//[K / W]
 		final double thermalResistanceBottom = thermalResistanceBottomAir + thermalResistancePan + thermalResistanceDoughBottom;
 
-		//energy required to bring the dough to 73.9 °C by convection [W]
-		final double energyTop = (bakingTemperatureTop - DESIRED_BAKED_DOUGH_TEMPERATURE) / thermalResistanceTop;
-		final double energyBottom = (bakingTemperatureBottom - DESIRED_BAKED_DOUGH_TEMPERATURE) / thermalResistanceBottom;
+		//energy transferred by convection to the top surface of the pizza [W]
+		final double energyConvectionTop = (bakingTemperatureTop - DESIRED_BAKED_DOUGH_TEMPERATURE) / thermalResistanceTop;
+		//energy transferred by convection to the bottom surface of the tray [W]
+		final double energyConvectionBottom = (bakingTemperatureBottom - DESIRED_BAKED_DOUGH_TEMPERATURE) / thermalResistanceBottom;
 
 
 		final double viewFactor12 = 0.87;
 		//proportion of the radiation which leaves surface 1 that strikes surface 2
 		final double factorTop = calculateRadiationFactor(pizzaArea, EMISSIVITY_PIZZA, viewFactor12);
-		//energy transferred by radiation to the top surface [W]
-		final double energy12Top = factorTop * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+		//energy transferred by radiation to the top surface of the pizza [W]
+		final double energyRadiationTop = factorTop * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
 		final double factorBottom = calculateRadiationFactor(pizzaArea, panMaterial.emissivity, viewFactor12);
-		//energy transferred by radiation to the bottom surface [W]
-		final double energy12Bottom = factorBottom * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+		//energy transferred by radiation to the bottom surface of the tray [W]
+		final double energyRadiationBottom = factorBottom * SIGMA * (Math.pow(bakingTemperatureBottom, 4.) - Math.pow(ambientTemperature, 4.));
 
-		final double totalEnergyTop = energyTop + energy12Top;
-		final double totalEnergyBottom = energyBottom + energy12Bottom;
+		final double totalEnergyTop = energyConvectionTop + energyRadiationTop;
+		final double totalEnergyBottom = energyConvectionBottom + energyRadiationBottom;
+
 
 		//Biot number represents the ratio of heat transfer resistance in the interior of the system (L / k in Bi = h * L / k) to the
 		//resistance between the surroundings and the system surface (1 / h).

@@ -33,7 +33,7 @@ public abstract class BakingPanAbstract{
 	//[m]
 	//https://www.centralrestaurant.com/resources/pizza-pans-buying-guide/
 	protected double thickness;
-	protected boolean hasBakingSheet;
+	protected boolean hasBakingParchmentPaper;
 
 
 	protected BakingPanAbstract(final BakingPanMaterial material, final double thickness){
@@ -47,8 +47,8 @@ public abstract class BakingPanAbstract{
 
 	public abstract double area();
 
-	public final boolean hasBakingSheet(){
-		return hasBakingSheet;
+	public final boolean hasBakingParchmentPaper(){
+		return hasBakingParchmentPaper;
 	}
 
 }

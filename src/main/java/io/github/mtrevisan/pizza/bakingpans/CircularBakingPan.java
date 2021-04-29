@@ -37,7 +37,7 @@ public class CircularBakingPan extends BakingPanAbstract{
 
 	public static CircularBakingPan createWithBakingSheet(final double diameter, final BakingPanMaterial material, final double thickness){
 		final CircularBakingPan pan = create(diameter, material, thickness);
-		pan.hasBakingSheet = true;
+		pan.hasBakingParchmentPaper = true;
 		return pan;
 	}
 
