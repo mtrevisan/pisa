@@ -188,20 +188,20 @@ public final class Oven{
 	/**
 	 * @param dough	Dough data.
 	 * @param bakingInstruments	Baking instruments.
-	 * @param doughLayerThickness	Initial dough height [cm].
-	 * @param cheeseLayerThickness	Cheese layer thickness [cm].
-	 * @param tomatoLayerThickness	Tomato layer thickness [cm].
+	 * @param layerThicknessDough	Initial dough height [cm].
+	 * @param layerThicknessMozzarella	Cheese layer thickness [cm].
+	 * @param layerThicknessTomato	Tomato layer thickness [cm].
 	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
 	 * @return	Baking duration.
 	 */
-	private Duration calculateBakingDuration(final Dough dough, final BakingInstruments bakingInstruments, double doughLayerThickness,
-			double cheeseLayerThickness, double tomatoLayerThickness, final double brineBoilingTemperature){
-		cheeseLayerThickness /= 100.;
-		tomatoLayerThickness /= 100.;
-		doughLayerThickness /= 100.;
-		final ThermalDescriptionODE ode = new ThermalDescriptionODE(cheeseLayerThickness, tomatoLayerThickness, doughLayerThickness,
-			OvenType.FORCED_CONVECTION, bakingTemperatureTop, bakingTemperatureBottom, dough.ingredientsTemperature,
-			dough.airRelativeHumidity);
+	private Duration calculateBakingDuration(final Dough dough, final BakingInstruments bakingInstruments, double layerThicknessDough,
+			double layerThicknessMozzarella, double layerThicknessTomato, final double brineBoilingTemperature){
+		layerThicknessMozzarella /= 100.;
+		layerThicknessTomato /= 100.;
+		layerThicknessDough /= 100.;
+		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessDough,
+			OvenType.FORCED_CONVECTION, bakingTemperatureTop, bakingTemperatureBottom,
+			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity);
 
 		final double bbt = (brineBoilingTemperature - dough.ingredientsTemperature) / (bakingTemperatureTop - dough.ingredientsTemperature);
 		final UnivariateFunction f = time -> {

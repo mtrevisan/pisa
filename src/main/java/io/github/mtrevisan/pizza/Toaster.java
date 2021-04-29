@@ -120,11 +120,11 @@ public class Toaster{
 		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
 		//mozzarella thermal conductivity [W / (m * K)]
-		final double thermalConductivityMozzarella = calculateConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
+		final double thermalConductivityMozzarella = calculateThermalConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
 		//tomato thermal conductivity [W / (m * K)]
-		final double thermalConductivityTomato = calculateConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
+		final double thermalConductivityTomato = calculateThermalConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
 		//dough thermal conductivity [W / (m * K)]
-		final double thermalConductivityDough = calculateConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
+		final double thermalConductivityDough = calculateThermalConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
 
 		//[K / W]
 		final double thermalResistanceTopAir = topDistance / (h_top * pizzaArea);
@@ -215,16 +215,17 @@ public class Toaster{
 	}
 
 	//https://www3.nd.edu/~sst/teaching/AME60634/lectures/AME60634_F13_lecture25.pdf
-	private double calculateRayleighNumber(final double airTemperature, final double airPressure, final double airRelativeHumidity,
+	private double calculateRayleighNumber(final double temperature, final double pressure, final double relativeHumidity,
 			final double distanceFromHeatSource, final double initialTemperature, final double gravity){
 		//thermal expansion coefficient [K^-1]
-		final double thermalExpansion = calculateAirThermalExpansion(airTemperature, airRelativeHumidity);
-		final double density = calculateAirDensity(airTemperature, airPressure, airRelativeHumidity);
-		final double kinematicViscosity = calculateKinematicViscosity(airTemperature, airPressure, density);
-		final double thermalConductivity = calculateAirThermalConductivity(airTemperature);
-		final double thermalDiffusivity = calculateAirThermalDiffusivity(thermalConductivity, airTemperature, density);
+		final double thermalExpansion = calculateAirThermalExpansion(temperature, relativeHumidity);
+		final double density = calculateAirDensity(temperature, pressure, relativeHumidity);
+		final double kinematicViscosity = calculateKinematicViscosity(temperature, pressure, density);
+		final double thermalConductivity = calculateAirThermalConductivity(temperature);
+		final double specificHeat = calculateAirSpecificHeat(temperature);
+		final double thermalDiffusivity = calculateThermalDiffusivity(thermalConductivity, specificHeat, density);
 		//FIXME this is only for natural convection!
-		return gravity * thermalExpansion * (airTemperature - initialTemperature) * Math.pow(distanceFromHeatSource, 3.)
+		return gravity * thermalExpansion * (temperature - initialTemperature) * Math.pow(distanceFromHeatSource, 3.)
 			/ (kinematicViscosity * thermalDiffusivity);
 	}
 
@@ -276,22 +277,8 @@ public class Toaster{
 		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
 	}
 
-	/**
-	 * @see <a href="https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf">Calculation methods for the physical properties of air used in the calibration of microphones</a>
-	 *
-	 * @param thermalConductivity	Air thermal conductivity [W / (m * K)].
-	 * @param temperature	Air temperature [°C].
-	 * @param density	Air density [kg / m^3].
-	 * @return	The air thermal diffusivity [m^2 / s].
-	 */
-	private double calculateAirThermalDiffusivity(final double thermalConductivity, final double temperature, final double density){
-		//specific thermal capacity at constant pressure [J / (kg * K)]
-		final double specificHeat = 1002.5 + 275.e-6 * Math.pow(temperature + ABSOLUTE_ZERO - 200., 2.);
-		return thermalConductivity / (specificHeat * density);
-	}
-
-	private double calculateConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
-			final double fiber, final double ash, final double water){
+	private double calculateThermalConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
+		final double fiber, final double ash, final double water){
 		final double proteinFactor = 0.17881 + (0.0011958 - 2.7178e-6 * temperature) * temperature;
 		final double fatFactor = 0.18071 + (-2.7604e-4 - 1.7749e-7 * temperature) * temperature;
 		final double carbohydrateFactor = 0.20141 + (0.0013874 - 4.3312e-6 * temperature) * temperature;
@@ -304,6 +291,20 @@ public class Toaster{
 			+ fiberFactor * fiber
 			+ ashFactor * ash
 			+ waterFactor * water;
+	}
+
+	/**
+	 * @see <a href="https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf">Calculation methods for the physical properties of air used in the calibration of microphones</a>
+	 *
+	 * @param temperature	Air temperature [°C].
+	 * @return	The air specific heat [J / (kg * K)].
+	 */
+	private double calculateAirSpecificHeat(final double temperature){
+		return 1002.5 + 275.e-6 * Math.pow(temperature + ABSOLUTE_ZERO - 200., 2.);
+	}
+
+	private double calculateThermalDiffusivity(final double thermalConductivity, final double specificHeat, final double density){
+		return thermalConductivity / (specificHeat * density);
 	}
 
 }
