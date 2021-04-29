@@ -49,6 +49,11 @@ The desired midplane temperature was 73.9 °C as set in the food industry for co
 */
 public class Toaster{
 
+	//[m / s^2]
+	private static final double STANDARD_GRAVITATIONAL_ACCELERATION = 9.80665;
+	//[m]
+	private static final double EARTH_MEAN_RADIUS = 6.37810088e6;
+
 	//Stefan-Boltzmann constant [W / (m^2 * K^4)]
 	private static final double SIGMA = 5.670374419e-8;
 
@@ -58,7 +63,12 @@ public class Toaster{
 			0.002, 0.002, 0.009, 0.016,
 			BakingPanMaterial.ALUMINIUM, 0.001, 0.033,
 			OvenType.FORCED_CONVECTION, 760., 0.0254, 760., 0.0254,
-			21.1, 0.5);
+			20.85, 0.5, 45.723851, 27.);
+//		new Toaster(
+//			0.002, 0.001, 0.015, 0.042,
+//			BakingPanMaterial.ALUMINIUM, 0.001, 0.068,
+//			OvenType.FORCED_CONVECTION, 220., 0.15, 220., 0.15,
+//			17., 0.5, 45.723851, 27.);
 	}
 
 	Toaster(
@@ -69,19 +79,10 @@ public class Toaster{
 				//oven
 				final OvenType ovenType, final double bakingTemperatureTop, final double topDistance, final double bakingTemperatureBottom, final double bottomDistance,
 				//ambient
-				final double ambientTemperature, final double ambientHumidityRatio){
-		//thermal expansion coefficient [K^-1]
-		final double thermalExpansion = 1.55e-3;
-		//[m / s^2]
-		final double gravity = 9.807;
-		//kinematic viscosity [m^2 / s]
-		final double nu = 7.64e-5;
-		//diffusivity [m^2 / s]
-		final double alphaAir = 1.09e-4;
-		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, topDistance, ambientTemperature,
-			thermalExpansion, gravity, nu, alphaAir);
-		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, bottomDistance, ambientTemperature,
-			thermalExpansion, gravity, nu, alphaAir);
+				final double ambientTemperature, final double ambientHumidityRatio, final double latitude, final double altitude){
+		final double gravity = calculateGravity(latitude, altitude);
+		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, topDistance, ambientTemperature, gravity);
+		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, bottomDistance, ambientTemperature, gravity);
 
 		//[W / (m * K)]
 		final double airThermalConductivity = 5.49e-2;
@@ -143,6 +144,9 @@ public class Toaster{
 		//energy transferred by radiation to the bottom surface [W]
 		final double energy12Bottom = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
 
+		final double totalEnergyTop = energyTop + energy12Top;
+		final double totalEnergyBottom = energyBottom + energy12Bottom;
+
 		//Biot number represents the ratio of heat transfer resistance in the interior of the system (L / k in Bi = h * L / k) to the
 		//resistance between the surroundings and the system surface (1 / h).
 		//Therefore, small Bi represents the case were the surface film impedes heat transport and large Bi the case where conduction through
@@ -161,9 +165,30 @@ public class Toaster{
 		System.out.println(tDough);
 	}
 
+	/**
+	 * @see <a href="https://en.wikipedia.org/wiki/Gravity_of_Earth">Gravity of Earth</a>
+	 *
+	 * @param latitude	Latitude [°].
+	 * @param altitude	Altitude [m].
+	 * @return	The gravitational acceleration [m / s^2].
+	 */
+	private double calculateGravity(final double latitude, final double altitude){
+		final double sinLat = Math.sin(Math.toRadians(latitude));
+		final double sinLat2 = sinLat * sinLat;
+		final double g0 = 9.7803253359 * (1. + 0.001931850400 * sinLat2) / Math.sqrt(1. - 0.006694384442 * sinLat2);
+		return g0 - 3.086e-6 * altitude;
+	}
+
 	private double calculateRayleighNumber(final double bakingTemperatureTop, final double topDistance, final double ambientTemperature,
-			final double thermalExpansionCoeff, final double gravity, final double nu, final double alpha){
-		return thermalExpansionCoeff * gravity * (bakingTemperatureTop - ambientTemperature) * Math.pow(topDistance, 3.) / (nu * alpha);
+			final double gravity){
+		//thermal expansion coefficient [K^-1]
+		final double thermalExpansion = 1.55e-3;
+		//kinematic viscosity [m^2 / s]
+		final double nu = 7.64e-5;
+		//air diffusivity [m^2 / s]
+		final double alpha = 1.09e-4;
+		//FIXME this is only for natural convection!
+		return thermalExpansion * gravity * (bakingTemperatureTop - ambientTemperature) * Math.pow(topDistance, 3.) / (nu * alpha);
 	}
 
 }
