@@ -114,53 +114,6 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 
 /*
-https://www.cpp.edu/~lllee/TK3111heat.pdf pag 114 + 136 (Unsteady State Conduction!!!)
-https://skill-lync.com/projects/Solving-the-2D-heat-conduction-equation-for-steady-state-and-unsteady-state-using-iterative-methods-75446
-https://www.researchgate.net/publication/333582112_THE_DESIGN_OF_A_PIZZA_TOASTER
-
-convection top
-air
-cheese
-tomato
-crust
-tray
-air
-convection bottom
-
-Lumped-heat assumed!
-The desired midplane temperature was 73.9 °C as set in the food industry for cooked food(8)
-
-Rtop = Rtop_air + Rcheese + Rtomato + Rcrust_top
-Rbottom = Rbottom_air + Rtray + Rcrust_bottom
-where
-Rtop_air = 1 / (htop * A)
-Rcheese = Lcheese / (kcheese * A)
-Rtomato = Ltomato / (ktomato * A)
-Rcrust_top = Lcrust_top / (kcrust * A)
-Rbottom_air = 1 / (hbottom * A)
-Rtray = Ltray / (kAl * Atray)
-Rcrust_bottom = Lcrust_bottom / (kcrust * A)
-Lcrust_top = Lslice / 2 - Lcheese - Ltomato
-Lcrust_bottom = Lslice / 2 - Ltray
-kcheese = 0.384
-kcrust = 0.262
-
-heat transfer - convection:
-qtop = DT / Rtop = 80.734 W
-qbottom = DT / Rbottom = 200.916 W
-qtotal = qtop + qbottom = 281.65 W
-Ti = 21.1 °C
-DT = Tinf - Tmid = 760 - 74 = 686.111 K
-
-heat transfer - radiation:
-eps1 = 0.87, eps2 = 0.5, F12 = 0.8
-qtop = sigma * (T1^4 - T2^4) / ((1 - eps1) / (eps1 * A) + 1 / (A * F12) + (1 - eps2) / (eps2 * A)) = 433.71 W
-qbottom = same (eps2 = 0.8) = 630.92 W
-qtotal = qtop + qbottom = 1064.6 W
-*/
-
-
-/*
 https://www.sciencedirect.com/topics/engineering/convection-heat-transfer
 https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-050-thermal-energy-fall-2002/lecture-notes/10_part3.pdf
 https://www.cantorsparadise.com/the-heat-equation-a76d7773a0b5
@@ -249,7 +202,9 @@ qs_out = ms_n * Hf	heat moving out by steam conduction and diffusion
 q_ret = rho * cp * x * (t+1_T_n - t_T_n) + ms_ret	heat retained
 
 //system pizza + (pan + (baking sheet))
-q_in_top = (airThermalConductivity / roofDistance + airConvectiveHeatTransfer) * (TT - TpT(t)) + Css * e * (TT^4 - TpT(t)^4) + steamMassIn * steamConvectiveHeatTransfer
+q_in_top = (airThermalConductivity / roofDistance + airConvectiveHeatTransfer) * (TT - TpT(t))
+	+ Css * e * (TT^4 - TpT(t)^4)
+	+ steamMassIn * steamConvectiveHeatTransfer
 q_in_tomato = (cheeseThermalConductivity / cheeseThickness) * (TpT(t) - TcT(t)) + steamMassIn * steamConvectiveHeatTransfer
 q_in_dough = (doughThermalConductivity / doughThickness) * (TcT(t) - TdT(t)) + steamMassIn * steamConvectiveHeatTransfer
 q_in_bottom = (airThermalConductivity / floorDistance + airConvectiveHeatTransfer) * (TB - TpB(t)) + Css * e * (TB^4 - TpB(t)^4)
@@ -288,13 +243,11 @@ cp	dough specific heat
 
 		this.ambientHumidityRatio = ambientHumidityRatio;
 
-		moistureDiffusivityCheese = 0.7e-10;
-		//for tomato paste
+		moistureDiffusivityCheese = 7.e-11;
 		//FIXME depends on current temperature?
 		moistureDiffusivityTomato = (ovenType == OvenType.FORCED_CONVECTION?
 			9.9646e-10 * Math.exp(-605.93 / ambientTemperature):
 			1.7738e-10 * Math.exp(-1212.71 / ambientTemperature));
-		//for dough
 		//FIXME depends on current temperature?
 		moistureDiffusivityDough = (ovenType == OvenType.FORCED_CONVECTION?
 			7.0582e-8 * Math.exp(-1890.68 / ambientTemperature):

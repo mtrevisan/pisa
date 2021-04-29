@@ -109,16 +109,15 @@ public class Toaster{
 		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, airPressure, airRelativeHumidity, topDistance, ambientTemperature, gravity);
 		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, airPressure, airRelativeHumidity, bottomDistance, ambientTemperature, gravity);
 
-		final double nusseltNumberTop = calculateNusseltNumberTop(rayleighNumberTop);
-		//10^4 <= Ra <= 10^9, Pr >= 0.7
-		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
 		//top air thermal conductivity [W / (m * K)]
 		final double airThermalConductivityTop = calculateAirThermalConductivity(bakingTemperatureTop);
 		//convective thermal coefficient [W / (m^2 * K)]
+		final double nusseltNumberTop = calculateNusseltNumberTop(rayleighNumberTop);
 		final double h_top = airThermalConductivityTop * nusseltNumberTop / topDistance;
 		//bottom air thermal conductivity [W / (m * K)]
 		final double airThermalConductivityBottom = calculateAirThermalConductivity(bakingTemperatureBottom);
 		//convective thermal coefficient [W / (m^2 * K)]
+		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
 		//mozzarella thermal conductivity [W / (m * K)]
 		final double thermalConductivityMozzarella = calculateConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
