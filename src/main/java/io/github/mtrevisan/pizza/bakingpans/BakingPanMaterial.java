@@ -26,17 +26,19 @@ package io.github.mtrevisan.pizza.bakingpans;
 
 
 public enum BakingPanMaterial{
-	CAST_IRON(560.548, 52.),
+	CAST_IRON(560.548, 52., 0.64),
 
-	ALUMINIUM(896.9, 237.),
+	ALUMINIUM(896.9, 237., 0.8),
 
-	STAINLESS_STEEL_304(490. - 530., 14. - 17.),
-	STAINLESS_STEEL_316(490. - 530., 13. - 17.),
+	//https://inis.iaea.org/search/search.aspx?orig_q=RN:33040336
+	STAINLESS_STEEL_304(490. - 530., 14. - 17., 0.32 - 0.38),
+	//https://inis.iaea.org/search/search.aspx?orig_q=RN:33040336
+	STAINLESS_STEEL_316(490. - 530., 13. - 17., 0.44 - 0.51),
 
 	//https://www.electronics-cooling.com/1999/09/the-thermal-conductivity-of-ceramics/
-	CERAMIC(850., 80. - 200.),
-	CLAY(0.33, 0.15 - 1.8),
-	CORDIERITE_STONE(800. - 850., 3.);
+	CERAMIC(850., 80. - 200., -1.),
+	CLAY(0.33, 0.15 - 1.8, -1.),
+	CORDIERITE_STONE(800. - 850., 3., 0.95);
 
 
 	/** [J / (kg * K)] */
@@ -44,11 +46,13 @@ public enum BakingPanMaterial{
 	//https://www.cpp.edu/~lllee/TK3111heat.pdf pag 19
 	/** [W / (m * K)] */
 	public final double thermalConductivity;
+	public final double emissivity;
 
 
-	BakingPanMaterial(final double specificHeat, final double thermalConductivity){
+	BakingPanMaterial(final double specificHeat, final double thermalConductivity, final double emissivity){
 		this.specificHeat = specificHeat;
 		this.thermalConductivity = thermalConductivity;
+		this.emissivity = emissivity;
 	}
 
 }

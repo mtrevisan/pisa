@@ -79,6 +79,9 @@ public class Toaster{
 	//Stefan-Boltzmann constant [W / (m^2 * K^4)]
 	private static final double SIGMA = 5.670374419e-8;
 
+	private static final double EMISSIVITY_NICHROME_WIRE = 0.87;
+	private static final double EMISSIVITY_PIZZA = 0.5;
+
 	//[°C]
 	private static final double DESIRED_BAKED_DOUGH_TEMPERATURE = 73.9;
 
@@ -149,19 +152,14 @@ public class Toaster{
 		final double energyBottom = (bakingTemperatureBottom - DESIRED_BAKED_DOUGH_TEMPERATURE) / thermalResistanceBottom;
 
 
-		//proportion of the radiation which leaves surface 1 that strikes surface 2
 		final double viewFactor12 = 0.87;
-		final double emissivityNichromeWire = 0.87;
-		final double emissivityPizza = 0.5;
-		final double emissivityAluminumAlloy = 0.8;
-		double factor = 1. / ((1. - emissivityNichromeWire) / (emissivityNichromeWire * pizzaArea) + 1. / (pizzaArea * viewFactor12)
-			+ (1. - emissivityPizza) / (emissivityPizza * pizzaArea));
+		//proportion of the radiation which leaves surface 1 that strikes surface 2
+		final double factorTop = calculateRadiationFactor(pizzaArea, EMISSIVITY_PIZZA, viewFactor12);
 		//energy transferred by radiation to the top surface [W]
-		final double energy12Top = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
-		factor = 1. / ((1. - emissivityNichromeWire) / (emissivityNichromeWire * pizzaArea) + 1. / (pizzaArea * viewFactor12)
-			+ (1. - emissivityAluminumAlloy) / (emissivityAluminumAlloy * pizzaArea));
+		final double energy12Top = factorTop * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+		final double factorBottom = calculateRadiationFactor(pizzaArea, panMaterial.emissivity, viewFactor12);
 		//energy transferred by radiation to the bottom surface [W]
-		final double energy12Bottom = factor * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
+		final double energy12Bottom = factorBottom * SIGMA * (Math.pow(bakingTemperatureTop, 4.) - Math.pow(ambientTemperature, 4.));
 
 		final double totalEnergyTop = energyTop + energy12Top;
 		final double totalEnergyBottom = energyBottom + energy12Bottom;
@@ -182,6 +180,11 @@ public class Toaster{
 		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(doughLayerThickness, 2.) / alpha2));
 
 		System.out.println(tDough);
+	}
+
+	private double calculateRadiationFactor(double area, final double emissivity, final double viewFactor12){
+		return 1. / ((1. - EMISSIVITY_NICHROME_WIRE) / (EMISSIVITY_NICHROME_WIRE * area) + 1. / (area * viewFactor12)
+			+ (1. - emissivity) / (emissivity * area));
 	}
 
 	private double calculateNusseltNumberTop(final double rayleighNumberTop){
