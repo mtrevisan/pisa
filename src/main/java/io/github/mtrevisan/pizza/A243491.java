@@ -219,10 +219,10 @@ public class A243491{
 			ovenAirSpeed, pizzaDiameter);
 
 		shellNodes ++;
-		double initialDoughThicknessOverFinalDoughThickness = initialDoughThickness / finalShellThickness;
-		double doughSliceThickness = (finalShellThickness / 1000.) / (shellNodes - 1);
-		double[][] doughComponent = new double[6][shellNodes];
-		double[][] doughTemperature = new double[2][shellNodes];
+		final double initialDoughThicknessOverFinalDoughThickness = initialDoughThickness / finalShellThickness;
+		final double doughSliceThickness = (finalShellThickness / 1000.) / (shellNodes - 1);
+		final double[][] doughComponent = new double[6][shellNodes];
+		final double[][] doughTemperature = new double[2][shellNodes];
 		for(int index = 0; index < shellNodes; index ++){
 			doughComponent[INDEX_PROTEIN][index] = initialDoughProtein;
 			doughComponent[INDEX_FAT][index] = initialDoughFat;
@@ -234,13 +234,13 @@ public class A243491{
 		}
 		double outsidePanTemperatureAtT;
 		double insidePanTemperatureAtT;
-		double initialDoughVolume = (initialDoughThickness / 1000.) * Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
+		final double initialDoughVolume = (initialDoughThickness / 1000.) * Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
 		final double finalCrustVolume = (finalCrustThickness / 1000.) * Math.PI * Math.pow(pizzaDiameter / 2000., 2.);
 		//[%]
-		double doughVoidSpace = 1. - initialDoughWeight / (1000. * initialDoughVolume * doughDensity(initialPizzaTemperature, doughComponent,
-			0));
-		double totalMoistureLossDuringCooking = initialDoughWeight - finalShellAndTomatoWeight + finalMoistureAbsorbedFromToppingsByShell
-			+ initialTomatoWeight * initialTomatoMoisture - (initialOilWeight - finalOilWeight);
+		final double doughVoidSpace = 1. - initialDoughWeight / (1000. * initialDoughVolume * doughDensity(initialPizzaTemperature,
+			doughComponent, 0));
+		final double totalMoistureLossDuringCooking = initialDoughWeight - finalShellAndTomatoWeight
+			+ finalMoistureAbsorbedFromToppingsByShell + initialTomatoWeight * initialTomatoMoisture - (initialOilWeight - finalOilWeight);
 		final double tmp0 = finalCrustVolume * initialDoughWeight / (initialDoughVolume * (1. - doughVoidSpace));
 		final double initialCrustMoisture = tmp0 * initialDoughMoisture;
 		final double initialCrustProtein = tmp0 * initialDoughProtein;
@@ -269,15 +269,15 @@ public class A243491{
 		final double finalCrustAshPercent = initialCrustAsh / (finalCrustMoisture + finalCrustFat + initialCrustProtein
 			+ initialCrustCarbohydrates + initialCrustFiber + initialCrustAsh);
 		//[%]
-		double[][] oil = new double[6][1];
+		final double[][] oil = new double[6][1];
 		oil[1][0] = 1.;
 		//steam in void of dough slice `index`
-		double[] steamInVoid = new double[shellNodes];
+		final double[] steamInVoid = new double[shellNodes];
 		//initial moisture content in a slice of dough
 		final double initialMoistureContent = ((initialDoughWeight / 1000.) / initialDoughVolume) * (1. - doughVoidSpace)
 			* (doughSliceThickness * initialDoughThicknessOverFinalDoughThickness) * initialDoughMoisture;
 		//moisture in slice of dough at node `index`
-		double[] moistureContent = new double[shellNodes];
+		final double[] moistureContent = new double[shellNodes];
 		for(int index = 0; index < shellNodes; index ++)
 			moistureContent[index] = (index == 0 || index == shellNodes - 1? initialMoistureContent / 2.: initialMoistureContent);
 		final double oilAbsorbedByCrustInDT = ((initialOilWeight - finalOilWeight) / 1000.) / (finalCrustThickness / 1000.)

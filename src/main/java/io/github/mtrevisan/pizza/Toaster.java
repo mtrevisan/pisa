@@ -71,11 +71,6 @@ public class Toaster{
 
 	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
 
-	//[m / s^2]
-	private static final double STANDARD_GRAVITATIONAL_ACCELERATION = 9.80665;
-	//[m]
-	private static final double EARTH_MEAN_RADIUS = 6.37810088e6;
-
 	//Stefan-Boltzmann constant [W / (m^2 * K^4)]
 	private static final double SIGMA = 5.670374419e-8;
 
