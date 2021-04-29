@@ -122,11 +122,11 @@ public class Toaster{
 		final double airThermalConductivityBottom = calculateAirThermalConductivity(bakingTemperatureBottom);
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
 		//mozzarella thermal conductivity [W / (m * K)]
-		final double thermalConductivityMozzarella = 0.384;
-		//tomato thermal conductivity [W / (m * K)]
-		final double thermalConductivityTomato = 0.546;
+		final double thermalConductivityMozzarella = calculateConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
+			//tomato thermal conductivity [W / (m * K)]
+		final double thermalConductivityTomato = calculateConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
 		//dough thermal conductivity [W / (m * K)]
-		final double thermalConductivityDough = 0.262;
+		final double thermalConductivityDough = calculateConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
 		//[K / W]
 		final double thermalResistanceTopAir = topDistance / (h_top * pizzaArea);
 		//[K / W]
@@ -280,6 +280,22 @@ public class Toaster{
 		//specific thermal capacity at constant pressure [J / (kg * K)]
 		final double specificHeat = 1002.5 + 275.e-6 * Math.pow(airTemperature + ABSOLUTE_ZERO - 200., 2.);
 		return thermalConductivity / (specificHeat * airDensity);
+	}
+
+	private double calculateConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
+			final double fiber, final double ash, final double water){
+		final double proteinFactor = 0.17881 + (0.0011958 - 2.7178e-6 * temperature) * temperature;
+		final double fatFactor = 0.18071 + (-2.7604e-4 - 1.7749e-7 * temperature) * temperature;
+		final double carbohydrateFactor = 0.20141 + (0.0013874 - 4.3312e-6 * temperature) * temperature;
+		final double fiberFactor = 0.18331 + (0.0012497 - 3.1683e-6 * temperature) * temperature;
+		final double ashFactor = 0.32962 + (0.0014011 - 2.9069e-6 * temperature) * temperature;
+		final double waterFactor = 0.57109 + (0.0017625 - 6.7036e-6 * temperature) * temperature;
+		return proteinFactor * protein
+			+ fatFactor * fat
+			+ carbohydrateFactor * carbohydrate
+			+ fiberFactor * fiber
+			+ ashFactor * ash
+			+ waterFactor * water;
 	}
 
 }
