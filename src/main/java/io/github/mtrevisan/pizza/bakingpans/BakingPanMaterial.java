@@ -44,6 +44,7 @@ public enum BakingPanMaterial{
 	/** [J / (kg * K)] */
 	public final double specificHeat;
 	//https://www.cpp.edu/~lllee/TK3111heat.pdf pag 19
+	//https://en.wikipedia.org/wiki/List_of_thermal_conductivities
 	/** [W / (m * K)] */
 	public final double thermalConductivity;
 	public final double emissivity;
