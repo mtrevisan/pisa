@@ -380,22 +380,23 @@ cp	dough specific heat
 		//array of initial temperature (as (T - ambientTemperature) / (bakingTemperatureTop - ambientTemperature)) and moisture content
 		//by column
 		return new double[]{
-			//node 9, mozzarella layer
-			0., humidityRatioAmbient,
-			0., moistureContentMozzarella0 / moistureContentDough0,
-			//node 7, tomato paste layer
-			0., (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0),
-			0., moistureContentTomato0 / moistureContentDough0,
-			//node 5, surface of the dough layer
-			0., (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0),
-			//node 4, dough
+			//node 1, dough in contact with heated tray
+			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 1.,
+			//node 2, dough
 			0., 1.,
 			//node 3, dough
 			0., 1.,
-			//node 2, dough
+			//node 4, dough
 			0., 1.,
-			//node 1, dough in contact with heated tray
-			(bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature), 1.};
+			//node 5, surface of the dough layer
+			0., (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0),
+			0., moistureContentTomato0 / moistureContentDough0,
+			//node 7, tomato paste layer
+			0., (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0),
+			0., moistureContentMozzarella0 / moistureContentDough0,
+			//node 9, mozzarella layer
+			0., humidityRatioAmbient
+		};
 	}
 
 /*
@@ -493,29 +494,29 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	public final void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
 			DimensionMismatchException{
 		//node 9, mozzarella layer
-		calculateTopLayer(9, y, dydt);
+		calculateTopLayer(8, y, dydt);
 
-		calculateTomatoMozzarellaInterfaceLayer(8, y, dydt);
+		calculateTomatoMozzarellaInterfaceLayer(7, y, dydt);
 
 		//node 7, tomato paste layer
-		calculateInnerTomatoLayer(7, y, dydt);
+		calculateInnerTomatoLayer(6, y, dydt);
 
-		calculateDoughTomatoInterfaceLayer(6, y, dydt);
+		calculateDoughTomatoInterfaceLayer(5, y, dydt);
 
 		//node 5, surface of the dough layer
-		calculateDoughLayer(5, y, dydt);
+		calculateDoughLayer(4, y, dydt);
 
 		//node 4 to 2, dough
-		calculateInnerDoughLayer(4, y, dydt);
 		calculateInnerDoughLayer(3, y, dydt);
 		calculateInnerDoughLayer(2, y, dydt);
+		calculateInnerDoughLayer(1, y, dydt);
 
 		//TODO add contact layer between dough and baking parchment paper
 		//TODO add contact layer between baking parchment paper and pan
 		//TODO consider layer 1 as convection and irradiation, not only convection
 
 		//node 1, dough in contact with heated tray
-		calculateBottomLayer(1, y, dydt);
+		calculateBottomLayer(0, y, dydt);
 	}
 
 	private void calculateTopLayer(final int layer, final double[] y, final double[] dydt){
@@ -608,19 +609,19 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	}
 
 	private double getTheta(final int layer, final double[] array){
-		return array[array.length - layer * 2];
+		return array[layer * 2];
 	}
 
 	private void setTheta(final int layer, final double[] array, final double value){
-		array[array.length - layer * 2] = value;
+		array[layer * 2] = value;
 	}
 
 	private double getC(final int layer, final double[] array){
-		return array[array.length - layer * 2 + 1];
+		return array[layer * 2 + 1];
 	}
 
 	private void setC(final int layer, final double[] array, final double value){
-		array[array.length - layer * 2 + 1] = value;
+		array[layer * 2 + 1] = value;
 	}
 
 }

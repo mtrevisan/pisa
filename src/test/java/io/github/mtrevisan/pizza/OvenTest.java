@@ -91,7 +91,7 @@ class OvenTest{
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(19, 45), recipe.getSeasoningInstant());
 		Assertions.assertEquals(220.0, instructions.getBakingTemperature(), 0.1);
-		//FIXME should be around 12 min, not 109 s = 1 min 49 s
+		//FIXME should be around 12 min, not 97 s
 		Assertions.assertEquals(109., instructions.getBakingDuration().getSeconds(), 1.);
 	}
 
