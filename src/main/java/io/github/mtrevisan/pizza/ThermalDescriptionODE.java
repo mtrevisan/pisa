@@ -409,8 +409,10 @@ cp	dough specific heat
 
 /*
 @see <a href="https://www.ndt.net/article/apcndt2006/papers/38.pdf">Chiang, Pan, Liaw, Chi, Chu. Modeling of heat transfer in a multi-layered system for infrared inspection of a building wall. 2006.</a>
+@see <a href="https://www.cpp.edu/~lllee/TK3111heat.pdf">Nguyen. Transport IID - Lecture notes. 2014.</a>
+math symbols: https://www.compart.com/en/unicode/
 
-Heat transfer:
+Heat transfer (unsteady state conduction):
 ∂Q/dτ + ∇ · V = 0
 where
 Q is the heat, ρ · Cp · T [J]
@@ -441,24 +443,38 @@ T[m](t) is the temperature at node m and time t
 The temperature variation at the boundary of layer is calculated using the relation
 (2) k · (T[m-1](t) - T[m](t)) / Δx + σ · ε · (T∞⁴ - T[m](t)⁴) - h · (T[m](t) - T∞) = ρ · Cp · (Δx / 2) · (T[m](t+1) - T[m](t)) / dτ
 where
+the first term is the Fourier's law for the conduction
+the second term is the radiation
+the third term is the Newton's law for the convection
 T∞ is the ambient temperature
 σ is the Stephan-Boltzmann constant
 ε is the thermal emissivity
 h is the convection coefficient
 
-The temperature variation across the  of internal layers A and B is calculated using the relation
+The temperature variation across the internal layers A and B is calculated using the relation
 (3) kA · (T[m-1](t) - T[m](t)) / ΔxA + kB · (T[m+1](t) - T[m](t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 4 · (T[m](t+1) - T[m](t)) / dτ
 
 let
-θ = (T - T0) / (Ta - T0)
+θ = (T - T∞) / (Ti - T∞)
 𝜓 = x / L
 then
 (1') dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
 (2') dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) - h · (θ[m] - T∞)) / (ρ · Cp · d𝜓)
 (3') dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
 
+The layers are:
+- air (convection + radiation top)
+- mozzarella
+- tomato
+- crust
+- (baking paper)
+- tray
+- air (convection + radiation bottom)
 
+...
+*/
 
+/*
 moisture transfer:
 dm/dt = Dm · d²m/dt²
 
