@@ -126,22 +126,14 @@ public final class Oven{
 		//[cm]
 		final double initialDoughHeight = totalDoughVolume / totalBakingPansArea;
 
-		//calculate baking temperature:
 		final double bakingRatio = targetPizzaHeight / initialDoughHeight;
-
-		//apply inverse Charles-Gay Lussac
-		//FIXME the factor accounts for water content and gases produced by levain
-		final double bakingTemperature = 1.1781 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
+		final double bakingTemperature = calculateBakingTemperature(dough, bakingRatio);
 		if(bakingTemperature < DESIRED_BAKED_DOUGH_TEMPERATURE)
 			throw OvenException.create("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		//https://bakerpedia.com/processes/maillard-reaction/
 		if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
 			LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
 
-		//TODO
-		final BakingInstructions instructions = BakingInstructions.create();
-		instructions.withBakingTemperature(bakingTemperature);
 		if(distanceHeaterTop > 0.)
 			bakingTemperatureTop = bakingTemperature;
 		if(distanceHeaterBottom > 0.)
@@ -154,16 +146,17 @@ public final class Oven{
 		final double tomatoLayerThickness = 0.05;
 		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
 			tomatoLayerThickness, DESIRED_BAKED_DOUGH_TEMPERATURE);
-		instructions.withBakingDuration(bakingDuration);
-		return instructions;
+
+		return BakingInstructions.create()
+			.withBakingTemperature(bakingTemperature)
+			.withBakingDuration(bakingDuration);
 	}
 
-	//TODO account for baking temperature
-	// https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-	//initialTemperature is somewhat between params.temperature(UBound(params.temperature)) and params.ambientTemperature
-	//volumeExpansion= calculateCharlesGayLussacVolumeExpansion(initialTemperature, params.bakingTemperature)
-	private double calculateCharlesGayLussacVolumeExpansion(final double initialTemperature, final double finalTemperature){
-		return (finalTemperature + Water.ABSOLUTE_ZERO) / (initialTemperature + Water.ABSOLUTE_ZERO);
+	private double calculateBakingTemperature(final Dough dough, final double bakingRatio){
+		//apply inverse Charles-Gay Lussac
+		//FIXME the factor accounts for water content and gases produced by levain
+		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
+		return 1.1781 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 	}
 
 	/**

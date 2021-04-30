@@ -263,20 +263,20 @@ cp	dough specific heat
 		humidityRatioSurface = 0.1837 + (-0.0014607 + 0.000004477 * bakingTemperatureTop) * bakingTemperatureTop;
 
 
-		//[W / (m * K)]
 		final double thermalConductivityAir = calculateAirThermalConductivity(ambientTemperature);
 		final double specificHeatAir = calculateAirSpecificHeat(ambientTemperature);
 		final double densityAir = calculateAirDensity(ambientTemperature, airPressure, airRelativeHumidity);
 		thermalDiffusivityAir = calculateThermalDiffusivity(thermalConductivityAir, specificHeatAir, densityAir);
-		//[W / (m * K)]
 		final double thermalConductivityMozzarella = calculateThermalConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
 		thermalDiffusivityMozzarella = calculateThermalDiffusivity(thermalConductivityMozzarella, specificHeatMozzarella, densityMozzarella);
-		//[W / (m * K)]
 		final double thermalConductivityTomato = calculateThermalConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
 		thermalDiffusivityTomato = calculateThermalDiffusivity(thermalConductivityTomato, specificHeatTomato, densityTomato);
-		//[W / (m * K)]
 		final double thermalConductivityDough = calculateThermalConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
 		thermalDiffusivityDough = calculateThermalDiffusivity(thermalConductivityDough, specificHeatDough, densityDough);
+
+		//TODO
+		//[m]
+		final double minLayerThickness = 0.0001;
 	}
 
 	private double massTransferSurface(final double ambientTemperature){
@@ -285,19 +285,39 @@ cp	dough specific heat
 			4.5721 * Math.exp(-292.8 / ambientTemperature));
 	}
 
-	private double moistureDiffusivityTomato(final double ambientTemperature){
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Moisture diffusivity in mozzarella layer [m^2 / s].
+	 */
+	private double moistureDiffusivityMozzarella(final double temperature){
+		return 7.e-11;
+	}
+
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Moisture diffusivity in tomato layer [m^2 / s].
+	 */
+	private double moistureDiffusivityTomato(final double temperature){
 		//https://www.researchgate.net/publication/50863959_Effective_Moisture_Diffusivity_and_Activation_Energy_of_Tomato_in_Thin_Layer_Dryer_during_Hot_Air_Drying
 		return (ovenType == OvenType.FORCED_CONVECTION?
-			9.9646e-10 * Math.exp(-605.93 / ambientTemperature):
-			1.7738e-10 * Math.exp(-1212.71 / ambientTemperature));
+			9.9646e-10 * Math.exp(-605.93 / temperature):
+			1.7738e-10 * Math.exp(-1212.71 / temperature));
 	}
 
-	private double moistureDiffusivityDough(final double ambientTemperature){
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Moisture diffusivity in dough layer [m^2 / s].
+	 */
+	private double moistureDiffusivityDough(final double temperature){
 		return (ovenType == OvenType.FORCED_CONVECTION?
-			7.0582e-8 * Math.exp(-1890.68 / ambientTemperature):
-			1.4596e-9 * Math.exp(-420.34 / ambientTemperature));
+			7.0582e-8 * Math.exp(-1890.68 / temperature):
+			1.4596e-9 * Math.exp(-420.34 / temperature));
 	}
 
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Air thermal conductivity [W / (m * K)].
+	 */
 	private double calculateAirThermalConductivity(final double temperature){
 		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
 	}
@@ -319,6 +339,16 @@ cp	dough specific heat
 		return densityDryAir + densityMoist;
 	}
 
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @param protein	Protein content [%].
+	 * @param fat	Fat content [%].
+	 * @param carbohydrate	Carbohydrate content [%].
+	 * @param fiber	Fiber content [%].
+	 * @param ash	Ash content [%].
+	 * @param water	Water content [%].
+	 * @return	Thermal conductivity [W / (m * K)].
+	 */
 	private double calculateThermalConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
 		final double fiber, final double ash, final double water){
 		final double proteinFactor = 0.17881 + (0.0011958 - 2.7178e-6 * temperature) * temperature;
@@ -460,23 +490,8 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	@Override
 	public final void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
 			DimensionMismatchException{
-		//finite difference equations:
-
-		//at pizza surface
-		//surface mass transfer coefficient [kgH20 / (m^2 * s)]
-		final double massTransferSurface = massTransferSurface(getTheta(9, y));
-		//[m^2 / s]
-		final double moistureDiffusivityMozzarella = 7.e-11;
-		final double moistureContentSurface = getC(9, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
-			* (humidityRatioSurface - humidityRatioAmbient) * layerThicknessMozzarella / (2. * moistureContentDough0);
-		final double thetaS = 1. / (heatTransferCoeff + 2. * thermalConductivityMozzarella / layerThicknessMozzarella)
-			* (heatTransferCoeff + 2. * thermalConductivityMozzarella * getTheta(9, y) / layerThicknessMozzarella
-			- 2. * moistureDiffusivityMozzarella * densityMozzarella * vaporizationLatentHeat * moistureContentDough0
-			/ (layerThicknessMozzarella * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - moistureContentSurface));
-		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
-
 		//node 9, mozzarella layer
-		calculateTopLayer(9, y, dydt, thetaS, moistureContentSurface);
+		calculateTopLayer(9, y, dydt);
 
 		calculateTomatoMozzarellaInterfaceLayer(8, y, dydt);
 
@@ -498,16 +513,25 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 		//TODO consider layer 1 as convection and irradiation, not only convection
 
 		//node 1, dough in contact with heated tray
-		calculateBottomLayer(1, y, dydt, thetaB);
+		calculateBottomLayer(1, y, dydt);
 	}
 
-	private void calculateTopLayer(final int layer, final double[] y, final double[] dydt, final double thetaS, final double CS){
+	private void calculateTopLayer(final int layer, final double[] y, final double[] dydt){
+		//at pizza surface
+		//surface mass transfer coefficient [kgH20 / (m^2 * s)]
+		final double massTransferSurface = massTransferSurface(getTheta(9, y));
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(9, y));
+		final double moistureContentSurface = getC(9, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
+			* (humidityRatioSurface - humidityRatioAmbient) * layerThicknessMozzarella / (2. * moistureContentDough0);
+		final double thetaS = 1. / (heatTransferCoeff + 2. * thermalConductivityMozzarella / layerThicknessMozzarella)
+			* (heatTransferCoeff + 2. * thermalConductivityMozzarella * getTheta(9, y) / layerThicknessMozzarella
+			- 2. * moistureDiffusivityMozzarella * densityMozzarella * vaporizationLatentHeat * moistureContentDough0
+			/ (layerThicknessMozzarella * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - moistureContentSurface));
+
 		final double tmp = 4. / (layerThicknessMozzarella * layerThicknessMozzarella);
 		setTheta(layer, dydt, tmp * thermalDiffusivityMozzarella * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
 
-		//[m^2 / s]
-		final double moistureDiffusivityMozzarella = 7.e-11;
-		setC(layer, dydt, tmp * moistureDiffusivityMozzarella * (getC(layer - 1, y) - 2. * getC(layer, y) + CS));
+		setC(layer, dydt, tmp * moistureDiffusivityMozzarella * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
 	}
 
 	private void calculateTomatoMozzarellaInterfaceLayer(final int layer, final double[] y, final double[] dydt){
@@ -516,10 +540,8 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 			* (thermalConductivityTomato / layerThicknessTomato * (getTheta(layer - 1, y) - getTheta(layer, y))
 			- thermalConductivityMozzarella / layerThicknessMozzarella * (getTheta(layer, y) - getTheta(layer + 1, y))));
 
-		//[m^2 / s]
 		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
-		//[m^2 / s]
-		final double moistureDiffusivityMozzarella = 7.e-11;
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
 		setC(layer, dydt, 4. / (layerThicknessTomato + layerThicknessMozzarella)
 			* (moistureDiffusivityTomato / layerThicknessTomato * (getC(layer - 1, y) - getC(layer, y))
 			- moistureDiffusivityMozzarella / layerThicknessMozzarella * (getC(layer, y) - getC(layer + 1, y))));
@@ -530,7 +552,6 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 		setTheta(layer, dydt, tmp * thermalDiffusivityTomato
 			* (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
 
-		//[m^2 / s]
 		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
 		setC(layer, dydt, tmp * moistureDiffusivityTomato
 			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
@@ -542,9 +563,7 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 			* (5. * thermalConductivityDough / layerThicknessDough * (getTheta(layer - 1, y) - getTheta(layer, y))
 			- thermalConductivityTomato / layerThicknessTomato * (getTheta(layer, y) - getTheta(layer + 1, y))));
 
-		//[m^2 / s]
 		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
-		//[m^2 / s]
 		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
 		setC(layer, dydt, 20. / (layerThicknessDough + 5. * layerThicknessTomato)
 			* (5. * moistureDiffusivityDough / layerThicknessDough * (getC(layer - 1, y) - getC(layer, y))
@@ -556,7 +575,6 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 		setTheta(layer, dydt, tmp * thermalDiffusivityDough
 			* (getTheta(layer - 1, y) - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
 
-		//[m^2 / s]
 		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
 		setC(layer, dydt, tmp * moistureDiffusivityDough
 			* (getC(layer - 1, y) - 3. * getC(layer, y) + 2. * getC(layer + 1, y)));
@@ -567,18 +585,17 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 		setTheta(layer, dydt, tmp * thermalDiffusivityDough
 			* (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)));
 
-		//[m^2 / s]
 		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
 		setC(layer, dydt, tmp * moistureDiffusivityDough
 			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)));
 	}
 
-	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt, final double thetaB){
+	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt){
+		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
 		final double tmp = 50. / (layerThicknessDough * layerThicknessDough);
 		setTheta(layer, dydt, (2./3.) * tmp * thermalDiffusivityDough
 			* (thetaB - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
 
-		//[m^2 / s]
 		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
 		setC(layer, dydt, tmp * moistureDiffusivityDough * (getC(layer + 1, y) - getC(layer, y)));
 	}
