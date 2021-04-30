@@ -77,8 +77,14 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 
 	private final OvenType ovenType;
 
+	/** [°C] */
 	private final double bakingTemperatureTop;
+	/** [m] */
+	private final double distanceHeaterTop;
+	/** [°C] */
 	private final double bakingTemperatureBottom;
+	/** [m] */
+	private final double distanceHeaterBottom;
 	private final double ambientTemperature;
 
 	//ambient humidity ratio
@@ -253,7 +259,9 @@ cp	dough specific heat
 		this.ovenType = ovenType;
 
 		this.bakingTemperatureTop = bakingTemperatureTop;
+		this.distanceHeaterTop = distanceHeaterTop;
 		this.bakingTemperatureBottom = bakingTemperatureBottom;
+		this.distanceHeaterBottom = distanceHeaterBottom;
 		this.ambientTemperature = ambientTemperature;
 
 		this.humidityRatioAmbient = airRelativeHumidity;
@@ -595,7 +603,9 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	}
 
 	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt){
-		final double thetaB = calculateFourierTemperature(bakingTemperatureBottom, ambientTemperature, bakingTemperatureTop);
+		//FIXME if distanceHeaterBottom is zero, there is heating anyway if forced convection air oven is used
+		final double thetaB = calculateFourierTemperature((distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
+			ambientTemperature, bakingTemperatureTop);
 		final double tmp = 50. / (layerThicknessDough * layerThicknessDough);
 		setTheta(layer, dydt, (2./3.) * tmp * thermalDiffusivityDough
 			* (thetaB - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));

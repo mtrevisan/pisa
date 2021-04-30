@@ -57,14 +57,18 @@ public final class Oven{
 
 	//accuracy is ±1 s
 	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.1, 1., 1.e-5, 1.e-5);
-	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(1., 5);
+	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(0.1, 5);
 
 
 	OvenType ovenType;
 
+	/** [m] */
 	double distanceHeaterTop;
+	/** [°C] */
 	double bakingTemperatureTop;
+	/** [m] */
 	double distanceHeaterBottom;
+	/** [°C] */
 	double bakingTemperatureBottom;
 
 
