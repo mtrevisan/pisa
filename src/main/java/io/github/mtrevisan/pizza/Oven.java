@@ -144,8 +144,8 @@ public final class Oven{
 		//FIXME
 		//[cm]
 		final double tomatoLayerThickness = 0.05;
-		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
-			tomatoLayerThickness, DESIRED_BAKED_DOUGH_TEMPERATURE);
+		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight,
+			cheeseLayerThickness, tomatoLayerThickness, DESIRED_BAKED_DOUGH_TEMPERATURE);
 
 		return BakingInstructions.create()
 			.withBakingTemperature(bakingTemperature)
@@ -156,7 +156,7 @@ public final class Oven{
 		//apply inverse Charles-Gay Lussac
 		//FIXME the factor accounts for water content and gases produced by levain
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		return 1.1781 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
+		return 0.4048 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 	}
 
 	/**
@@ -177,21 +177,24 @@ public final class Oven{
 			OvenType.FORCED_CONVECTION, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity);
 
-		final double bbt = (desiredBakedDoughTemperature - dough.ingredientsTemperature) / (bakingTemperatureTop - dough.ingredientsTemperature);
+		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)
 				integrator.integrate(ode, 0., y, time, y);
 
 			//https://blog.thermoworks.com/bread/homemade-bread-temperature-is-key/
-			//assure each layer has at least reached the water boiling temperature
 			double min = y[0];
 			for(int i = 2; i < y.length; i += 2)
 				min = Math.min(y[i], min);
-			return min - bbt;
+			return min - dbdt;
 		};
 		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
 		return Duration.ofSeconds((long)time);
+	}
+
+	private double calculateFourierTemperature(final double temperature, final double initialTemperature, final double finalTemperature){
+		return (temperature - initialTemperature) / (finalTemperature - initialTemperature);
 	}
 
 }

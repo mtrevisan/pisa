@@ -276,7 +276,7 @@ public final class Recipe{
 			* temperature) * temperature) * temperature) * temperature;
 
 		//account for fat
-		final double fraction = fat * flour / doughWeight();
+		final double fraction = fat / doughWeight();
 		return 1. / ((1. - fraction) / doughDensity + fraction / fatDensity);
 	}
 

@@ -519,19 +519,20 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	private void calculateTopLayer(final int layer, final double[] y, final double[] dydt){
 		//at pizza surface
 		//surface mass transfer coefficient [kgH20 / (m^2 * s)]
-		final double massTransferSurface = massTransferSurface(getTheta(9, y));
-		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(9, y));
-		final double moistureContentSurface = getC(9, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
+		final double massTransferSurface = massTransferSurface(getTheta(layer, y));
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
+		final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
 			* (humidityRatioSurface - humidityRatioAmbient) * layerThicknessMozzarella / (2. * moistureContentDough0);
 		final double thetaS = 1. / (heatTransferCoeff + 2. * thermalConductivityMozzarella / layerThicknessMozzarella)
-			* (heatTransferCoeff + 2. * thermalConductivityMozzarella * getTheta(9, y) / layerThicknessMozzarella
+			* (heatTransferCoeff + 2. * thermalConductivityMozzarella * getTheta(layer, y) / layerThicknessMozzarella
 			- 2. * moistureDiffusivityMozzarella * densityMozzarella * vaporizationLatentHeat * moistureContentDough0
-			/ (layerThicknessMozzarella * (bakingTemperatureTop - ambientTemperature)) * (getC(9, y) - moistureContentSurface));
+			/ (layerThicknessMozzarella * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
 
 		final double tmp = 4. / (layerThicknessMozzarella * layerThicknessMozzarella);
 		setTheta(layer, dydt, tmp * thermalDiffusivityMozzarella * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
 
-		setC(layer, dydt, tmp * moistureDiffusivityMozzarella * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
+		setC(layer, dydt, tmp * moistureDiffusivityMozzarella * (getC(layer - 1, y) - 2. * getC(layer, y)
+			+ moistureContentSurface));
 	}
 
 	private void calculateTomatoMozzarellaInterfaceLayer(final int layer, final double[] y, final double[] dydt){
@@ -601,19 +602,19 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	}
 
 	private double getTheta(final int layer, final double[] array){
-		return array[(9 - layer) * 2];
+		return array[array.length - layer * 2];
 	}
 
 	private void setTheta(final int layer, final double[] array, final double value){
-		array[(9 - layer) * 2] = value;
+		array[array.length - layer * 2] = value;
 	}
 
 	private double getC(final int layer, final double[] array){
-		return array[(9 - layer) * 2 + 1];
+		return array[array.length - layer * 2 + 1];
 	}
 
 	private void setC(final int layer, final double[] array, final double value){
-		array[(9 - layer) * 2 + 1] = value;
+		array[array.length - layer * 2 + 1] = value;
 	}
 
 }
