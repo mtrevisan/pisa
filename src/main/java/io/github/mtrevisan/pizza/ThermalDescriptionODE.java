@@ -410,21 +410,36 @@ cp	dough specific heat
 /*
 @see <a href="https://www.ndt.net/article/apcndt2006/papers/38.pdf">Chiang, Pan, Liaw, Chi, Chu. Modeling of heat transfer in a multi-layered system for infrared inspection of a building wall. 2006.</a>
 
-Heat transfer (heat equation in one dimension):
-dT/dτ = α · d²T/dx²
-where (at constant pressure)
-α = ρ · Cp / k
-which discretized is
-(T_m(t+1) - T_m(t)) / dτ = α · (T_m-1(t) - 2 · T_m(t) + T_m+1(t)) / Δx²
+Heat transfer:
+∂Q/dτ + ∇ · V = 0
 where
-T_m(t) is the temperature at node m at the t-th time step
-k is the thermal conductivity [W / (m · K)]
+Q is the heat, ρ · Cp · T [J]
 ρ is the density [kg / m³]
 Cp is the specific heat capacity [J / (kg · K)]
-α is the thermal diffusivity [m² / s]
+T is the temperature [K]
+V is the vector field giving the heat flow, (-k · ∂T/∂x) · x
+k is the thermal conductivity [W / (m · K)]
+x is the unit vector
+
+substituting is
+ρ · Cp · ∂T/dτ - k · ∇ · (∂T/∂x) · x = 0
+that is
+dT/dτ = α · d²T/dx²
+where (at constant pressure)
+α is the thermal diffusivity, k / (ρ · Cp) [m² / s]
+
+The general solution is
+T(x, t) = sum(n=1 to inf, A_n · sin(n · π · x / L) · e^(-k · n² · π² · t / (ρ · Cp · L²)))
+where
+A_n = (2 / L) · int(x=0 to L, T(x, 0) · sin(n · π · x / L) · dx)
+
+Discretized is
+(1) (T[m](t+1) - T[m](t)) / dτ = α · (T[m-1](t) - 2 · T[m](t) + T[m+1](t)) / Δx²
+where
+T[m](t) is the temperature at node m and time t
 
 The temperature variation at the boundary of layer is calculated using the relation
-k · (T_m-1(t) - T_m(t)) / Δx + σ · ε · (T∞⁴ - T_m(t)⁴) - h · (T_m(t) - T∞) = ρ · Cp · (Δx / 2) · (T_m(t+1) - T_m(t)) / dτ
+(2) k · (T_m-1(t) - T_m(t)) / Δx + σ · ε · (T∞⁴ - T_m(t)⁴) - h · (T_m(t) - T∞) = ρ · Cp · (Δx / 2) · (T_m(t+1) - T_m(t)) / dτ
 where
 T∞ is the ambient temperature
 σ is the Stephan-Boltzmann constant
@@ -432,7 +447,15 @@ T∞ is the ambient temperature
 h is the convection coefficient
 
 The temperature variation across the  of internal layers A and B is calculated using the relation
-kA · (T_m-1(t) - T_m(t)) / ΔxA + kB · (T_m+1(t) - T_m(t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 2 · (T_m(t+1) - T_m(t)) / dτ
+(3) kA · (T_m-1(t) - T_m(t)) / ΔxA + kB · (T_m+1(t) - T_m(t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 2 · (T_m(t+1) - T_m(t)) / dτ
+
+let
+θ = (T - T0) / (Ta - T0)
+𝜓 = x / L
+then
+(1') dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
+(2') k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) - h · (θ[m] - T∞) = ρ · Cp · (d𝜓 / 2) · dθ[m]/dτ
+(3') kA · (θ[m-1] - θ[m]) / d𝜓A + kB · (θ[m+1] - θ[m]) / d𝜓B = (ρA · CpA · d𝜓A + ρB · CpB · d𝜓B) / 2 · dθ[m]/dτ
 
 
 
