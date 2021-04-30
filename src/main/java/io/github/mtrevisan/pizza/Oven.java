@@ -62,9 +62,9 @@ public final class Oven{
 
 	OvenType ovenType;
 	/** Whether this oven has top heating */
-	boolean hasTopHeating;
+	boolean hasTopHeater;
 	/** Whether this oven has bottom heating */
-	boolean hasBottomHeating;
+	boolean hasBottomHeater;
 
 	Double bakingTemperatureTop;
 	Double distanceHeaterTop;
@@ -72,29 +72,25 @@ public final class Oven{
 	Double distanceHeaterBottom;
 
 
-	public static Oven create(){
-		return new Oven();
+	public static Oven create(final OvenType ovenType) throws OvenException{
+		return new Oven(ovenType);
 	}
 
-	private Oven(){}
-
-	public final Oven withOvenType(final OvenType ovenType) throws OvenException{
+	private Oven(final OvenType ovenType) throws OvenException{
 		if(ovenType == null)
 			throw OvenException.create("Missing oven type");
 
 		this.ovenType = ovenType;
+	}
+
+	public final Oven withHasTopHeater(){
+		hasTopHeater = true;
 
 		return this;
 	}
 
-	public final Oven withHasTopHeating(){
-		hasTopHeating = true;
-
-		return this;
-	}
-
-	public final Oven withHasBottomHeating(){
-		hasBottomHeating = true;
+	public final Oven withHasBottomHeater(){
+		hasBottomHeater = true;
 
 		return this;
 	}
@@ -126,6 +122,8 @@ public final class Oven{
 	public final void validate() throws OvenException{
 		if(ovenType == null)
 			throw OvenException.create("Oven type must be given");
+		if(!hasTopHeater && !hasBottomHeater)
+			throw OvenException.create("Oven must have at least an heater component");
 	}
 
 
@@ -168,10 +166,10 @@ public final class Oven{
 
 			instructions.withBakingTemperature(bakingTemperature);
 		}
-		if(hasTopHeating)
+		if(hasTopHeater)
 			//FIXME
 			withBakingTemperatureTop(bakingTemperature, 0.1);
-		if(hasBottomHeating)
+		if(hasBottomHeater)
 			//FIXME
 			withBakingTemperatureBottom(bakingTemperature, 0.1);
 		//FIXME

@@ -259,11 +259,7 @@ cp	dough specific heat
 		this.humidityRatioAmbient = airRelativeHumidity;
 
 		//heat transfer coefficient:
-		if(ovenType == OvenType.FORCED_CONVECTION)
-			//convective air speed: 1 m/s
-			heatTransferCoeff = 1697.7 + (-9.66 + 0.02544 * bakingTemperatureTop) * bakingTemperatureTop;
-		else
-			heatTransferCoeff = 8066.6 + (-76.01 + 0.19536 * bakingTemperatureTop) * bakingTemperatureTop;
+		heatTransferCoeff = ovenType.heatTransferCoefficient(bakingTemperatureTop);
 		humidityRatioSurface = 0.1837 + (-0.0014607 + 0.000004477 * bakingTemperatureTop) * bakingTemperatureTop;
 
 

@@ -27,5 +27,21 @@ package io.github.mtrevisan.pizza;
 
 public enum OvenType{
 	NATURAL_CONVECTION,
-	FORCED_CONVECTION
+	FORCED_CONVECTION;
+
+
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Heat transfer coefficient [W / (m^2 * K)].
+	 */
+	double heatTransferCoefficient(final double temperature){
+		final double coeff;
+		if(this == FORCED_CONVECTION)
+			//convective air speed: 1 m/s
+			coeff = 1697.7 + (-9.66 + 0.02544 * temperature) * temperature;
+		else
+			coeff = 8066.6 + (-76.01 + 0.19536 * temperature) * temperature;
+		return coeff;
+	}
+
 }

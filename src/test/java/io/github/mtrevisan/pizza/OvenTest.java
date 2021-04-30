@@ -62,10 +62,9 @@ class OvenTest{
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
-		final Oven oven = Oven.create()
-			.withOvenType(OvenType.FORCED_CONVECTION)
-			.withHasTopHeating()
-			.withHasBottomHeating();
+		final Oven oven = Oven.create(OvenType.FORCED_CONVECTION)
+			.withHasTopHeater()
+			.withHasBottomHeater();
 		final BakingInstruments bakingInstruments = new BakingInstruments()
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.02),
