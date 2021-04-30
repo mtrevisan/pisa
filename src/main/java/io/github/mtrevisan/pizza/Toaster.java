@@ -73,7 +73,7 @@ public class Toaster{
 
 	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
 
-	//Stefan-Boltzmann constant [W / (m^2 · K^4)]
+	//Stefan-Boltzmann constant [W / (m² · K⁴)]
 	private static final double SIGMA = 5.670374419e-8;
 
 	private static final double EMISSIVITY_NICHROME_WIRE = 0.87;
@@ -111,12 +111,12 @@ public class Toaster{
 
 		//top air thermal conductivity [W / (m · K)]
 		final double airThermalConductivityTop = calculateAirThermalConductivity(bakingTemperatureTop);
-		//convective thermal coefficient [W / (m^2 · K)]
+		//convective thermal coefficient [W / (m² · K)]
 		final double nusseltNumberTop = calculateNusseltNumberTop(rayleighNumberTop);
 		final double h_top = airThermalConductivityTop * nusseltNumberTop / topDistance;
 		//bottom air thermal conductivity [W / (m · K)]
 		final double airThermalConductivityBottom = calculateAirThermalConductivity(bakingTemperatureBottom);
-		//convective thermal coefficient [W / (m^2 · K)]
+		//convective thermal coefficient [W / (m² · K)]
 		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
 		//mozzarella thermal conductivity [W / (m · K)]
@@ -176,7 +176,7 @@ public class Toaster{
 		final double cDough = 1.0511;
 		final double theta = (DESIRED_BAKED_DOUGH_TEMPERATURE - bakingTemperatureTop) / (ambientTemperature - bakingTemperatureTop);
 		final double fourierNumberDough = Math.log(theta / cDough) / -Math.pow(xiDough, 2.);
-		//thermal diffusivity = thermalConductivity / (density · specificHeat) [m^2 / s]
+		//thermal diffusivity = thermalConductivity / (density · specificHeat) [m² / s]
 		final double alpha2 = 1.3e-7;
 		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(layerThicknessDough, 2.) / alpha2));
 
@@ -205,7 +205,7 @@ public class Toaster{
 	 *
 	 * @param latitude	Latitude [°].
 	 * @param altitude	Altitude [m].
-	 * @return	The gravitational acceleration [m / s^2].
+	 * @return	The gravitational acceleration [m / s²].
 	 */
 	private double calculateGravity(final double latitude, final double altitude){
 		final double sinLat = Math.sin(Math.toRadians(latitude));
@@ -262,8 +262,8 @@ public class Toaster{
 	 * @see <a href="https://www.govinfo.gov/content/pkg/GOVPUB-C13-1e519f3df711118b18efd158bf34023b/pdf/GOVPUB-C13-1e519f3df711118b18efd158bf34023b.pdf">Interpolation formulas for viscosity of six gases: air, nitrogen, carbon dioxide, helium, argon, and oxygen</a>
 	 *
 	 * @param temperature	Temperature [°C].
-	 * @param density	Air density [kg / m^3].
-	 * @return	The kinematic viscosity [m^2 / s].
+	 * @param density	Air density [kg / m³].
+	 * @return	The kinematic viscosity [m² / s].
 	 */
 	private double calculateKinematicViscosity(final double temperature, final double pressure, final double density){
 		//Sutherland equation

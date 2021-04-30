@@ -101,11 +101,11 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	/** K [W / (m · K)] */
 	private final double thermalConductivityDough = 0.416;
 
-	/** [kg/m^3] */
+	/** [kg / m³] */
 	private final double densityMozzarella = 1140.;
-	/** [kg/m^3] */
+	/** [kg / m³] */
 	private final double densityTomato = 1073.;
-	/** [kg/m^3] */
+	/** [kg / m³] */
 	private final double densityDough = 862.;
 	/** [J / (kg · K)] */
 	private final double specificHeatMozzarella = 2864.;
@@ -122,13 +122,13 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	/** Initial moisture content [%] */
 	private final double moistureContentDough0 = 0.65;
 
-	/** [m^2/s] */
+	/** [m² / s] */
 	private double thermalDiffusivityAir;
-	/** [m^2/s] */
+	/** [m² / s] */
 	private double thermalDiffusivityMozzarella = 1.164e-7;
-	/** [m^2/s] */
+	/** [m² / s] */
 	private double thermalDiffusivityTomato = 1.737e-7;
-	/** [m^2/s] */
+	/** [m² / s] */
 	private double thermalDiffusivityDough = 0.128e-6;
 
 
@@ -148,8 +148,8 @@ convection:
 R = 1 / (h · A)	[K / W]
 h = convective heat transfer coefficient
 radiation:
-R = 1 / (eps · sigma · (Ts^2 + Tinf^2) · (Ts + Tinf) · A)	[K / W]
-sigma = 5.67e-8 [W / (m^2 · K^4)] Stefan-Boltzmann constant
+R = 1 / (eps · sigma · (Ts² + Tinf²) · (Ts + Tinf) · A)	[K / W]
+sigma = 5.67e-8 [W / (m² · K⁴)] Stefan-Boltzmann constant
 eps = emissivity
 
 heat must be constant, so Qin = Qout
@@ -158,12 +158,12 @@ but the pizza must be heated, so heat must be absorbed by the pizza, so the heat
 ---
 
 if one slab of constant material has Toven on both sides:
-(T(x) - Toven) / (α · L^2 / k) = (x / L - x^2 / L^2) / 2
+(T(x) - Toven) / (α · L² / k) = (x / L - x² / L²) / 2
 
 ---
 
 heat equation:
-dT/dt = k / (ρ · c) · d^2T/dx^2 = α · d^2T/dx^2
+dT/dt = k / (ρ · c) · d²T/dx² = α · d²T/dx²
 where
 k	thermal conductivity
 ρ	density
@@ -171,7 +171,7 @@ c	specific heat capacity
 α	diffusivity
 
 one solution is (where T(0, t) = T(L, t) = 0)
-T(x, t) = sum(n=1 to inf, An · sin(n · pi · x / L) · e^(-k · n^2 · pi^2 / (ρ · c* L^2)))
+T(x, t) = sum(n=1 to inf, An · sin(n · pi · x / L) · e^(-k · n² · pi² / (ρ · c* L²)))
 where the coefficients An are chosen such that it satisfies the initial conditions:
 T(x, 0) = sum(n=1 to inf, An · sin(n · pi · x / L))
 that is a Fourier sine series expansion with An = (2 / L) · int(0 to L, T(x, 0) · sin(n · pi · x / L), dx)
@@ -197,7 +197,7 @@ T2	higher temperature
 T1	lower temperature
 
 radiation:
-q = A1 · Css · e · (T2^4 - T1^4)
+q = A1 · Css · e · (T2⁴ - T1⁴)
 where
 A1	area exposed to the radiation
 Css	Stefan-Boltzmann constant
@@ -213,7 +213,7 @@ where
 qk_in = k/x · (t_T_n-1 - t_T_n)	heat moving in by conduction
 qh_in = h · (Tair - t_T_n)	heat moving in by air convection
 qs_in = ms_n-1 · Hf	heat moving in by steam convection
-qr_in = Css · e · (Toven^4 - t_T_n^4)	heat moving in by radiation
+qr_in = Css · e · (Toven⁴ - t_T_n⁴)	heat moving in by radiation
 
 qk_out = k/x · (t_T_n - t_T_n+1)	heat moving out by conduction
 qs_out = ms_n · Hf	heat moving out by steam conduction and diffusion
@@ -222,11 +222,11 @@ q_ret = ρ · cp · x · (t+1_T_n - t_T_n) + ms_ret	heat retained
 
 //system pizza + (pan + (baking sheet))
 q_in_top = (airThermalConductivity / roofDistance + airConvectiveHeatTransfer) · (TT - TpT(t))
-	+ Css · e · (TT^4 - TpT(t)^4)
+	+ Css · e · (TT⁴ - TpT(t)⁴)
 	+ steamMassIn · steamConvectiveHeatTransfer
 q_in_tomato = (mozzarellaThermalConductivity / mozzarellaThickness) · (TpT(t) - TcT(t)) + steamMassIn · steamConvectiveHeatTransfer
 q_in_dough = (doughThermalConductivity / doughThickness) · (TcT(t) - TdT(t)) + steamMassIn · steamConvectiveHeatTransfer
-q_in_bottom = (airThermalConductivity / floorDistance + airConvectiveHeatTransfer) · (TB - TpB(t)) + Css · e · (TB^4 - TpB(t)^4)
+q_in_bottom = (airThermalConductivity / floorDistance + airConvectiveHeatTransfer) · (TB - TpB(t)) + Css · e · (TB⁴ - TpB(t)⁴)
 qk_out = airThermalConductivity / x · (t_T_n - t_T_n+1)
 q_out_top = steamMassOut · steamConvectiveHeatTransfer
 q_ret = ρ · cp · x · (t+1_T_n - t_T_n) + ms_ret
@@ -295,7 +295,7 @@ cp	dough specific heat
 
 	/**
 	 * @param fourierTemperature	Temperature [°C].
-	 * @return	Moisture diffusivity in mozzarella layer [m^2 / s].
+	 * @return	Moisture diffusivity in mozzarella layer [m² / s].
 	 */
 	private double moistureDiffusivityMozzarella(final double fourierTemperature){
 		return 7.e-11;
@@ -303,7 +303,7 @@ cp	dough specific heat
 
 	/**
 	 * @param fourierTemperature	Fourier temperature.
-	 * @return	Moisture diffusivity in tomato layer [m^2 / s].
+	 * @return	Moisture diffusivity in tomato layer [m² / s].
 	 */
 	private double moistureDiffusivityTomato(final double fourierTemperature){
 		final double temperature = fourierTemperature * (bakingTemperatureTop - ambientTemperature) + ambientTemperature;
@@ -315,7 +315,7 @@ cp	dough specific heat
 
 	/**
 	 * @param fourierTemperature	Temperature [°C].
-	 * @return	Moisture diffusivity in dough layer [m^2 / s].
+	 * @return	Moisture diffusivity in dough layer [m² / s].
 	 */
 	private double moistureDiffusivityDough(final double fourierTemperature){
 		final double temperature = fourierTemperature * (bakingTemperatureTop - ambientTemperature) + ambientTemperature;
@@ -409,19 +409,19 @@ cp	dough specific heat
 
 /*
 moisture transfer:
-dm/dt = Dm · d^2m/dt^2
+dm/dt = Dm · d²m/dt²
 heat transfer (heat equation in one dimension):
-dT/dt = α · d^2T/dtx2
+dT/dt = α · d²T/dtx²
 
 at the surface:
 hr · (Ta - TS) = Kc · dT/dx|x=S + Dm_cS · ρ_c · Lv · dm/dx|x=S
-where hr is the heat transfer coefficient [W / (m^2 · K)]
-where K is the surface mass transfer coefficient [kg H2O / (m^2 · s)]
-where Dm is the moisture diffusivity [m^2 / s]
-where ρ is the density [kg / m^3]
+where hr is the heat transfer coefficient [W / (m² · K)]
+where K is the surface mass transfer coefficient [kg H2O / (m² · s)]
+where Dm is the moisture diffusivity [m² / s]
+where ρ is the density [kg / m³]
 where Lv is the latent heat of vaporization [J / kg]
 
-heat transfer at the interface between the crust and the tomato layer:
+heat transfer at the interface between the dough and the tomato layer:
 Kd · dT/dx|x=5-6 - Kt · dT/dx|x=6-7 = dT6/dt · (ρ_d · cp_d · Δx5-6 + ρ_t · cp_t · Δx6-7) / 2
 
 heat transfer at the interface between the tomato and the mozzarella layer:
@@ -435,7 +435,7 @@ where Ha is the air humidity ratio [kg H2O / kg dry air]
 moisture transfer at the interface between the tomato and the mozzarella layer:
 Dm_tc · dm/dx|x=7-8 - Dm_cS · dm/dx|x=8-9 = dm8/dt · (Δx7-8 + Δx8-9) / 2
 
-moisture transfer at the interface between the crust and the tomato paste:
+moisture transfer at the interface between the dough and the tomato paste:
 Dm_dt · dm/dx|x=5-6 - Dm_tc · dm/dx|x=6-7 = dm6/dt · (Δx5-6 + Δx6-7) / 2
 
 
@@ -446,9 +446,9 @@ C = m / mp0
 L = Ld + Lt + Lc
 
 moisture transfer becomes:
-dC/dt = Dm / L^2 · d^2C/d𝜓^2
+dC/dt = Dm / L² · d²C/d𝜓²
 heat transfer becomes:
-dθ/dt = α / L^2 · d^2θ/d𝜓^2
+dθ/dt = α / L² · d²θ/d𝜓²
 at the surface becomes:
 hr · (1 - θS) = Kc / L · dθS/d𝜓 + Dm_cS · ρ_c · Lv · md0 · / (L · (Ta - T0)) · dCS/d𝜓
 
@@ -468,7 +468,7 @@ at the interface node 8 (tomato-mozzarella):
 Kt / L · dθ/d𝜓|7-8 - Kc / L · dθ/d𝜓|8-9 = dθ8/dt · (ρ_t · cp_t · Δx_7-8 + ρ_c · cp_c · Δx_8-9) / 2
 Dm_tc / L · dC/d𝜓|7-8 - Dm_cS / L · dC/d𝜓|8-9 = dC8/dt · (Δx_7-8 + Δx_8-9) / 2
 
-at the interface node 6 (crust-tomato):
+at the interface node 6 (dough-tomato):
 Kd / L · dθ/d𝜓|5-6 - Kt / L · dθ/d𝜓|6-7 = dθ6/dt · (ρ_d · cp_d · Δx_5-6 + ρ_t · cp_t · Δx_6-7) / 2
 Dm_dt / L · dC/d𝜓|5-6 - Dm_tc / L · dC/d𝜓|6-7 = dC6/dt · (Δx_5-6 + Δx_6-7) / 2
 
@@ -477,23 +477,23 @@ dC/d𝜓|𝜓=0 = 0
 
 
 9, mozzarella-surface layer (central difference approximation of the second derivative):
-dθ9/dt = 4 · α_c / Lc^2 · (θ8 - 2 · θ9 + θS)
-dC9/dt = 4 · Dm_c / Lc^2 · (C8 - 2 · C9 + CS)
+dθ9/dt = 4 · α_c / Lc² · (θ8 - 2 · θ9 + θS)
+dC9/dt = 4 · Dm_c / Lc² · (C8 - 2 · C9 + CS)
 
 7, tomato-mozzarella layer:
-dθ7/dt = 4 · α_t / Lt^2 · (θ6 - 2 · θ7 + θ8)
-dC7/dt = 4 · Dm_t / Lt^2 · (C6 - 2 · C7 + C8)
+dθ7/dt = 4 · α_t / Lt² · (θ6 - 2 · θ7 + θ8)
+dC7/dt = 4 · Dm_t / Lt² · (C6 - 2 · C7 + C8)
 
-5, crust-tomato layer:
-dθ5/dt = 100 · α_d / (3 · Ld^2) · (θ4 - 3 · θ5 + 2 · θ6)
-dC5/dt = 100 · Dm_d / (3 · Ld^2) · (C4 - 3 · C5 + 2 · C6)
+5, dough-tomato layer:
+dθ5/dt = 100 · α_d / (3 · Ld²) · (θ4 - 3 · θ5 + 2 · θ6)
+dC5/dt = 100 · Dm_d / (3 · Ld²) · (C4 - 3 · C5 + 2 · C6)
 
-4-2, crust layer:
-dθ_i/dt = 25 · α_d / Ld^2 · (θ_i-1 - 2 · θ_i + θ_i+1)
-dC_i/dt = 25 · Dm_d / Ld^2 · (C_i-1 - 2 · C_i + C_i+1)
+4-2, dough layer:
+dθ_i/dt = 25 · α_d / Ld² · (θ_i-1 - 2 · θ_i + θ_i+1)
+dC_i/dt = 25 · Dm_d / Ld² · (C_i-1 - 2 · C_i + C_i+1)
 
 1, bottom layer:
-dθ1/dt = 100 · α_d / (3 · Ld^2) · (θB - 3 · θ1 + θ2)
+dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 */
 
 	//y is a list of θ and C from layer 9 to layer 1
@@ -533,7 +533,7 @@ dθ1/dt = 100 · α_d / (3 · Ld^2) · (θB - 3 · θ1 + θ2)
 //			ambientTemperature, bakingTemperatureTop);
 
 		//at pizza surface
-		//surface mass transfer coefficient [kgH20 / (m^2 · s)]
+		//surface mass transfer coefficient [kgH20 / (m² · s)]
 		final double massTransferSurface = massTransferSurface(getTheta(layer, y));
 		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
 		final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
@@ -619,6 +619,14 @@ dθ1/dt = 100 · α_d / (3 · Ld^2) · (θB - 3 · θ1 + θ2)
 		setC(layer, dydt, tmp * moistureDiffusivityDough * (getC(layer + 1, y) - getC(layer, y)));
 	}
 
+	/**
+	 * Calculate θ = (T - T0) / (Ta - T0).
+	 *
+	 * @param temperature	The temperature to transform.
+	 * @param initialTemperature	The initial temperature.
+	 * @param finalTemperature	The final temperature.
+	 * @return	The Fourier temperature.
+	 */
 	private double calculateFourierTemperature(final double temperature, final double initialTemperature, final double finalTemperature){
 		return (temperature - initialTemperature) / (finalTemperature - initialTemperature);
 	}

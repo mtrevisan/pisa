@@ -259,7 +259,7 @@ public final class Recipe{
 	 * @param fatDensity	Density of the fat [kg/l].
 	 * @param temperature	Temperature of the dough [°C].
 	 * @param atmosphericPressure	Atmospheric pressure [hPa].
-	 * @return	The density of the dough [kg / m^3].
+	 * @return	The density of the dough [kg / m³].
 	 */
 	double density(final double fatDensity, final double temperature, final double atmosphericPressure){
 		//TODO

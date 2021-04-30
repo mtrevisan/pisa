@@ -36,6 +36,9 @@ public class A243491{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(A243491.class);
 
+	//Stefan-Boltzmann constant [W / (m² · K⁴)]
+	private static final double SIGMA = 5.670374419e-8;
+
 	//[°C]
 	public static final double ABSOLUTE_ZERO = 273.15;
 
@@ -115,7 +118,7 @@ public class A243491{
 		double panThickness = 0.;
 		/** pizza diameter [mm]. */
 		double pizzaDiameter = 2. * Math.sqrt(220. * 250. / Math.PI);
-		/** pan density [kg / m^3]. */
+		/** pan density [kg / m³]. */
 		double panDensity = 0.;
 		/** pan thermal conductivity [W / (m · K)]. */
 		double panThermalConductivity = 0.;
@@ -133,7 +136,7 @@ public class A243491{
 		double airRelativeHumidity = 0.5;
 		/** oven air speed [m / s]. */
 		double ovenAirSpeed = 2.;
-		/** estimate for the effective diffusivity for the crust [cm^2 / s]. */
+		/** estimate for the effective diffusivity for the crust [cm² / s]. */
 		double crustEffectiveDiffusivity = 0.;
 
 		/** number of sections. */
@@ -191,7 +194,7 @@ public class A243491{
 			double panThickness,
 			/** pizza diameter [mm]. */
 			double pizzaDiameter,
-			/** pan density [kg / m^3]. */
+			/** pan density [kg / m³]. */
 			double panDensity,
 			/** pan thermal conductivity [W / (m · K)]. */
 			double panThermalConductivity,
@@ -209,7 +212,7 @@ public class A243491{
 			double airRelativeHumidity,
 			/** oven air speed [m / s]. */
 			double ovenAirSpeed,
-			/** estimate for the effective diffusivity for the crust [cm^2 / s]. */
+			/** estimate for the effective diffusivity for the crust [cm² / s]. */
 			double crustEffectiveDiffusivity,
 
 			/** number of sections. */
@@ -303,7 +306,7 @@ public class A243491{
 				final double outsidePanTemperatureAtTPlusDT = outsidePanTemperatureAtT
 					+ (convectiveHeatTransferCookingZone * (ovenTemperature - outsidePanTemperatureAtT)
 					- tmp
-					+ (panEmissivity * 5.67e-8 * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.) - Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.))))
+					+ (panEmissivity * SIGMA * (Math.pow(ovenTemperature + ABSOLUTE_ZERO, 4.) - Math.pow(outsidePanTemperatureAtT + ABSOLUTE_ZERO, 4.))))
 					* (2. / ((panThickness / 1000.) * panDensity * panSpecificHeat));
 				final double oilTemperature = (insidePanTemperatureAtT + doughTemperature[0][0]) / 2.;
 				final double oilDensity = doughDensity(oilTemperature, oil, 0);
@@ -530,17 +533,17 @@ public class A243491{
 	 * @param airRelativeHumidity   air relative humidity [%].
 	 * @param airSpeed   air speed [m / s].
 	 * @param pizzaDiameter   pizza diameter [mm].
-	 * @return	convective heat transfer [W / (m^2 · K)].
+	 * @return	convective heat transfer [W / (m² · K)].
 	 */
 	private double convectiveHeatTransfer(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
-		//calculate air density [kg / m^3]
+		//calculate air density [kg / m³]
 		final double dryAirDensity = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));
 		final double waterVaporPressure = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
 		final double moistDensity = airRelativeHumidity * waterVaporPressure / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
 		final double airDensity = dryAirDensity + moistDensity;
 
-		//calculate air dynamic viscosity [N · s / m^2]
+		//calculate air dynamic viscosity [N · s / m²2]
 		final double airViscosity0 = Helper.evaluatePolynomial(AIR_VISCOSITY_COEFFICIENTS, airTemperature);
 		//convert [hPa] to [MPa]
 		final double airViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, airPressure / 10_000.);
