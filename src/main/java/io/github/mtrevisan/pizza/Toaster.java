@@ -245,7 +245,7 @@ public class Toaster{
 
 	/**
 	 * @param temperature	Temperature [°C].
-	 * @return	Specific heat of water [J / (g · K)].
+	 * @return	Specific heat of water [J / (kg · K)].
 	 */
 	private double calculateWaterSpecificHeat(final double temperature){
 		return 1. / Helper.evaluatePolynomial(WATER_SPECIFIC_HEAT_COEFFICIENTS, temperature);

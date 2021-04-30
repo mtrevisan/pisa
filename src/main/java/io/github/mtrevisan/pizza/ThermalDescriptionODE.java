@@ -408,10 +408,24 @@ cp	dough specific heat
 	}
 
 /*
+@see <a href="https://www.ndt.net/article/apcndt2006/papers/38.pdf">Chiang, Pan, Liaw, Chi, Chu. Modeling of heat transfer in a multi-layered system for infrared inspection of a building wall. 2006.</a>
+
+heat transfer (heat equation in one dimension):
+dT/dt = α · d²T/dx²
+where (at constant pressure)
+α = ρ · Cp / k
+which discretized is
+(T_m(t+1) - T_m(t)) / dt = α · (T_m-1(t) - 2 · T_m(t) + T_m+1(t)) / Δx²
+where
+T_m(t) is the temperature at node m at the t-th time step
+k is the thermal conductivity [W / (m · K)]
+ρ is the density [kg / m³]
+Cp is the specific heat capacity [J / (kg · K)]
+α is the thermal diffusivity [m² / s]
+
+
 moisture transfer:
 dm/dt = Dm · d²m/dt²
-heat transfer (heat equation in one dimension):
-dT/dt = α · d²T/dtx²
 
 at the surface:
 hr · (Ta - TS) = Kc · dT/dx|x=S + Dm_cS · ρ_c · Lv · dm/dx|x=S

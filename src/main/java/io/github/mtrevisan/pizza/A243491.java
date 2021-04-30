@@ -64,7 +64,7 @@ public class A243491{
 
 	/** Ratio of molar mass of water to molar mass of air. */
 	private static final double WATER_AIR_MOLAR_MASS_RATIO = 0.622;
-	/** Specific heat of water [J / (g · K)]. */
+	/** Specific heat of water [J / (kg · K)]. */
 	private static final double WATER_SPECIFIC_HEAT = 4.184;
 
 
