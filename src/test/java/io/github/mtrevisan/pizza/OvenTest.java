@@ -39,7 +39,7 @@ import java.time.LocalTime;
 class OvenTest{
 
 	@Test
-	void twoStagesWithHeightReal() throws DoughException, YeastException{
+	void twoStagesWithHeightReal() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
 			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
@@ -91,9 +91,9 @@ class OvenTest{
 			},
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(19, 45), recipe.getSeasoningInstant());
-		Assertions.assertEquals(220.2, instructions.getBakingTemperature(), 0.1);
-		//FIXME should be around 12 min
-		Assertions.assertEquals(86., instructions.getBakingDuration().getSeconds(), 1.);
+		Assertions.assertEquals(220.0, instructions.getBakingTemperature(), 0.1);
+		//FIXME should be around 12 min, not 281 s = 4 min 41 s
+		Assertions.assertEquals(281., instructions.getBakingDuration().getSeconds(), 1.);
 	}
 
 }

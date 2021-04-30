@@ -259,16 +259,18 @@ public final class Recipe{
 	 * @param fatDensity	Density of the fat [kg/l].
 	 * @param temperature	Temperature of the dough [°C].
 	 * @param atmosphericPressure	Atmospheric pressure [hPa].
+	 * @return	The density of the dough [kg / m^3].
 	 */
 	double density(final double fatDensity, final double temperature, final double atmosphericPressure){
 		//TODO
+		final double doughWeight = doughWeight();
 		//density of flour + salt + sugar + water
 		final double doughDensity = 1.41
 			- 0.00006762 * atmosphericPressure
-			+ 0.00640 * salt
-//			+ 0.00746 * salt - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
-//			+ 0.000426 * sugar - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
-			- 0.00260 * water;
+			+ 0.00640 * salt / doughWeight
+//			+ 0.00746 * salt / doughWeight - 0.000411 * (doughTemperature + ABSOLUTE_ZERO)
+//			+ 0.000426 * sugar / doughWeight - 0.000349 * (doughTemperature + ABSOLUTE_ZERO)
+			- 0.00260 * water / doughWeight;
 
 		final double pureWaterDensity = 999.84259 + (6.793952e-2 + (-9.09529e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * temperature)
 			* temperature) * temperature) * temperature) * temperature;

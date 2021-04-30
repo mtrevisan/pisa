@@ -243,7 +243,7 @@ cp	dough specific heat
 */
 
 	ThermalDescriptionODE(final double layerThicknessMozzarella, final double layerThicknessTomato, final double layerThicknessDough,
-			final OvenType ovenType, final double bakingTemperatureTop, final double topDistance, final double bakingTemperatureBottom, final double bottomDistance,
+			final OvenType ovenType, final double bakingTemperatureTop, final double distanceHeaterTop, final double bakingTemperatureBottom, final double distanceHeaterBottom,
 			final double ambientTemperature, final double airPressure, final double airRelativeHumidity){
 		this.layerThicknessMozzarella = layerThicknessMozzarella;
 		this.layerThicknessTomato = layerThicknessTomato;

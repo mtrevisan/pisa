@@ -149,7 +149,7 @@ class DoughTest{
 	}
 
 	@Test
-	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException{
+	void twoStagesWithStretchAndFoldsReal() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
 			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
@@ -201,7 +201,7 @@ class DoughTest{
 	}
 
 	@Test
-	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException{
+	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			.addSugar(0.003, SugarType.SUCROSE, 0.998, 0.0005)
