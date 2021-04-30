@@ -39,6 +39,9 @@ public final class Oven{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Oven.class);
 
+	//[°C]
+	private static final double DESIRED_BAKED_DOUGH_TEMPERATURE = 73.9;
+
 
 	/**
 	 * [s]
@@ -147,10 +150,8 @@ public final class Oven{
 		final double bakingTemperature = bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		final double brineBoilingTemperature = Water.boilingTemperature(recipe.getSalt() / recipe.getWater(),
-			recipe.getSugar() / recipe.getWater(), dough.sugarType, dough.atmosphericPressure);
 		final BakingInstructions instructions = BakingInstructions.create();
-		if(bakingTemperature < brineBoilingTemperature)
+		if(bakingTemperature < DESIRED_BAKED_DOUGH_TEMPERATURE)
 			LOGGER.warn("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		else{
 			//https://bakerpedia.com/processes/maillard-reaction/
@@ -172,7 +173,7 @@ public final class Oven{
 		//[cm]
 		final double tomatoLayerThickness = 0.2;
 		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight, cheeseLayerThickness,
-			tomatoLayerThickness, brineBoilingTemperature);
+			tomatoLayerThickness, DESIRED_BAKED_DOUGH_TEMPERATURE);
 		instructions.withBakingDuration(bakingDuration);
 		return instructions;
 	}
@@ -191,19 +192,19 @@ public final class Oven{
 	 * @param layerThicknessDough	Initial dough height [cm].
 	 * @param layerThicknessMozzarella	Cheese layer thickness [cm].
 	 * @param layerThicknessTomato	Tomato layer thickness [cm].
-	 * @param brineBoilingTemperature	Brine (contained into the dough) boiling temperature [°C].
+	 * @param desiredBakedDoughTemperature	Brine (contained into the dough) boiling temperature [°C].
 	 * @return	Baking duration.
 	 */
 	private Duration calculateBakingDuration(final Dough dough, final BakingInstruments bakingInstruments, double layerThicknessDough,
-			double layerThicknessMozzarella, double layerThicknessTomato, final double brineBoilingTemperature){
+			double layerThicknessMozzarella, double layerThicknessTomato, final double desiredBakedDoughTemperature){
 		layerThicknessMozzarella /= 100.;
 		layerThicknessTomato /= 100.;
 		layerThicknessDough /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessDough,
-			OvenType.FORCED_CONVECTION, bakingTemperatureTop, bakingTemperatureBottom,
+			OvenType.FORCED_CONVECTION, bakingTemperatureTop, 0.10, bakingTemperatureBottom, 0.10,
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity);
 
-		final double bbt = (brineBoilingTemperature - dough.ingredientsTemperature) / (bakingTemperatureTop - dough.ingredientsTemperature);
+		final double bbt = (desiredBakedDoughTemperature - dough.ingredientsTemperature) / (bakingTemperatureTop - dough.ingredientsTemperature);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)

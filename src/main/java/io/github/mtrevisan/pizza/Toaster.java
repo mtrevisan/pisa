@@ -98,7 +98,7 @@ public class Toaster{
 
 	Toaster(
 		//pizza
-			final double mozzarellaLayerThickness, final double tomatoLayerThickness, final double doughLayerThickness, final double pizzaArea,
+			final double layerThicknessMozzarella, final double layerThicknessTomato, final double layerThicknessDough, final double pizzaArea,
 			//pan
 			final BakingPanMaterial panMaterial, final double panThickness, final double panArea,
 			//oven
@@ -129,17 +129,17 @@ public class Toaster{
 		//[K / W]
 		final double thermalResistanceTopAir = topDistance / (h_top * pizzaArea);
 		//[K / W]
-		final double thermalResistanceMozzarella = mozzarellaLayerThickness / (thermalConductivityMozzarella * pizzaArea);
+		final double thermalResistanceMozzarella = layerThicknessMozzarella / (thermalConductivityMozzarella * pizzaArea);
 		//[K / W]
-		final double thermalResistanceTomato = tomatoLayerThickness / (thermalConductivityTomato * pizzaArea);
+		final double thermalResistanceTomato = layerThicknessTomato / (thermalConductivityTomato * pizzaArea);
 		//[K / W]
-		final double thermalResistanceDoughTop = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
+		final double thermalResistanceDoughTop = (layerThicknessDough / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]
 		final double thermalResistanceBottomAir = bottomDistance / (h_bottom * pizzaArea);
 		//[K / W]
 		final double thermalResistancePan = panThickness / (panMaterial.thermalConductivity * panArea);
 		//[K / W]
-		final double thermalResistanceDoughBottom = (doughLayerThickness / 2.) / (thermalConductivityDough * pizzaArea);
+		final double thermalResistanceDoughBottom = (layerThicknessDough / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]
 		final double thermalResistanceTop = thermalResistanceTopAir + thermalResistanceMozzarella + thermalResistanceTomato
 			+ thermalResistanceDoughTop;
@@ -169,7 +169,7 @@ public class Toaster{
 		//resistance between the surroundings and the system surface (1 / h).
 		//Therefore, small Bi represents the case were the surface film impedes heat transport and large Bi the case where conduction through
 		//and out of the solid is the limiting factor.
-		final double biotNumberDough = h_bottom * (doughLayerThickness / 2.) / thermalConductivityDough;
+		final double biotNumberDough = h_bottom * (layerThicknessDough / 2.) / thermalConductivityDough;
 		//NOTE: Biot number should be less than about 0.1 to consider lumped-heat capacity calculations...
 
 		final double xiDough = 0.5553;
@@ -178,7 +178,7 @@ public class Toaster{
 		final double fourierNumberDough = Math.log(theta / cDough) / -Math.pow(xiDough, 2.);
 		//thermal diffusivity = thermalConductivity / (density * specificHeat) [m^2 / s]
 		final double alpha2 = 1.3e-7;
-		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(doughLayerThickness, 2.) / alpha2));
+		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(layerThicknessDough, 2.) / alpha2));
 
 		System.out.println(tDough);
 	}
