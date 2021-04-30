@@ -439,7 +439,7 @@ where
 T[m](t) is the temperature at node m and time t
 
 The temperature variation at the boundary of layer is calculated using the relation
-(2) k · (T_m-1(t) - T_m(t)) / Δx + σ · ε · (T∞⁴ - T_m(t)⁴) - h · (T_m(t) - T∞) = ρ · Cp · (Δx / 2) · (T_m(t+1) - T_m(t)) / dτ
+(2) k · (T[m-1](t) - T[m](t)) / Δx + σ · ε · (T∞⁴ - T[m](t)⁴) - h · (T[m](t) - T∞) = ρ · Cp · (Δx / 2) · (T[m](t+1) - T[m](t)) / dτ
 where
 T∞ is the ambient temperature
 σ is the Stephan-Boltzmann constant
@@ -447,15 +447,15 @@ T∞ is the ambient temperature
 h is the convection coefficient
 
 The temperature variation across the  of internal layers A and B is calculated using the relation
-(3) kA · (T_m-1(t) - T_m(t)) / ΔxA + kB · (T_m+1(t) - T_m(t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 2 · (T_m(t+1) - T_m(t)) / dτ
+(3) kA · (T[m-1](t) - T[m](t)) / ΔxA + kB · (T[m+1](t) - T[m](t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 4 · (T[m](t+1) - T[m](t)) / dτ
 
 let
 θ = (T - T0) / (Ta - T0)
 𝜓 = x / L
 then
 (1') dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
-(2') k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) - h · (θ[m] - T∞) = ρ · Cp · (d𝜓 / 2) · dθ[m]/dτ
-(3') kA · (θ[m-1] - θ[m]) / d𝜓A + kB · (θ[m+1] - θ[m]) / d𝜓B = (ρA · CpA · d𝜓A + ρB · CpB · d𝜓B) / 2 · dθ[m]/dτ
+(2') dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) - h · (θ[m] - T∞)) / (ρ · Cp · d𝜓)
+(3') dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
 
 
 
