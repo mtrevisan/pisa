@@ -65,7 +65,7 @@ public final class Dough{
 
 
 	/**
-	 * (should be 3.21 mol/l = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10. [% w/w] = 57.82965228 (?)) [% w/w]
+	 * (should be 3.21 mol/l = 3.21 · MOLECULAR_WEIGHT_GLUCOSE / 10. [% w/w] = 57.82965228 (?)) [% w/w]
 	 *
 	 * @see #sugarFactor(double)
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
@@ -81,7 +81,7 @@ public final class Dough{
 	private static final double FAT_MAX = 1.;
 
 	/**
-	 * (should be 2.04 mol/l = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
+	 * (should be 2.04 mol/l = 2.04 · MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
 	 *
 	 * @see #saltFactor()
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
@@ -117,7 +117,7 @@ public final class Dough{
 	public static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
 	/**
 	 * TODO
-	 * [mg/l]
+	 * [mg / l]
 	 *
 	 * @see #waterFixedResidueFactor()
 	 */
@@ -201,7 +201,7 @@ public final class Dough{
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
 	/**
-	 * Calcium carbonate (CaCO3) in water [mg/l] = [°F * 10] = [°I * 7] = [°dH * 5.6].
+	 * Calcium carbonate (CaCO3) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6].
 	 *
 	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
 	 */

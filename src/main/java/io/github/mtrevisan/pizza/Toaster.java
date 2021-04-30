@@ -55,9 +55,9 @@ public class Toaster{
 	//[°C]
 	public static final double ABSOLUTE_ZERO = 273.15;
 
-	/** Specific gas constant for dry air [J / (kg * K)]. */
+	/** Specific gas constant for dry air [J / (kg · K)]. */
 	private static final double R_DRY_AIR = 287.05;
-	/** Specific gas constant for water vapor [J / (kg * K)]. */
+	/** Specific gas constant for water vapor [J / (kg · K)]. */
 	private static final double R_WATER_VAPOR = 461.495;
 
 	private static final double[] AIR_SPECIFIC_HEAT_COEFFICIENTS = {0.251625, -9.2525e-5, 2.1334e-7, -1.0043e-10};
@@ -73,7 +73,7 @@ public class Toaster{
 
 	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
 
-	//Stefan-Boltzmann constant [W / (m^2 * K^4)]
+	//Stefan-Boltzmann constant [W / (m^2 · K^4)]
 	private static final double SIGMA = 5.670374419e-8;
 
 	private static final double EMISSIVITY_NICHROME_WIRE = 0.87;
@@ -109,21 +109,21 @@ public class Toaster{
 		final double rayleighNumberTop = calculateRayleighNumber(bakingTemperatureTop, airPressure, airRelativeHumidity, topDistance, ambientTemperature, gravity);
 		final double rayleighNumberBottom = calculateRayleighNumber(bakingTemperatureBottom, airPressure, airRelativeHumidity, bottomDistance, ambientTemperature, gravity);
 
-		//top air thermal conductivity [W / (m * K)]
+		//top air thermal conductivity [W / (m · K)]
 		final double airThermalConductivityTop = calculateAirThermalConductivity(bakingTemperatureTop);
-		//convective thermal coefficient [W / (m^2 * K)]
+		//convective thermal coefficient [W / (m^2 · K)]
 		final double nusseltNumberTop = calculateNusseltNumberTop(rayleighNumberTop);
 		final double h_top = airThermalConductivityTop * nusseltNumberTop / topDistance;
-		//bottom air thermal conductivity [W / (m * K)]
+		//bottom air thermal conductivity [W / (m · K)]
 		final double airThermalConductivityBottom = calculateAirThermalConductivity(bakingTemperatureBottom);
-		//convective thermal coefficient [W / (m^2 * K)]
+		//convective thermal coefficient [W / (m^2 · K)]
 		final double nusseltNumberBottom = calculateNusseltNumberBottom(rayleighNumberBottom);
 		final double h_bottom = airThermalConductivityBottom * nusseltNumberBottom / topDistance;
-		//mozzarella thermal conductivity [W / (m * K)]
+		//mozzarella thermal conductivity [W / (m · K)]
 		final double thermalConductivityMozzarella = calculateThermalConductivity(ambientTemperature, 0.2, 0.19, 0.022, 0., 0.09, 0.579);
-		//tomato thermal conductivity [W / (m * K)]
+		//tomato thermal conductivity [W / (m · K)]
 		final double thermalConductivityTomato = calculateThermalConductivity(ambientTemperature, 0.013, 0.002, 0.07, 0., 0.00011, 0.91489);
-		//dough thermal conductivity [W / (m * K)]
+		//dough thermal conductivity [W / (m · K)]
 		final double thermalConductivityDough = calculateThermalConductivity(ambientTemperature, 0.013, 0.011, 0.708, 0.019, 0.05, 0.15);
 
 		//[K / W]
@@ -165,7 +165,7 @@ public class Toaster{
 		final double totalEnergyBottom = energyConvectionBottom + energyRadiationBottom;
 
 
-		//Biot number represents the ratio of heat transfer resistance in the interior of the system (L / k in Bi = h * L / k) to the
+		//Biot number represents the ratio of heat transfer resistance in the interior of the system (L / k in Bi = h · L / k) to the
 		//resistance between the surroundings and the system surface (1 / h).
 		//Therefore, small Bi represents the case were the surface film impedes heat transport and large Bi the case where conduction through
 		//and out of the solid is the limiting factor.
@@ -176,7 +176,7 @@ public class Toaster{
 		final double cDough = 1.0511;
 		final double theta = (DESIRED_BAKED_DOUGH_TEMPERATURE - bakingTemperatureTop) / (ambientTemperature - bakingTemperatureTop);
 		final double fourierNumberDough = Math.log(theta / cDough) / -Math.pow(xiDough, 2.);
-		//thermal diffusivity = thermalConductivity / (density * specificHeat) [m^2 / s]
+		//thermal diffusivity = thermalConductivity / (density · specificHeat) [m^2 / s]
 		final double alpha2 = 1.3e-7;
 		final Duration tDough = Duration.ofSeconds((long)(fourierNumberDough * Math.pow(layerThicknessDough, 2.) / alpha2));
 
@@ -232,12 +232,12 @@ public class Toaster{
 	//https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf
 	//cds.cern.ch/record/732229/files/0404117.pdf?version=2
 	private double calculateAirThermalExpansion(final double temperature, final double relativeHumidity){
-		//[cal / (g * K)]
+		//[cal / (g · K)]
 		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
-		//[cal / (g * K)]
+		//[cal / (g · K)]
 		final double specificHeatWaterVapor = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
 			temperature + ABSOLUTE_ZERO);
-		//[J / (kg * K)]
+		//[J / (kg · K)]
 		return calculateWaterSpecificHeat(temperature)
 			* (specificHeatAir + relativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWaterVapor - specificHeatAir))
 			/ (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * relativeHumidity);
@@ -245,7 +245,7 @@ public class Toaster{
 
 	/**
 	 * @param temperature	Temperature [°C].
-	 * @return	Specific heat of water [J / (g * K)].
+	 * @return	Specific heat of water [J / (g · K)].
 	 */
 	private double calculateWaterSpecificHeat(final double temperature){
 		return 1. / Helper.evaluatePolynomial(WATER_SPECIFIC_HEAT_COEFFICIENTS, temperature);
@@ -297,7 +297,7 @@ public class Toaster{
 	 * @see <a href="https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf">Calculation methods for the physical properties of air used in the calibration of microphones</a>
 	 *
 	 * @param temperature	Air temperature [°C].
-	 * @return	The air specific heat [J / (kg * K)].
+	 * @return	The air specific heat [J / (kg · K)].
 	 */
 	private double calculateAirSpecificHeat(final double temperature){
 		return 1002.5 + 275.e-6 * Math.pow(temperature + ABSOLUTE_ZERO - 200., 2.);

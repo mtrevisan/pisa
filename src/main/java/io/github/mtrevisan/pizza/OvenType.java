@@ -32,7 +32,7 @@ public enum OvenType{
 
 	/**
 	 * @param temperature	Temperature [°C].
-	 * @return	Heat transfer coefficient [W / (m^2 * K)].
+	 * @return	Heat transfer coefficient [W / (m^2 · K)].
 	 */
 	double heatTransferCoefficient(final double temperature){
 		final double coeff;

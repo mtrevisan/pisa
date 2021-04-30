@@ -46,9 +46,9 @@ public class A243491{
 	private static final int INDEX_ASH = 4;
 	private static final int INDEX_WATER = 5;
 
-	/** Specific gas constant for dry air [J / (kg * K)]. */
+	/** Specific gas constant for dry air [J / (kg · K)]. */
 	private static final double R_DRY_AIR = 287.05;
-	/** Specific gas constant for water vapor [J / (kg * K)]. */
+	/** Specific gas constant for water vapor [J / (kg · K)]. */
 	private static final double R_WATER_VAPOR = 461.495;
 
 	private static final double[] WATER_VAPOR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
@@ -61,7 +61,7 @@ public class A243491{
 
 	/** Ratio of molar mass of water to molar mass of air. */
 	private static final double WATER_AIR_MOLAR_MASS_RATIO = 0.622;
-	/** Specific heat of water [J / (g * K)]. */
+	/** Specific heat of water [J / (g · K)]. */
 	private static final double WATER_SPECIFIC_HEAT = 4.184;
 
 
@@ -117,9 +117,9 @@ public class A243491{
 		double pizzaDiameter = 2. * Math.sqrt(220. * 250. / Math.PI);
 		/** pan density [kg / m^3]. */
 		double panDensity = 0.;
-		/** pan thermal conductivity [W / (m * K)]. */
+		/** pan thermal conductivity [W / (m · K)]. */
 		double panThermalConductivity = 0.;
-		/** pan specific heat [J / (kg * K)]. */
+		/** pan specific heat [J / (kg · K)]. */
 		double panSpecificHeat = 0.;
 		/** pan emissivity. */
 		double panEmissivity = 0.;
@@ -193,9 +193,9 @@ public class A243491{
 			double pizzaDiameter,
 			/** pan density [kg / m^3]. */
 			double panDensity,
-			/** pan thermal conductivity [W / (m * K)]. */
+			/** pan thermal conductivity [W / (m · K)]. */
 			double panThermalConductivity,
-			/** pan specific heat [J / (kg * K)]. */
+			/** pan specific heat [J / (kg · K)]. */
 			double panSpecificHeat,
 			/** pan emissivity. */
 			double panEmissivity,
@@ -530,7 +530,7 @@ public class A243491{
 	 * @param airRelativeHumidity   air relative humidity [%].
 	 * @param airSpeed   air speed [m / s].
 	 * @param pizzaDiameter   pizza diameter [mm].
-	 * @return	convective heat transfer [W / (m^2 * K)].
+	 * @return	convective heat transfer [W / (m^2 · K)].
 	 */
 	private double convectiveHeatTransfer(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
@@ -540,13 +540,13 @@ public class A243491{
 		final double moistDensity = airRelativeHumidity * waterVaporPressure / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
 		final double airDensity = dryAirDensity + moistDensity;
 
-		//calculate air dynamic viscosity [N * s / m^2]
+		//calculate air dynamic viscosity [N · s / m^2]
 		final double airViscosity0 = Helper.evaluatePolynomial(AIR_VISCOSITY_COEFFICIENTS, airTemperature);
 		//convert [hPa] to [MPa]
 		final double airViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, airPressure / 10_000.);
 		final double airViscosity = 1.e-7 * (airViscosity0 + airViscosityP);
 
-		//calculate air thermal conductivity [W / (m * K)]
+		//calculate air thermal conductivity [W / (m · K)]
 		final double airConductivity = Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
 
 		//calculate air Prandtl number at 1000 hPa
@@ -554,12 +554,12 @@ public class A243491{
 		final double prandtlNumber = 1.e9 / Helper.evaluatePolynomial(AIR_PRANDTL_COEFFICIENTS, airTemperature);
 
 //		//https://backend.orbit.dtu.dk/ws/portalfiles/portal/117984374/PL11b.pdf
-//		//[cal / (g * K)]
+//		//[cal / (g · K)]
 //		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
-//		//[cal / (g * K)]
+//		//[cal / (g · K)]
 //		final double specificHeatWater = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
 //			airTemperature + ABSOLUTE_ZERO);
-//		//[J / (kg * K)]
+//		//[J / (kg · K)]
 //		final double specificHeat = WATER_SPECIFIC_HEAT
 //			* (specificHeatAir + airRelativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWater - specificHeatAir))
 //			/ (1. - (1. - WATER_AIR_MOLAR_MASS_RATIO) * airRelativeHumidity);

@@ -98,7 +98,7 @@ public final class Water{
 	 * @param salinity	Salinity [g/kg].
 	 * @param temperature	Temperature [°C].
 	 * @param pressure	Pressure [hPa].
-	 * @return	The specific heat [J / (kg * K)].
+	 * @return	The specific heat [J / (kg · K)].
 	 */
 	public static double specificHeat(final double salinity, final double temperature, final double pressure){
 		final double a0 = Helper.evaluatePolynomial(SPECIFIC_HEAT_A0_COEFFICIENTS, temperature);
