@@ -410,18 +410,30 @@ cp	dough specific heat
 /*
 @see <a href="https://www.ndt.net/article/apcndt2006/papers/38.pdf">Chiang, Pan, Liaw, Chi, Chu. Modeling of heat transfer in a multi-layered system for infrared inspection of a building wall. 2006.</a>
 
-heat transfer (heat equation in one dimension):
-dT/dt = α · d²T/dx²
+Heat transfer (heat equation in one dimension):
+dT/dτ = α · d²T/dx²
 where (at constant pressure)
 α = ρ · Cp / k
 which discretized is
-(T_m(t+1) - T_m(t)) / dt = α · (T_m-1(t) - 2 · T_m(t) + T_m+1(t)) / Δx²
+(T_m(t+1) - T_m(t)) / dτ = α · (T_m-1(t) - 2 · T_m(t) + T_m+1(t)) / Δx²
 where
 T_m(t) is the temperature at node m at the t-th time step
 k is the thermal conductivity [W / (m · K)]
 ρ is the density [kg / m³]
 Cp is the specific heat capacity [J / (kg · K)]
 α is the thermal diffusivity [m² / s]
+
+The temperature variation at the boundary of layer is calculated using the relation
+k · (T_m-1(t) - T_m(t)) / Δx + σ · ε · (T∞⁴ - T_m(t)⁴) - h · (T_m(t) - T∞) = ρ · Cp · (Δx / 2) · (T_m(t+1) - T_m(t)) / dτ
+where
+T∞ is the ambient temperature
+σ is the Stephan-Boltzmann constant
+ε is the thermal emissivity
+h is the convection coefficient
+
+The temperature variation across the  of internal layers A and B is calculated using the relation
+kA · (T_m-1(t) - T_m(t)) / ΔxA + kB · (T_m+1(t) - T_m(t)) / ΔxB = (ρA · CpA · ΔxA + ρB · CpB · ΔxB) / 2 · (T_m(t+1) - T_m(t)) / dτ
+
 
 
 moisture transfer:
