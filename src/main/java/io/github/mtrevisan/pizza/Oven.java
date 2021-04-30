@@ -150,22 +150,19 @@ public final class Oven{
 		final double doughVolume = recipe.doughWeight() / recipe.density(fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
 		//[cm]
 		final double initialDoughHeight = doughVolume / totalBakingPansArea;
-		//FIXME the factor accounts for water content and gases produced by levain
 		final double bakingRatio = targetPizzaHeight / initialDoughHeight;
 		//apply inverse Charles-Gay Lussac
+		//FIXME the factor accounts for water content and gases produced by levain
 		final double bakingTemperature = 1.1781 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
-		//TODO calculate baking temperature (must be bakingTemperature > waterBoilingTemp and bakingTemperature > maillardReactionTemperature)
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
 		final BakingInstructions instructions = BakingInstructions.create();
 		if(bakingTemperature < DESIRED_BAKED_DOUGH_TEMPERATURE)
-			OvenException.create("Cannot bake at such a temperature able to generate a pizza with the desired height");
-		else{
-			//https://bakerpedia.com/processes/maillard-reaction/
-			if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
-				LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
+			throw OvenException.create("Cannot bake at such a temperature able to generate a pizza with the desired height");
+		//https://bakerpedia.com/processes/maillard-reaction/
+		if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
+			LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
 
-			instructions.withBakingTemperature(bakingTemperature);
-		}
+		instructions.withBakingTemperature(bakingTemperature);
 		if(hasTopHeater)
 			//FIXME
 			withBakingTemperatureTop(bakingTemperature, 0.1);
