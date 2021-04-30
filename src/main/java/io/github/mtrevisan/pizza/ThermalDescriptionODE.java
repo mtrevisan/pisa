@@ -286,18 +286,19 @@ cp	dough specific heat
 	}
 
 	/**
-	 * @param temperature	Temperature [°C].
+	 * @param fourierTemperature	Temperature [°C].
 	 * @return	Moisture diffusivity in mozzarella layer [m^2 / s].
 	 */
-	private double moistureDiffusivityMozzarella(final double temperature){
+	private double moistureDiffusivityMozzarella(final double fourierTemperature){
 		return 7.e-11;
 	}
 
 	/**
-	 * @param temperature	Temperature [°C].
+	 * @param fourierTemperature	Fourier temperature.
 	 * @return	Moisture diffusivity in tomato layer [m^2 / s].
 	 */
-	private double moistureDiffusivityTomato(final double temperature){
+	private double moistureDiffusivityTomato(final double fourierTemperature){
+		final double temperature = fourierTemperature * (bakingTemperatureTop - ambientTemperature) + ambientTemperature;
 		//https://www.researchgate.net/publication/50863959_Effective_Moisture_Diffusivity_and_Activation_Energy_of_Tomato_in_Thin_Layer_Dryer_during_Hot_Air_Drying
 		return (ovenType == OvenType.FORCED_CONVECTION?
 			9.9646e-10 * Math.exp(-605.93 / temperature):
@@ -305,10 +306,11 @@ cp	dough specific heat
 	}
 
 	/**
-	 * @param temperature	Temperature [°C].
+	 * @param fourierTemperature	Temperature [°C].
 	 * @return	Moisture diffusivity in dough layer [m^2 / s].
 	 */
-	private double moistureDiffusivityDough(final double temperature){
+	private double moistureDiffusivityDough(final double fourierTemperature){
+		final double temperature = fourierTemperature * (bakingTemperatureTop - ambientTemperature) + ambientTemperature;
 		return (ovenType == OvenType.FORCED_CONVECTION?
 			7.0582e-8 * Math.exp(-1890.68 / temperature):
 			1.4596e-9 * Math.exp(-420.34 / temperature));
@@ -592,13 +594,17 @@ dtheta1/dt = 100 * alpha_d / (3 * Ld^2) * (thetaB - 3 * theta1 + theta2)
 	}
 
 	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt){
-		final double thetaB = (bakingTemperatureBottom - ambientTemperature) / (bakingTemperatureTop - ambientTemperature);
+		final double thetaB = calculateFourierTemperature(bakingTemperatureBottom, ambientTemperature, bakingTemperatureTop);
 		final double tmp = 50. / (layerThicknessDough * layerThicknessDough);
 		setTheta(layer, dydt, (2./3.) * tmp * thermalDiffusivityDough
 			* (thetaB - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)));
 
 		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
 		setC(layer, dydt, tmp * moistureDiffusivityDough * (getC(layer + 1, y) - getC(layer, y)));
+	}
+
+	private double calculateFourierTemperature(final double temperature, final double initialTemperature, final double finalTemperature){
+		return (temperature - initialTemperature) / (finalTemperature - initialTemperature);
 	}
 
 	private double getTheta(final int layer, final double[] array){

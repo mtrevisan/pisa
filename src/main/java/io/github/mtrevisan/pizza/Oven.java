@@ -119,14 +119,18 @@ public final class Oven{
 		bakingInstruments.validate();
 
 		//FIXME
-		final double fatDensity = 0.9175;
-		final double doughDensity = recipe.density(fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
-		final double totalDoughVolume = recipe.doughWeight() / doughDensity;
+		final double densityFat = 0.9175;
+		//FIXME
+		final double densityTomato = 1.06;
+		//FIXME
+		final double densityMozzarella = 1.029;
+
+		final double densityDough = recipe.density(densityFat, dough.ingredientsTemperature, dough.atmosphericPressure);
 		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//[cm]
-		final double initialDoughHeight = totalDoughVolume / totalBakingPansArea;
+		final double initialLayerThicknessDough = recipe.doughWeight() / (densityDough * totalBakingPansArea);
 
-		final double bakingRatio = targetPizzaHeight / initialDoughHeight;
+		final double bakingRatio = targetPizzaHeight / initialLayerThicknessDough;
 		final double bakingTemperature = calculateBakingTemperature(dough, bakingRatio);
 		if(bakingTemperature < DESIRED_BAKED_DOUGH_TEMPERATURE)
 			throw OvenException.create("Cannot bake at such a temperature able to generate a pizza with the desired height");
@@ -138,14 +142,20 @@ public final class Oven{
 			bakingTemperatureTop = bakingTemperature;
 		if(distanceHeaterBottom > 0.)
 			bakingTemperatureBottom = bakingTemperature;
-		//FIXME
+
+		//[g]
+		final double seasoningOregano = totalBakingPansArea / 1400.;
+		//[g]
+		final double seasoningMozzarella = totalBakingPansArea / 2.45;
+		//[g]
+		final double seasoningTomato = totalBakingPansArea / 4.15;
+
 		//[cm]
-		final double cheeseLayerThickness = 0.2;
-		//FIXME
+		final double layerThicknessMozzarella = seasoningMozzarella / (densityMozzarella * totalBakingPansArea);
 		//[cm]
-		final double tomatoLayerThickness = 0.05;
-		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialDoughHeight,
-			cheeseLayerThickness, tomatoLayerThickness, DESIRED_BAKED_DOUGH_TEMPERATURE);
+		final double layerThicknessTomato = seasoningTomato / (densityTomato * totalBakingPansArea);
+		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialLayerThicknessDough,
+			layerThicknessMozzarella, layerThicknessTomato, DESIRED_BAKED_DOUGH_TEMPERATURE);
 
 		return BakingInstructions.create()
 			.withBakingTemperature(bakingTemperature)
