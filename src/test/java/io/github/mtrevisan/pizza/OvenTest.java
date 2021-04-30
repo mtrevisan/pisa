@@ -63,8 +63,8 @@ class OvenTest{
 			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		final Oven oven = Oven.create(OvenType.FORCED_CONVECTION)
-			.withHasTopHeater()
-			.withHasBottomHeater();
+			.withDistanceHeaterTop(0.1)
+			.withDistanceHeaterBottom(0.1);
 		final BakingInstruments bakingInstruments = new BakingInstruments()
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.02),

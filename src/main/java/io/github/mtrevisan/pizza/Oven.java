@@ -61,15 +61,11 @@ public final class Oven{
 
 
 	OvenType ovenType;
-	/** Whether this oven has top heating */
-	boolean hasTopHeater;
-	/** Whether this oven has bottom heating */
-	boolean hasBottomHeater;
 
-	Double bakingTemperatureTop;
-	Double distanceHeaterTop;
-	Double bakingTemperatureBottom;
-	Double distanceHeaterBottom;
+	double distanceHeaterTop;
+	double bakingTemperatureTop;
+	double distanceHeaterBottom;
+	double bakingTemperatureBottom;
 
 
 	public static Oven create(final OvenType ovenType) throws OvenException{
@@ -83,38 +79,20 @@ public final class Oven{
 		this.ovenType = ovenType;
 	}
 
-	public final Oven withHasTopHeater(){
-		hasTopHeater = true;
+	public final Oven withDistanceHeaterTop(final double distanceHeater) throws OvenException{
+		if(distanceHeater <= 0.)
+			throw OvenException.create("Top heater distance from the tray cannot be non-positive");
+
+		distanceHeaterTop = distanceHeater;
 
 		return this;
 	}
 
-	public final Oven withHasBottomHeater(){
-		hasBottomHeater = true;
+	public final Oven withDistanceHeaterBottom(final double distanceHeater) throws OvenException{
+		if(distanceHeater <= 0.)
+			throw OvenException.create("Bottom heater distance from the tray cannot be non-positive");
 
-		return this;
-	}
-
-	public final Oven withBakingTemperatureTop(final double bakingTemperature, final double heaterDistance) throws OvenException{
-		if(bakingTemperature <= 0.)
-			throw OvenException.create("Baking top temperature too low");
-		if(heaterDistance <= 0.)
-			throw OvenException.create("Top heater too low");
-
-		bakingTemperatureTop = bakingTemperature;
-		distanceHeaterTop = heaterDistance;
-
-		return this;
-	}
-
-	public final Oven withBakingTemperatureBottom(final double bakingTemperature, final double heaterDistance) throws OvenException{
-		if(bakingTemperature <= 0.)
-			throw OvenException.create("Baking bottom temperature too low");
-		if(heaterDistance <= 0.)
-			throw OvenException.create("Bottom heater too low");
-
-		bakingTemperatureBottom = bakingTemperature;
-		distanceHeaterBottom = heaterDistance;
+		distanceHeaterBottom = distanceHeater;
 
 		return this;
 	}
@@ -122,7 +100,7 @@ public final class Oven{
 	public final void validate() throws OvenException{
 		if(ovenType == null)
 			throw OvenException.create("Oven type must be given");
-		if(!hasTopHeater && !hasBottomHeater)
+		if(distanceHeaterTop == 0. && distanceHeaterBottom == 0.)
 			throw OvenException.create("Oven must have at least an heater component");
 	}
 
@@ -140,35 +118,34 @@ public final class Oven{
 		validate();
 		bakingInstruments.validate();
 
-		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
-
-		//TODO
-
-		//calculate baking temperature:
 		//FIXME
 		final double fatDensity = 0.9175;
-		final double doughVolume = recipe.doughWeight() / recipe.density(fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
+		final double doughDensity = recipe.density(fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
+		final double totalDoughVolume = recipe.doughWeight() / doughDensity;
+		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//[cm]
-		final double initialDoughHeight = doughVolume / totalBakingPansArea;
+		final double initialDoughHeight = totalDoughVolume / totalBakingPansArea;
+
+		//calculate baking temperature:
 		final double bakingRatio = targetPizzaHeight / initialDoughHeight;
+
 		//apply inverse Charles-Gay Lussac
 		//FIXME the factor accounts for water content and gases produced by levain
 		final double bakingTemperature = 1.1781 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		final BakingInstructions instructions = BakingInstructions.create();
 		if(bakingTemperature < DESIRED_BAKED_DOUGH_TEMPERATURE)
 			throw OvenException.create("Cannot bake at such a temperature able to generate a pizza with the desired height");
 		//https://bakerpedia.com/processes/maillard-reaction/
 		if(bakingTemperature < MAILLARD_REACTION_TEMPERATURE)
 			LOGGER.warn("Cannot bake at such a temperature able to generate the Maillard reaction");
 
+		//TODO
+		final BakingInstructions instructions = BakingInstructions.create();
 		instructions.withBakingTemperature(bakingTemperature);
-		if(hasTopHeater)
-			//FIXME
-			withBakingTemperatureTop(bakingTemperature, 0.1);
-		if(hasBottomHeater)
-			//FIXME
-			withBakingTemperatureBottom(bakingTemperature, 0.1);
+		if(distanceHeaterTop > 0.)
+			bakingTemperatureTop = bakingTemperature;
+		if(distanceHeaterBottom > 0.)
+			bakingTemperatureBottom = bakingTemperature;
 		//FIXME
 		//[cm]
 		final double cheeseLayerThickness = 0.2;
