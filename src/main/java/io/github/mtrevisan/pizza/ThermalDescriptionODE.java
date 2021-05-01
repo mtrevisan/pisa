@@ -592,8 +592,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		//at pizza surface
 
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentMozzarella
-		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, moistureContentMozzarella0);
+		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double thermalDiffusivityMozzarella = calculateThermalDiffusivity(conductivityMozzarella, specificHeatMozzarella, densityMozzarella);
 		final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
 
@@ -629,10 +628,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 	private void calculateTomatoMozzarellaInterfaceLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentMozzarella
-		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, moistureContentMozzarella0);
-		//FIXME calculate actual moistureContentTomato
-		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, moistureContentTomato0);
+		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, getC(layer - 1, y) * moistureContentDough0);
+		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer + 1, y) * moistureContentDough0);
 
 		setTheta(layer, dydt, 4. / (densityTomato * specificHeatTomato * layerThicknessTomato
 			+ densityMozzarella * specificHeatMozzarella * layerThicknessMozzarella)
@@ -655,8 +652,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)) / Math.pow(layerThicknessTomato, 2.));
 
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentTomato
-		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, moistureContentTomato0);
+		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double thermalDiffusivityTomato = calculateThermalDiffusivity(conductivityTomato, specificHeatTomato, densityTomato);
 		setTheta(layer, dydt, thermalDiffusivityTomato
 			* (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)) / Math.pow(layerThicknessTomato, 2.));
@@ -679,10 +675,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //			- moistureDiffusivityTomato / layerThicknessTomato * (getC(layer, y) - getC(layer + 1, y))));
 
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentTomato
-		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, moistureContentTomato0);
-		//FIXME calculate actual moistureContentDough
-		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, moistureContentDough0);
+		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer + 1, y) * moistureContentDough0);
+		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer - 1, y) * moistureContentDough0);
 
 		setTheta(layer, dydt, 4. / (densityDough * specificHeatDough * layerThicknessDough
 			+ densityTomato * specificHeatTomato * layerThicknessTomato)
@@ -698,8 +692,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 	private void calculateDoughLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentDough
-		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, moistureContentDough0);
+		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double thermalDiffusivityDough = calculateThermalDiffusivity(conductivityDough, specificHeatDough, densityDough);
 		setTheta(layer, dydt, (100./3.) * thermalDiffusivityDough
 			* (getTheta(layer - 1, y) - 3. * getTheta(layer, y) + 2. * getTheta(layer + 1, y)) / Math.pow(layerThicknessDough, 2.));
@@ -718,8 +711,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)) / Math.pow(layerThicknessDough, 2.));
 
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentDough
-		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, moistureContentDough0);
+		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double thermalDiffusivityDough = calculateThermalDiffusivity(conductivityDough, specificHeatDough, densityDough);
 
 		final double tmp = Math.pow(layerThicknessDough / layers, 2.);
@@ -746,8 +738,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double thetaB = calculateFourierTemperature((distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
 			ambientTemperature, bakingTemperatureTop);
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		//FIXME calculate actual moistureContentDough
-		final double doughDensity = physicalDensityDough.apply(layerTemperature, moistureContentDough0);
+		final double doughDensity = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, moistureContentDough0);
 		final double thermalDiffusivityDough = calculateThermalDiffusivity(conductivityDough, specificHeatDough, densityDough);
 		setTheta(layer, dydt, 2. * (
