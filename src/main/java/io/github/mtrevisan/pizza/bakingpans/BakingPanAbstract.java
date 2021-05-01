@@ -29,7 +29,7 @@ import java.util.Objects;
 
 public abstract class BakingPanAbstract{
 
-	protected BakingPanMaterial material;
+	public BakingPanMaterial material;
 	//[m]
 	//https://www.centralrestaurant.com/resources/pizza-pans-buying-guide/
 	protected double thickness;

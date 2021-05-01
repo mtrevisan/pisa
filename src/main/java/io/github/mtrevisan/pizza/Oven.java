@@ -189,7 +189,7 @@ public final class Oven{
 		layerThicknessDough /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessDough,
 			OvenType.FORCED_CONVECTION, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
-			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity);
+			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
 		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);
 		final UnivariateFunction f = time -> {

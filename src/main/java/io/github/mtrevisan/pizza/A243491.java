@@ -218,7 +218,7 @@ public class A243491{
 			/** number of sections. */
 			int shellNodes
 		){
-		final double convectiveHeatTransferCookingZone = convectiveHeatTransfer(ovenTemperature, airPressure, airRelativeHumidity,
+		final double convectiveHeatTransferCookingZone = heatTransferCoefficient(ovenTemperature, airPressure, airRelativeHumidity,
 			ovenAirSpeed, pizzaDiameter);
 
 		shellNodes ++;
@@ -535,7 +535,7 @@ public class A243491{
 	 * @param pizzaDiameter   pizza diameter [mm].
 	 * @return	convective heat transfer [W / (m² · K)].
 	 */
-	private double convectiveHeatTransfer(final double airTemperature, final double airPressure, final double airRelativeHumidity,
+	private double heatTransferCoefficient(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
 		//calculate air density [kg / m³]
 		final double dryAirDensity = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));

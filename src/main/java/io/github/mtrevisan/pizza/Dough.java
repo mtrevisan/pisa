@@ -201,7 +201,7 @@ public final class Dough{
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
 	/**
-	 * Calcium carbonate (CaCO3) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6].
+	 * Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6].
 	 *
 	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
 	 */
