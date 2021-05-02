@@ -50,6 +50,8 @@ public final class Recipe{
 	private LocalTime doughMakingInstant;
 	/** List of couples start-end times for each stage. */
 	private LocalTime[][] stageStartEndInstants;
+	/** List of starting times for stretch & fold phases. */
+	private LocalTime[] stretchAndFoldStartInstants;
 	/** Time to start seasoning the pizza. */
 	private LocalTime seasoningInstant;
 
@@ -222,6 +224,23 @@ public final class Recipe{
 	 */
 	public LocalTime[][] getStageStartEndInstants(){
 		return stageStartEndInstants;
+	}
+
+	/**
+	 * @param stretchAndFoldStartInstants	List of starting times for stretch & fold phases.
+	 * @return	The instance.
+	 */
+	public Recipe withStretchAndFoldStartInstants(final LocalTime[] stretchAndFoldStartInstants){
+		this.stretchAndFoldStartInstants = stretchAndFoldStartInstants;
+
+		return this;
+	}
+
+	/**
+	 * @return	List of starting times for stretch & fold phases.
+	 */
+	public LocalTime[] getStretchAndFoldStartInstants(){
+		return stretchAndFoldStartInstants;
 	}
 
 	/**

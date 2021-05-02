@@ -482,8 +482,16 @@ public final class Dough{
 			last = last.minus(procedure.leaveningStages[i].duration);
 			stageStartEndInstants[i][0] = last;
 		}
+		final LocalTime doughMakingInstant = last.minus(procedure.doughMaking);
+		last = stageStartEndInstants[0][0];
+		final LocalTime[] stretchAndFoldStartInstants = new LocalTime[procedure.stretchAndFoldStages.length];
+		for(int i = 0; i < stretchAndFoldStartInstants.length; i ++){
+			last = last.plus(procedure.stretchAndFoldStages[i].lapse);
+			stretchAndFoldStartInstants[i] = last;
+		}
 		recipe.withStageStartEndInstants(stageStartEndInstants)
-			.withDoughMakingInstant(last.minus(procedure.doughMaking));
+			.withStretchAndFoldStartInstants(stretchAndFoldStartInstants)
+			.withDoughMakingInstant(doughMakingInstant);
 		return recipe;
 	}
 
@@ -496,7 +504,7 @@ public final class Dough{
 	@SuppressWarnings("ThrowInsideCatchBlockWhichIgnoresCaughtException")
 	void calculateYeast(final Procedure procedure) throws YeastException{
 		try{
-			final UnivariateFunction f = yeast -> calculateYeast(yeast, procedure);
+			final UnivariateFunction f = yeast -> calculateVolumeExpansionRatioDifference(yeast, procedure);
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
 		catch(final NoBracketingException e){
@@ -507,66 +515,67 @@ public final class Dough{
 		}
 	}
 
-	private double calculateYeast(final double yeast, final Procedure procedure){
-		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-		double lambda = estimatedLag(yeast);
-		LeaveningStage currentStage = procedure.leaveningStages[0];
-		double volumeExpansionRatio = 0.;
-		Duration duration = Duration.ZERO;
-		if(procedure.targetVolumeExpansionRatioAtLeaveningStage > 0){
-			int stretchAndFoldIndex = 0;
-			Duration stretchAndFoldDuration = Duration.ZERO;
-			for(int i = 1; i < procedure.leaveningStages.length; i ++){
-				final LeaveningStage previousStage = procedure.leaveningStages[i - 1];
-				duration = duration.plus(previousStage.duration);
-				currentStage = procedure.leaveningStages[i];
-
-				//avoid modifying `lambda` if the temperature is the same
-				double currentVolume = 0.;
-				if(previousStage.temperature != currentStage.temperature){
-					final double ingredientsFactor = ingredientsFactor(previousStage.temperature, atmosphericPressure);
-					final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
-						previousStage.temperature, ingredientsFactor);
-					lambda = Math.max(lambda - previousStage.duration.toMinutes() / 60., 0.);
-					currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
-						currentStage.temperature, ingredientsFactor);
-
-					volumeExpansionRatio += previousVolume - currentVolume;
-				}
-				//account for stage volume decrease
-				volumeExpansionRatio -= currentVolume * previousStage.volumeDecrease;
-
-				//apply stretch&fold volume reduction:
-				double stretchAndFoldVolumeDecrease = 0.;
-				while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
-					final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
-					if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration) > 0)
-						break;
-
-					stretchAndFoldIndex ++;
-					stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
-
-					final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
-					final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
-						.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactor);
-					stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease)
-						* stretchAndFoldStage.volumeDecrease;
-				}
-				volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
-
-				//early exit if target volume expansion ratio references an inner stage
-				if(i == procedure.targetVolumeExpansionRatioAtLeaveningStage)
-					break;
-			}
+	private double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
+		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
+		for(int i = 0; i < procedure.leaveningStages.length; i ++){
+			ingredientsFactors[i] = ingredientsFactor(procedure.leaveningStages[i].temperature, atmosphericPressure);
+			if(ingredientsFactors[i] == 0.)
+				return Double.POSITIVE_INFINITY;
 		}
 
-		final double ingredientsFactor = ingredientsFactor(currentStage.temperature, atmosphericPressure);
-		if(ingredientsFactor == 0.)
-			return Double.POSITIVE_INFINITY;
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
+		final double lambda = estimatedLag(yeast);
 
-		//NOTE: last `stage.volumeDecrease` is NOT taken into consideration!
-		volumeExpansionRatio += yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60., lambda,
-			alpha, currentStage.temperature, ingredientsFactor);
+		LeaveningStage currentStage = procedure.leaveningStages[0];
+		LeaveningStage previousStage = LeaveningStage.ZERO;
+
+		double volumeExpansionRatio = 0.;
+		Duration duration = previousStage.duration;
+
+		int stretchAndFoldIndex = 0;
+		Duration stretchAndFoldDuration = Duration.ZERO;
+
+		for(int i = 0; i < procedure.leaveningStages.length && i <= procedure.targetVolumeExpansionRatioAtLeaveningStage; i ++){
+			currentStage = procedure.leaveningStages[i];
+
+			//apply stretch&fold volume reduction:
+			double stretchAndFoldVolumeDecrease = 0.;
+			while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
+				final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
+				if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration.plus(currentStage.duration)) > 0)
+					break;
+
+				stretchAndFoldIndex ++;
+				stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
+				final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
+					.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
+				stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
+			}
+			volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
+
+
+			//avoid modifying `lambda` if the temperature is the same
+			if(i > 0 && previousStage.temperature != currentStage.temperature){
+				final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+					previousStage.temperature, ingredientsFactors[i]);
+				final double currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+					currentStage.temperature, ingredientsFactors[i]);
+
+				//account for stage volume decrease
+				volumeExpansionRatio += previousVolume * (1. - previousStage.volumeDecrease) - currentVolume;
+			}
+			else if(i == 0){
+				final double currentVolume = yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60.,
+					lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
+
+				volumeExpansionRatio += currentVolume;
+			}
+
+
+			duration = duration.plus(currentStage.duration);
+			previousStage = currentStage;
+		}
+
 		return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
 	}
 
@@ -661,9 +670,10 @@ public final class Dough{
 			+ (0.003 - 0.00002 * baseSugar) * basePH
 			) / 3.;
 
-		return (0.3945 + (-0.00407 + 0.0000096 * sugar) * sugar
-			+ (-0.00375 + 0.000025 * sugar) * temperature
-			+ (0.003 - 0.00002 * sugar) * waterPH
+		final double s = fractionOverTotal(sugar);
+		return (0.3945 + (-0.00407 + 0.0000096 * s) * s
+			+ (-0.00375 + 0.000025 * s) * temperature
+			+ (0.003 - 0.00002 * s) * waterPH
 		) / (3. * baseMu);
 	}
 
@@ -690,9 +700,10 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	double saltFactor(){
-		final double x = 11.7362 * salt;
+		final double s = fractionOverTotal(salt);
+		final double x = 11.7362 * s;
 		final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
-		final double b = salt / (87.5679 - 0.2725 * salt);
+		final double b = s / (87.5679 - 0.2725 * s);
 		return Math.exp(a * b);
 	}
 
@@ -714,7 +725,8 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	double waterChlorineDioxideFactor(){
-		return Math.max(1. - waterChlorineDioxide * fractionOverTotal(water) / WATER_CHLORINE_DIOXIDE_MAX, 0.);
+		final double w = fractionOverTotal(water);
+		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
 	/**
@@ -738,10 +750,11 @@ public final class Dough{
 			+ (0.00011 - 0.00004 * basePH) * baseSugar
 		) / 9.;
 
+		final double s = fractionOverTotal(sugar);
 		return Math.max((0.22
 			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
 				+ (-0.026125 + 0.0095 * waterPH) * temperature
-				+ (0.00011 - 0.00004 * waterPH) * sugar
+				+ (0.00011 - 0.00004 * waterPH) * s
 		) / (9. * baseMu), 0.);
 	}
 
@@ -766,14 +779,17 @@ public final class Dough{
 	}
 
 	private double fractionOverTotal(final double value){
-		return value / (1. + water);
+		return value / totalFraction();
+	}
+
+	private double totalFraction(){
+		return 1. + water + sugar + yeast + salt + fat;
 	}
 
 	private Recipe calculateIngredients(final double doughWeight){
-		final double totalFraction = 1. + water + sugar + yeast + salt + fat;
-		double totalFlour = doughWeight / totalFraction;
 		double yeast, flour, water, sugar, fat, salt,
 			difference;
+		double totalFlour = fractionOverTotal(doughWeight);
 		final double waterCorrection = calculateWaterCorrection();
 		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
 		final double sugarFactor = this.sugar / (sugarType.factor * rawSugar);

@@ -34,6 +34,8 @@ public final class LeaveningStage{
 	//V_after = V_prior * (1 - VOLUME_DECREASE_CUT) [% v/v]
 	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;
 
+	public static final LeaveningStage ZERO = new LeaveningStage();
+
 
 	/** Leavening temperature [°C]. */
 	final double temperature;
@@ -50,6 +52,11 @@ public final class LeaveningStage{
 	 */
 	public static LeaveningStage create(final double temperature, final Duration duration) throws DoughException{
 		return new LeaveningStage(temperature, duration);
+	}
+
+	private LeaveningStage(){
+		temperature = 0.;
+		this.duration = Duration.ZERO;
 	}
 
 	private LeaveningStage(final double temperature, final Duration duration) throws DoughException{

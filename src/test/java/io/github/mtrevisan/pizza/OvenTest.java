@@ -75,11 +75,11 @@ class OvenTest{
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
 		final BakingInstructions instructions = oven.bakeRecipe(dough, recipe, 2.4, bakingInstruments);
 
-		Assertions.assertEquals(439.6, recipe.getFlour(), 0.1);
+		Assertions.assertEquals(439.5, recipe.getFlour(), 0.1);
 		Assertions.assertEquals(285.7, recipe.getWater(), 0.1);
 		Assertions.assertEquals(43.4, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(1.32, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.69, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(0.71, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(7.04, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(7.03, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
