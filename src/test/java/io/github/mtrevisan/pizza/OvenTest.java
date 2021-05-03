@@ -69,9 +69,8 @@ class OvenTest{
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.02),
 				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)});
-		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//FIXME
-		final double doughWeight = totalBakingPansArea * 0.76222;
+		final double doughWeight = bakingInstruments.getBakingPansTotalArea() * 0.76222;
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
 		final BakingInstructions instructions = oven.bakeRecipe(dough, recipe, 2.4, bakingInstruments);
 

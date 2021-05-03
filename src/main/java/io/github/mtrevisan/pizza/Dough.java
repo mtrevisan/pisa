@@ -547,8 +547,8 @@ public final class Dough{
 
 				stretchAndFoldIndex ++;
 				stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
-				final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(duration.minus(previousStage.duration)
-					.plus(stretchAndFoldDuration).toMinutes() / 60., lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
+				final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(getHours(duration.minus(previousStage.duration)
+					.plus(stretchAndFoldDuration)), lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
 				stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
 			}
 			volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
@@ -556,16 +556,16 @@ public final class Dough{
 
 			//avoid modifying `lambda` if the temperature is the same
 			if(i > 0 && previousStage.temperature != currentStage.temperature){
-				final double previousVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+				final double previousVolume = yeastModel.volumeExpansionRatio(getHours(duration), lambda, alpha,
 					previousStage.temperature, ingredientsFactors[i]);
-				final double currentVolume = yeastModel.volumeExpansionRatio(duration.toMinutes() / 60., lambda, alpha,
+				final double currentVolume = yeastModel.volumeExpansionRatio(getHours(duration), lambda, alpha,
 					currentStage.temperature, ingredientsFactors[i]);
 
 				//account for stage volume decrease
 				volumeExpansionRatio += previousVolume * (1. - previousStage.volumeDecrease) - currentVolume;
 			}
 			else if(i == 0){
-				final double currentVolume = yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration).toMinutes() / 60.,
+				final double currentVolume = yeastModel.volumeExpansionRatio(getHours(duration.plus(currentStage.duration)),
 					lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
 
 				volumeExpansionRatio += currentVolume;
@@ -577,6 +577,10 @@ public final class Dough{
 		}
 
 		return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
+	}
+
+	private double getHours(final Duration duration){
+		return duration.toMinutes() / 60.;
 	}
 
 	/**

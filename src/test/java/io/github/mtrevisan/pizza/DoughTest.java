@@ -159,7 +159,7 @@ class DoughTest{
 			.withFlour(Flour.create(260.))
 			.withIngredientsTemperature(20.6)
 			.withDoughTemperature(27.)
-			.withAtmosphericPressure(1012.1);
+			.withAtmosphericPressure(1004.1);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
@@ -168,19 +168,18 @@ class DoughTest{
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
 			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8,
 			0,
 			Duration.ofMinutes(15l), new Duration[]{Duration.ofMinutes(10l), Duration.ZERO}, Duration.ofMinutes(15l),
 				LocalTime.of(20, 15))
-			.withStretchAndFoldStages(stretchAndFoldStages);
+			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
 		final BakingInstruments bakingInstruments = new BakingInstruments()
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
 				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)});
-		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
+		final double bakingPansTotalArea = bakingInstruments.getBakingPansTotalArea();
 		//FIXME
-		final double doughWeight = totalBakingPansArea * 0.76222;
+		final double doughWeight = bakingPansTotalArea * 0.76222;
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
 
 		Assertions.assertEquals(440.4, recipe.getFlour(), 0.1);
@@ -191,6 +190,8 @@ class DoughTest{
 		Assertions.assertEquals(6.61, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(6.17, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
+		Assertions.assertEquals(438.3, doughWeight * bakingInstruments.bakingPans[0].area() / bakingPansTotalArea, 0.1);
+		Assertions.assertEquals(303.1, doughWeight * bakingInstruments.bakingPans[1].area() / bakingPansTotalArea, 0.1);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(13, 20), LocalTime.of(13, 50),
 			LocalTime.of(14, 20)}, recipe.getStretchAndFoldStartInstants());
@@ -232,9 +233,8 @@ class DoughTest{
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.ALUMINIUM, 0.02),
 				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)});
-		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//FIXME
-		final double doughWeight = totalBakingPansArea * 0.76222;
+		final double doughWeight = bakingInstruments.getBakingPansTotalArea() * 0.76222;
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
 
 		Assertions.assertEquals(441.0, recipe.getFlour(), 0.1);
