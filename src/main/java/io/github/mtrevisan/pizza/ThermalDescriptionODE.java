@@ -281,20 +281,18 @@ cp	dough specific heat
 	}
 
 	/**
-	 * @param fourierTemperature	Temperature [°C].
+	 * @param temperature	Temperature [°C].
 	 * @return	Moisture diffusivity in mozzarella layer [m² / s].
 	 */
-	private double moistureDiffusivityMozzarella(final double fourierTemperature){
+	private double moistureDiffusivityMozzarella(final double temperature){
 		return 7.e-11;
 	}
 
 	/**
-	 * @param fourierTemperature	Fourier temperature.
+	 * @param temperature	Temperature [°C].
 	 * @return	Moisture diffusivity in tomato layer [m² / s].
 	 */
-	private double moistureDiffusivityTomato(final double fourierTemperature){
-		final double temperature = calculateInverseFourierTemperature(fourierTemperature, ambientTemperature, bakingTemperatureTop);
-
+	private double moistureDiffusivityTomato(final double temperature){
 		//https://www.researchgate.net/publication/50863959_Effective_Moisture_Diffusivity_and_Activation_Energy_of_Tomato_in_Thin_Layer_Dryer_during_Hot_Air_Drying
 		return (ovenType == OvenType.FORCED_CONVECTION?
 			9.9646e-10 * Math.exp(-605.93 / temperature):
@@ -302,12 +300,10 @@ cp	dough specific heat
 	}
 
 	/**
-	 * @param fourierTemperature	Temperature [°C].
+	 * @param temperature	Temperature [°C].
 	 * @return	Moisture diffusivity in dough layer [m² / s].
 	 */
-	private double moistureDiffusivityDough(final double fourierTemperature){
-		final double temperature = calculateInverseFourierTemperature(fourierTemperature, ambientTemperature, bakingTemperatureTop);
-
+	private double moistureDiffusivityDough(final double temperature){
 		return (ovenType == OvenType.FORCED_CONVECTION?
 			7.0582e-8 * Math.exp(-1890.68 / temperature):
 			1.4596e-9 * Math.exp(-420.34 / temperature));
@@ -538,7 +534,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		//node 9, mozzarella layer
 		calculateTopLayer(8, y, dydt);
 
-		calculateTomatoMozzarellaInterfaceLayer(7, y, dydt);
+		calculateMozzarellaTomatoInterfaceLayer(7, y, dydt);
 
 		//node 7, tomato paste layer
 		calculateInnerTomatoLayer(6, y, dydt);
@@ -595,7 +591,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 		//surface mass transfer coefficient [kg H₂O / (m² · s)]
 		final double massTransferSurface = massTransferSurface(layerTemperature);
-		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(layerTemperature);
 		final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
 			* (humidityRatioSurface - humidityRatioAmbient) * layerThicknessMozzarella / (2. * moistureContentDough0);
 		final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivityMozzarella / layerThicknessMozzarella)
@@ -630,19 +626,19 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 
-		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(layerTemperature);
 
 		calculateInnerLayer(layer, y, dydt,
 			densityMozzarella, specificHeatMozzarella, conductivityMozzarella, layerThicknessMozzarella, moistureDiffusivityMozzarella);
 	}
 
-	private void calculateTomatoMozzarellaInterfaceLayer(final int layer, final double[] y, final double[] dydt){
+	private void calculateMozzarellaTomatoInterfaceLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, getC(layer - 1, y) * moistureContentDough0);
 		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer + 1, y) * moistureContentDough0);
 
-		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
-		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(getTheta(layer, y));
+		final double moistureDiffusivityTomato = moistureDiffusivityTomato(layerTemperature);
+		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(layerTemperature);
 
 		calculateInterfaceLayer(layer, y, dydt,
 			densityMozzarella, specificHeatMozzarella, conductivityMozzarella, layerThicknessMozzarella, moistureDiffusivityMozzarella,
@@ -653,7 +649,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 
-		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
+		final double moistureDiffusivityTomato = moistureDiffusivityTomato(layerTemperature);
 
 		calculateInnerLayer(layer, y, dydt,
 			densityTomato, specificHeatTomato, conductivityTomato, layerThicknessTomato, moistureDiffusivityTomato);
@@ -664,8 +660,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer + 1, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer - 1, y) * moistureContentDough0);
 
-		final double moistureDiffusivityTomato = moistureDiffusivityTomato(getTheta(layer, y));
-		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
+		final double moistureDiffusivityTomato = moistureDiffusivityTomato(layerTemperature);
+		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
 
 		calculateInterfaceLayer(layer, y, dydt,
 			densityTomato, specificHeatTomato, conductivityTomato, layerThicknessTomato, moistureDiffusivityTomato,
@@ -676,7 +672,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 
-		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
+		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
 
 		calculateInnerLayer(layer, y, dydt,
 			densityDough, specificHeatDough, conductivityDough, layerThicknessDough, moistureDiffusivityDough);
@@ -697,7 +693,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		);
 
 		//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
-		final double moistureDiffusivityDough = moistureDiffusivityDough(getTheta(layer, y));
+		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
 		setC(layer, dydt, 2. * moistureDiffusivityDough * (getC(layer + 1, y) - getC(layer, y))
 			/ Math.pow(layerThicknessDough, 2.));
 	}
@@ -713,6 +709,22 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 		setC(layer, dydt, moistureDiffusivity
 			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)) / Math.pow(layerThickness, 2.));
+	}
+
+	//dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
+	private void calculateInterfaceLayer(final int layer, final double[] y, final double[] dydt,
+			final double densityTop, final double specificHeatTop, final double conductivityTop, final double layerThicknessTop,
+			final double moistureDiffusivityTop,
+			final double densityBottom, final double specificHeatBottom, final double conductivityBottom, final double layerThicknessBottom,
+			final double moistureDiffusivityBottom){
+		setTheta(layer, dydt, 4. / (densityBottom * specificHeatBottom * layerThicknessBottom
+			+ densityTop * specificHeatTop * layerThicknessTop)
+			* (conductivityBottom * (getTheta(layer - 1, y) - getTheta(layer, y)) / layerThicknessBottom
+			- conductivityTop * (getTheta(layer, y) - getTheta(layer + 1, y)) / layerThicknessTop));
+
+		setC(layer, dydt, 4. / Math.pow(layerThicknessBottom, 2.)
+			* (moistureDiffusivityBottom * (getC(layer - 1, y) - getC(layer, y)) / layerThicknessBottom
+			- moistureDiffusivityTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessTop));
 	}
 
 	//dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
@@ -731,22 +743,6 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //		setC(layer, dydt, 4. / (layerThicknessBottom + layerThicknessTop)
 //			* (moistureDiffusivityBottom * (getC(layer - 1, y) - getC(layer, y)) / layerThicknessBottom
 //			- moistureDiffusivityTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessTop));
-	}
-
-	//dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
-	private void calculateInterfaceLayer(final int layer, final double[] y, final double[] dydt,
-			final double densityTop, final double specificHeatTop, final double conductivityTop, final double layerThicknessTop,
-			final double moistureDiffusivityTop,
-			final double densityBottom, final double specificHeatBottom, final double conductivityBottom, final double layerThicknessBottom,
-			final double moistureDiffusivityBottom){
-		setTheta(layer, dydt, 4. / (densityBottom * specificHeatBottom * layerThicknessBottom
-			+ densityTop * specificHeatTop * layerThicknessTop)
-			* (conductivityBottom * (getTheta(layer - 1, y) - getTheta(layer, y)) / layerThicknessBottom
-			- conductivityTop * (getTheta(layer, y) - getTheta(layer + 1, y)) / layerThicknessTop));
-
-		setC(layer, dydt, 4. / (layerThicknessBottom + layerThicknessTop)
-			* (moistureDiffusivityBottom * (getC(layer - 1, y) - getC(layer, y)) / layerThicknessBottom
-			- moistureDiffusivityTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessTop));
 	}
 
 	/**
