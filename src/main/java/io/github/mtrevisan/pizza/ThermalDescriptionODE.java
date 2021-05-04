@@ -65,6 +65,9 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS = {2500.9, -2.36719, 1.246e-4, -5.17e-6, -5.e-8, 1.45e-10, -2.7e-13};
 	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS = {-16456273.5, 322865.7917, -2632.707957, 11.42226714, -0.02781080181, 3.6031127e-5, -1.94069959e-8};
 
+	private static final double EMISSIVITY_NICHROME_WIRE = 0.87;
+	private static final double EMISSIVITY_PIZZA = 0.5;
+
 
 	/**  [m] */
 	private final double layerThicknessMozzarella;
@@ -694,9 +697,11 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
 		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
 
+		final double foodViewFactor = 0.87;
 		calculateBoundaryLayer(layer, y, dydt,
-			densityDough, specificHeatDough, conductivityDough, layerThicknessDough, (distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
-			bakingPan.material.emissivity, moistureDiffusivityDough);
+			densityDough, specificHeatDough, conductivityDough, layerThicknessDough,
+			(distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
+			bakingPan.material.emissivity, bakingPan.area(), foodViewFactor, moistureDiffusivityDough);
 	}
 
 	//dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
@@ -731,16 +736,25 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	//dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
 	private void calculateBoundaryLayer(final int layer, final double[] y, final double[] dydt,
 			final double density, final double specificHeat, final double conductivity, final double layerThickness, final double temperature,
-			final double emissivity, final double moistureDiffusivity){
+			final double emissivity, final double area, final double viewFactor, final double moistureDiffusivity){
 		final double theta = calculateFourierTemperature(temperature, ambientTemperature, bakingTemperatureTop);
 		final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
+		final double radiationFactor = calculateRadiationFactor(emissivity, area, viewFactor);
 		setTheta(layer, dydt, 2. * (
 			thermalDiffusivity * (theta - getTheta(layer, y)) / layerThickness
-				+ SIGMA * emissivity * (Math.pow(theta, 4.) - Math.pow(getTheta(layer, y), 4.))
+				+ SIGMA * radiationFactor * (Math.pow(theta, 4.) - Math.pow(getTheta(layer, y), 4.))
 				+ heatTransferCoefficient * (theta - getTheta(layer, y))) / (density * specificHeat * layerThickness)
 		);
 
 		setC(layer, dydt, 2. * moistureDiffusivity * (getC(layer + 1, y) - getC(layer, y)) / Math.pow(layerThickness, 2.));
+	}
+
+	private double calculateRadiationFactor(final double emissivity, final double area, final double viewFactor){
+		return 1. / (
+			1. / (viewFactor * area)
+			+ (1. - EMISSIVITY_NICHROME_WIRE) / (EMISSIVITY_NICHROME_WIRE * area)
+			+ (1. - emissivity) / (emissivity * area)
+		);
 	}
 
 	/**
