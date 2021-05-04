@@ -96,8 +96,6 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final double densityMozzarella = 1140.;
 	/** [kg / m³] */
 	private final double densityTomato = 1073.;
-	/** [kg / m³] */
-	private final double densityDough = 862.;
 	/** [J / (kg · K)] */
 	private final double specificHeatMozzarella = 2864.;
 	/** [J / (kg · K)] */
@@ -559,10 +557,18 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	//FIXME recipe.density(densityFat, dough.ingredientsTemperature, dough.atmosphericPressure)
-	private double doughDensity(final double fourierTemperature, final double protein, final double fat, final double carbohydrate,
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @param protein	Protein content [%].
+	 * @param fat	Fat content [%].
+	 * @param carbohydrate	Carbohydrate content [%].
+	 * @param fiber	Fiber content [%].
+	 * @param ash	Ash content [%].
+	 * @param water	Water content [%].
+	 * @return	The density of the dough [kg / m³].
+	 */
+	private double doughDensity(final double temperature, final double protein, final double fat, final double carbohydrate,
 			final double fiber, final double ash, final double water){
-		final double temperature = calculateInverseFourierTemperature(fourierTemperature, ambientTemperature, bakingTemperatureTop);
-
 		final double proteinFactor = 1329.9 - 0.5184 * temperature;
 		final double fatFactor = 925.59 - 0.41757 * temperature;
 		final double carbohydrateFactor = 1599.1 - 0.31046 * temperature;
@@ -658,6 +664,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	private void calculateDoughTomatoInterfaceLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityTomato = thermalConductivityTomato.apply(layerTemperature, getC(layer + 1, y) * moistureContentDough0);
+		final double densityDough = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer - 1, y) * moistureContentDough0);
 
 		final double moistureDiffusivityTomato = moistureDiffusivityTomato(layerTemperature);
@@ -670,6 +677,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 	private void calculateInnerDoughLayer(final int layer, final double[] y, final double[] dydt, final double layers){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
+		final double densityDough = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 
 		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
@@ -679,23 +687,16 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt){
-		//FIXME if distanceHeaterBottom is zero, there is heating anyway if forced convection air oven is used and distanceHeaterTop is non zero
-		final double thetaB = calculateFourierTemperature((distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
-			ambientTemperature, bakingTemperatureTop);
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		final double doughDensity = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
+		final double densityDough = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, moistureContentDough0);
-		final double thermalDiffusivityDough = calculateThermalDiffusivity(conductivityDough, specificHeatDough, densityDough);
-		setTheta(layer, dydt, 2. * (
-			thermalDiffusivityDough * (thetaB - getTheta(layer, y)) / layerThicknessDough
-			+ SIGMA * bakingPan.material.emissivity * (Math.pow(thetaB, 4.) - Math.pow(getTheta(layer, y), 4.))
-			+ heatTransferCoefficient * (thetaB - getTheta(layer, y))) / (doughDensity * specificHeatDough * layerThicknessDough)
-		);
 
 		//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
 		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
-		setC(layer, dydt, 2. * moistureDiffusivityDough * (getC(layer + 1, y) - getC(layer, y))
-			/ Math.pow(layerThicknessDough, 2.));
+
+		calculateBoundaryLayer(layer, y, dydt,
+			densityDough, specificHeatDough, conductivityDough, layerThicknessDough, (distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
+			bakingPan.material.emissivity, moistureDiffusivityDough);
 	}
 
 	//dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
@@ -739,10 +740,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 				+ heatTransferCoefficient * (theta - getTheta(layer, y))) / (density * specificHeat * layerThickness)
 		);
 
-		//TODO
-//		setC(layer, dydt, 4. / (layerThicknessBottom + layerThicknessTop)
-//			* (moistureDiffusivityBottom * (getC(layer - 1, y) - getC(layer, y)) / layerThicknessBottom
-//			- moistureDiffusivityTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessTop));
+		setC(layer, dydt, 2. * moistureDiffusivity * (getC(layer + 1, y) - getC(layer, y)) / Math.pow(layerThickness, 2.));
 	}
 
 	/**
