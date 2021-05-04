@@ -65,7 +65,8 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS = {2500.9, -2.36719, 1.246e-4, -5.17e-6, -5.e-8, 1.45e-10, -2.7e-13};
 	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS = {-16456273.5, 322865.7917, -2632.707957, 11.42226714, -0.02781080181, 3.6031127e-5, -1.94069959e-8};
 
-	private static final double EMISSIVITY_NICHROME_WIRE = 0.87;
+	private static final double EMISSIVITY_NI_CR_WIRE = 0.87;
+	private static final double EMISSIVITY_FE_CR_AL_WIRE = 0.70;
 	private static final double EMISSIVITY_PIZZA = 0.5;
 
 
@@ -701,7 +702,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		calculateBoundaryLayer(layer, y, dydt,
 			densityDough, specificHeatDough, conductivityDough, layerThicknessDough,
 			(distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature),
-			bakingPan.material.emissivity, bakingPan.area(), foodViewFactor, moistureDiffusivityDough);
+			bakingPan.material.emissivity, bakingPan.area(), foodViewFactor,
+			moistureDiffusivityDough);
 	}
 
 	//dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
@@ -750,11 +752,12 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private double calculateRadiationFactor(final double emissivity, final double area, final double viewFactor){
-		return 1. / (
-			1. / (viewFactor * area)
-			+ (1. - EMISSIVITY_NICHROME_WIRE) / (EMISSIVITY_NICHROME_WIRE * area)
-			+ (1. - emissivity) / (emissivity * area)
-		);
+		return emissivity;
+//		return 1. / (
+//			1. / (viewFactor * area)
+//			+ (1. - EMISSIVITY_NI_CR_WIRE) / (EMISSIVITY_NI_CR_WIRE * area)
+//			+ (1. - emissivity) / (emissivity * area)
+//		);
 	}
 
 	/**
