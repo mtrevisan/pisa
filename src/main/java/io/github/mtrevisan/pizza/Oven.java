@@ -191,6 +191,30 @@ public final class Oven{
 			OvenType.FORCED_CONVECTION, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
+java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
+for(int t = 20; t <= 2000; t += 40){
+	final double[] y = ode.getInitialState();
+	integrator.integrate(ode, 0., y, t, y);
+	System.out.println(
+		//pan
+		df.format(y[34])
+		//pan-dough
+		+ "\t" + df.format(y[32])
+		//dough
+		+ "\t" + df.format(y[30]) + "\t" + df.format(y[28]) + "\t" + df.format(y[26]) + "\t" + df.format(y[24]) + "\t" + df.format(y[22]) + "\t" + df.format(y[20])
+		//dough-tomato
+		+ "\t" + df.format(y[18])
+		//tomato
+		+ "\t" + df.format(y[16]) + "\t" + df.format(y[14]) + "\t" + df.format(y[12])
+		//tomato-mozzarella
+		+ "\t" + df.format(y[10])
+		//mozzarella
+		+ "\t" + df.format(y[8]) + "\t" + df.format(y[6]) + "\t" + df.format(y[4]) + "\t" + df.format(y[2])
+		//top
+		+ "\t" + df.format(y[0])
+		);
+}
+
 		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
