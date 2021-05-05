@@ -67,8 +67,8 @@ class OvenTest{
 			.withDistanceHeaterBottom(0.1);
 		final BakingInstruments bakingInstruments = new BakingInstruments()
 			.withBakingPans(new BakingPanAbstract[]{
-				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.02),
-				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.02)});
+				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.2),
+				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.2)});
 		//FIXME
 		final double doughWeight = bakingInstruments.getBakingPansTotalArea() * 0.76222;
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
@@ -90,8 +90,8 @@ class OvenTest{
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(19, 45), recipe.getSeasoningInstant());
 		Assertions.assertEquals(220.0, instructions.getBakingTemperature(), 0.1);
-		//FIXME should be around 12 min, not 78 s
-		Assertions.assertEquals(90., instructions.getBakingDuration().getSeconds(), 1.);
+		//FIXME should be around 12 min (720 s)
+		Assertions.assertEquals(1404., instructions.getBakingDuration().getSeconds(), 1.);
 	}
 
 }

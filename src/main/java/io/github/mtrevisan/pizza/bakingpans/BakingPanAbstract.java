@@ -30,10 +30,10 @@ import java.util.Objects;
 public abstract class BakingPanAbstract{
 
 	public BakingPanMaterial material;
-	//[m]
+	//[cm]
 	//https://www.centralrestaurant.com/resources/pizza-pans-buying-guide/
-	protected double thickness;
-	protected boolean hasBakingParchmentPaper;
+	public double thickness;
+	public boolean hasBakingParchmentPaper;
 
 
 	protected BakingPanAbstract(final BakingPanMaterial material, final double thickness){
