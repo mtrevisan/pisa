@@ -69,7 +69,13 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private static final double EMISSIVITY_FE_CR_AL_WIRE = 0.70;
 	private static final double EMISSIVITY_PIZZA = 0.5;
 
+	//[m]
+	private static final double MIN_LAYER_THICKNESS = 0.001;
 
+
+	private int layersMozzarella;
+	private int layersTomato;
+	private int layersDough;
 	/**  [m] */
 	private final double layerThicknessMozzarella;
 	/**  [m] */
@@ -240,10 +246,14 @@ cp	dough specific heat
 	ThermalDescriptionODE(final double layerThicknessMozzarella, final double layerThicknessTomato, final double layerThicknessDough,
 			final OvenType ovenType, final double bakingTemperatureTop, final double distanceHeaterTop, final double bakingTemperatureBottom, final double distanceHeaterBottom,
 			final double ambientTemperature, final double airPressure, final double airRelativeHumidity, final BakingPanAbstract bakingPan){
-		this.layerThicknessMozzarella = layerThicknessMozzarella;
-		this.layerThicknessTomato = layerThicknessTomato;
+		layersMozzarella = (int)Math.ceil(layerThicknessMozzarella / MIN_LAYER_THICKNESS);
+		layersTomato = (int)Math.ceil(layerThicknessTomato / MIN_LAYER_THICKNESS);
+		layersDough = (int)Math.ceil(layerThicknessDough / MIN_LAYER_THICKNESS);
+
+		this.layerThicknessMozzarella = layerThicknessMozzarella / layersMozzarella;
+		this.layerThicknessTomato = layerThicknessTomato / layersTomato;
 		//TODO consider expansion during baking due to Charles-Gay Lussac law
-		this.layerThicknessDough = layerThicknessDough;
+		this.layerThicknessDough = layerThicknessDough / layersDough;
 
 		this.ovenType = ovenType;
 
@@ -276,10 +286,6 @@ cp	dough specific heat
 
 		physicalDensityDough = (temperature, water)
 			-> doughDensity(temperature, 0.13, 0.011, 0.013, 0.019, 0.05, water);
-
-		//TODO
-		//[m]
-		final double minLayerThickness = 0.0001;
 	}
 
 	/**
@@ -350,30 +356,28 @@ cp	dough specific heat
 
 	@Override
 	public final int getDimension(){
-		return 18;
+		return (1 + layersMozzarella + 1 + layersTomato + 1 + layersDough + 1) * 2;
 	}
 
 	public final double[] getInitialState(){
 		//array of initial temperature (as Fourier temperature) and moisture content
-		//by column
-		return new double[]{
-			//node 1, dough in contact with heated tray
-			calculateFourierTemperature(bakingTemperatureBottom, ambientTemperature, bakingTemperatureTop), 1.,
-			//node 2, dough
-			0., 1.,
-			//node 3, dough
-			0., 1.,
-			//node 4, dough
-			0., 1.,
-			//node 5, surface of the dough layer
-			0., (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0),
-			0., moistureContentTomato0 / moistureContentDough0,
-			//node 7, tomato paste layer
-			0., (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0),
-			0., moistureContentMozzarella0 / moistureContentDough0,
-			//node 9, mozzarella layer
-			0., humidityRatioAmbient
-		};
+		final double[] state = new double[getDimension()];
+		//bottom layer
+		state[0] = calculateFourierTemperature(bakingTemperatureBottom, ambientTemperature, bakingTemperatureTop);
+		state[1] = 1.;
+		//dough layers
+		for(int i = 0; i < layersDough; i ++)
+			state[(i << 1) + 3] = 1.;
+		state[(layersDough << 1) + 3] = (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0);
+		//tomato layers
+		for(int i = 0; i < layersTomato; i ++)
+			state[((i + layersDough) << 1) + 5] = moistureContentTomato0 / moistureContentDough0;
+		state[((layersTomato + layersDough) << 1) + 5] = (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0);
+		//mozzarella layers
+		for(int i = 0; i < layersMozzarella; i ++)
+			state[((i + layersTomato + layersDough) << 1) + 7] = moistureContentMozzarella0 / moistureContentDough0;
+		state[((layersMozzarella + layersTomato + layersDough) << 1) + 7] = humidityRatioAmbient;
+		return state;
 	}
 
 /*
@@ -533,30 +537,30 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	@Override
 	public final void computeDerivatives(final double t, final double[] y, final double[] dydt) throws MaxCountExceededException,
 			DimensionMismatchException{
-		//node 9, mozzarella layer
-		calculateTopLayer(8, y, dydt);
+		//top layer
+		calculateTopLayer(layersMozzarella + 1 + layersTomato + 1 + layersDough + 1, y, dydt);
 
-		calculateMozzarellaTomatoInterfaceLayer(7, y, dydt);
+		//mozzarella layers
+		for(int i = 0; i < layersMozzarella; i ++)
+			calculateInnerMozzarellaLayer(i + 1 + layersTomato + 1 + layersDough + 1, y, dydt);
 
-		//node 7, tomato paste layer
-		calculateInnerTomatoLayer(6, y, dydt);
+		calculateMozzarellaTomatoInterfaceLayer(layersTomato + 1 + layersDough + 1, y, dydt);
 
-		calculateDoughTomatoInterfaceLayer(5, y, dydt);
+		//tomato layers
+		for(int i = 0; i < layersTomato; i ++)
+			calculateInnerDoughLayer(i + 1 + layersDough + 1, y, dydt);
 
-		//node 5, surface of the dough layer
-//		calculateDoughLayer(4, y, dydt);
+		calculateDoughTomatoInterfaceLayer(layersDough + 1, y, dydt);
 
-		//node 4 to 2, dough
-		calculateInnerDoughLayer(4, y, dydt, 4.);
-		calculateInnerDoughLayer(3, y, dydt, 4.);
-		calculateInnerDoughLayer(2, y, dydt, 4.);
-		calculateInnerDoughLayer(1, y, dydt, 4.);
+		//dough layers
+		for(int i = 0; i < layersDough; i ++)
+			calculateInnerDoughLayer(i + 1, y, dydt);
 
 		//TODO add contact layer between dough and baking parchment paper
 		//TODO add contact layer between baking parchment paper and pan
 		//TODO consider layer 1 as convection and irradiation, not only convection
 
-		//node 1, dough in contact with heated tray
+		//bottom layer, dough in contact with heated tray
 		calculateBottomLayer(0, y, dydt);
 	}
 
@@ -679,7 +683,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			densityDough, specificHeatDough, conductivityDough, layerThicknessDough, moistureDiffusivityDough);
 	}
 
-	private void calculateInnerDoughLayer(final int layer, final double[] y, final double[] dydt, final double layers){
+	private void calculateInnerDoughLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double densityDough = physicalDensityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, getC(layer, y) * moistureContentDough0);
@@ -752,6 +756,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private double calculateRadiationFactor(final double emissivity, final double area, final double viewFactor){
+		//TODO
 		return emissivity;
 //		return 1. / (
 //			1. / (viewFactor * area)
