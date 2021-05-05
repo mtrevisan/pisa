@@ -73,10 +73,10 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private static final double MIN_LAYER_THICKNESS = 0.001;
 
 
-	private int layersMozzarella;
-	private int layersTomato;
-	private int layersDough;
-	private int layersPan;
+	private final int layersMozzarella;
+	private final int layersTomato;
+	private final int layersDough;
+	private final int layersPan;
 	/**  [m] */
 	private final double layerThicknessMozzarella;
 	/**  [m] */
@@ -137,7 +137,7 @@ https://www.cantorsparadise.com/the-heat-equation-a76d7773a0b5
 https://www.sfu.ca/~mbahrami/ENSC%20388/Notes/
 
 general formula:
-DQ = (Ts - Tinf) / R	[W]
+DQ = (Ts - T∞) / R	[W]
 where
 conduction:
 R = L / (k · A)	[K / W]
@@ -146,9 +146,9 @@ convection:
 R = 1 / (h · A)	[K / W]
 h = convective heat transfer coefficient
 radiation:
-R = 1 / (eps · sigma · (Ts² + Tinf²) · (Ts + Tinf) · A)	[K / W]
-sigma = 5.67e-8 [W / (m² · K⁴)] Stefan-Boltzmann constant
-eps = emissivity
+R = 1 / (σ · ε · (Ts² + T∞²) · (Ts + T∞) · A)	[K / W]
+σ = 5.67e-8 [W / (m² · K⁴)] Stefan-Boltzmann constant
+ε = emissivity
 
 heat must be constant, so Qin = Qout
 but the pizza must be heated, so heat must be absorbed by the pizza, so the heat is entering the pizza (exiting by moisture evaporation: about 20%)
