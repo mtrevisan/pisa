@@ -24,40 +24,69 @@
  */
 package io.github.mtrevisan.pizza.bakingpans;
 
+import io.github.mtrevisan.pizza.utils.Helper;
+
 
 public enum BakingPanMaterial{
-	CAST_IRON(560.548, 52., 0.64, 7200.),
+	CAST_IRON(560.548, 0.64, 7200.),
 
-	ALUMINIUM(896.9, 225., 0.8, 2700.),
+	ALUMINIUM(896.9, 0.8, 2700.),
 
 	//https://inis.iaea.org/search/search.aspx?orig_q=RN:33040336
-	STAINLESS_STEEL_304(490. - 530., 14. - 17., 0.32 - 0.38, 7850. - 8060.),
+	STAINLESS_STEEL_304(490. - 530., 0.32 - 0.38, 7850. - 8060.),
 	//https://inis.iaea.org/search/search.aspx?orig_q=RN:33040336
-	STAINLESS_STEEL_316(490. - 530., 13. - 17., 0.44 - 0.51, 7870.),
+	STAINLESS_STEEL_316(490. - 530., 0.44 - 0.51, 7870.),
 
 	//https://www.electronics-cooling.com/1999/09/the-thermal-conductivity-of-ceramics/
-	CERAMIC(850., 80. - 200., -1., 2000. - 6000.),
-	CLAY(0.33, 0.15 - 1.8, -1., 1680.),
-	CORDIERITE_STONE(800. - 850., 3., 0.95, 2000. - 2300.);
+	CERAMIC(850., -1., 2000. - 6000.),
+	CLAY(0.33, -1., 1680.),
+	CORDIERITE_STONE(800. - 850., 0.95, 2000. - 2300.);
 
 
 	/** [J / (kg * K)] */
 	public final double specificHeat;
 	//https://www.cpp.edu/~lllee/TK3111heat.pdf pag 19
 	//https://en.wikipedia.org/wiki/List_of_thermal_conductivities
-	//TODO depends on temperature!
-	/** [W / (m * K)] */
-	public final double thermalConductivity;
 	public final double emissivity;
 	/** [kg / m³] */
 	public final double density;
 
 
-	BakingPanMaterial(final double specificHeat, final double thermalConductivity, final double emissivity, final double density){
+	BakingPanMaterial(final double specificHeat, final double emissivity, final double density){
 		this.specificHeat = specificHeat;
-		this.thermalConductivity = thermalConductivity;
 		this.emissivity = emissivity;
 		this.density = density;
 	}
+
+	private static final double[] THERMAL_CONDUCTIVITY_COEFFICIENTS = {238., 0.0175, -0.000113, 2.8e-8};
+
+	/**
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return The thermal conductivity [W / (m * K)].
+	 */
+	public double thermalConductivity(final double temperature){
+		switch(this){
+			case CAST_IRON:
+				return 52.;
+			case ALUMINIUM:
+				return Helper.evaluatePolynomial(THERMAL_CONDUCTIVITY_COEFFICIENTS, temperature);
+			case STAINLESS_STEEL_304:
+				//14 - 17
+				return 14.4;
+			case STAINLESS_STEEL_316:
+				//13 - 17
+				return (13. + 17.) / 2.;
+			case CERAMIC:
+				//80 - 200
+				return (80. + 200.) / 2.;
+			case CLAY:
+				//0.15 - 1.8
+				return (0.15 + 1.8) / 2.;
+			case CORDIERITE_STONE:
+				return 3.;
+		}
+		return 0.;
+	};
 
 }

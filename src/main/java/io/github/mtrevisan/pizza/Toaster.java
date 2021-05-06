@@ -137,7 +137,7 @@ public class Toaster{
 		//[K / W]
 		final double thermalResistanceBottomAir = bottomDistance / (h_bottom * pizzaArea);
 		//[K / W]
-		final double thermalResistancePan = panThickness / (panMaterial.thermalConductivity * panArea);
+		final double thermalResistancePan = panThickness / (panMaterial.thermalConductivity(25.) * panArea);
 		//[K / W]
 		final double thermalResistanceDoughBottom = (layerThicknessDough / 2.) / (thermalConductivityDough * pizzaArea);
 		//[K / W]

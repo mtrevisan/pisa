@@ -594,8 +594,6 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		//bottom layer, dough in contact with heated tray
 		calculateBottomLayer(-- index, y, dydt);
 	}
-	java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
-	static int pi = 0;
 
 	/**
 	 * @param temperature	Temperature [°C].
@@ -734,7 +732,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double densityDough = physicalDensityDough.apply(layerTemperature, y);
 		final double conductivityDough = thermalConductivityDough.apply(layerTemperature, y);
-		final double conductivityPan = bakingPan.material.thermalConductivity;
+		final double conductivityPan = bakingPan.material.thermalConductivity(layerTemperature);
 
 		final double moistureDiffusivityDough = moistureDiffusivityDough(layerTemperature);
 
@@ -744,7 +742,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private void calculateInnerPanLayer(final int layer, final double[] y, final double[] dydt){
-		final double conductivityPan = bakingPan.material.thermalConductivity;
+		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
+		final double conductivityPan = bakingPan.material.thermalConductivity(layerTemperature);
 
 		calculateInnerLayer(layer, y, dydt,
 			bakingPan.material.density, bakingPan.material.specificHeat, conductivityPan, layerThicknessPan, 0.);
@@ -752,7 +751,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 	private void calculateBottomLayer(final int layer, final double[] y, final double[] dydt){
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		final double conductivityPan = bakingPan.material.thermalConductivity;
+		final double conductivityPan = bakingPan.material.thermalConductivity(layerTemperature);
 
 		calculateBoundaryBottomLayer(layer, y, dydt,
 			bakingPan.material.density, bakingPan.material.specificHeat, conductivityPan, layerThicknessPan);
@@ -807,9 +806,6 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //
 //			setTheta(layer, dydt, 4. * thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS)
 //				/ Math.pow(layerThickness, 2.));
-//
-//			setC(layer, dydt, 4. * moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y)
-//				+ moistureContentSurface) / Math.pow(layerThickness, 2.));
 
 			final double viewFactor = 0.87;
 			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureTop:
