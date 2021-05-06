@@ -610,6 +610,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	 */
 	private double doughDensity(final double temperature, final double protein, final double fat, final double carbohydrate,
 			final double fiber, final double ash, final double water){
+		//FIXME consider charles-guy lussac gas expansion while cooking
 		final double proteinFactor = 1329.9 - 0.5184 * temperature;
 		final double fatFactor = 925.59 - 0.41757 * temperature;
 		final double carbohydrateFactor = 1599.1 - 0.31046 * temperature;

@@ -27,9 +27,21 @@ package io.github.mtrevisan.pizza;
 import io.github.mtrevisan.pizza.utils.Helper;
 
 
+//https://www.researchgate.net/publication/7373482_Wind-chill-equivalent_temperatures_Regarding_the_impact_due_to_the_variability_of_the_environmental_convective_heat_transfer_coefficient
 public enum OvenType{
-	NATURAL_CONVECTION,
-	FORCED_CONVECTION;
+	NATURAL_CONVECTION(){
+		@Override
+		double heatTransferCoefficient(final double temperature){
+			return 8066.6 + (-76.01 + 0.19536 * temperature) * temperature;
+		}
+	},
+	FORCED_CONVECTION(){
+		@Override
+		double heatTransferCoefficient(final double temperature){
+			//convective air speed: 1 m/s
+			return 1697.7 + (-9.66 + 0.02544 * temperature) * temperature;
+		}
+	};
 
 
 	//[°C]
@@ -77,15 +89,7 @@ public enum OvenType{
 	 * @param temperature	Temperature [°C].
 	 * @return	Heat transfer coefficient [W / (m² · K)].
 	 */
-	double heatTransferCoefficient(final double temperature){
-		final double coeff;
-		if(this == FORCED_CONVECTION)
-			//convective air speed: 1 m/s
-			coeff = 1697.7 + (-9.66 + 0.02544 * temperature) * temperature;
-		else
-			coeff = 8066.6 + (-76.01 + 0.19536 * temperature) * temperature;
-		return coeff;
-	}
+	abstract double heatTransferCoefficient(final double temperature);
 
 	/**
 	 * Empirical equation that can be used for air speed from 2 to 20 m/s.
