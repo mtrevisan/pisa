@@ -192,27 +192,46 @@ public final class Oven{
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
 java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
-for(int t = 20; t <= 2000; t += 40){
-	final double[] y = ode.getInitialState();
-	integrator.integrate(ode, 0., y, t, y);
-	System.out.println(
-		//pan
-		df.format(y[34])
+double[] y2 = ode.getInitialState();
+System.out.println(
+	//pan
+	df.format(y2[34])
 		//pan-dough
-		+ "\t" + df.format(y[32])
+		+ "\t" + df.format(y2[32])
 		//dough
-		+ "\t" + df.format(y[30]) + "\t" + df.format(y[28]) + "\t" + df.format(y[26]) + "\t" + df.format(y[24]) + "\t" + df.format(y[22]) + "\t" + df.format(y[20])
+		+ "\t" + df.format(y2[30]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[26]) + "\t" + df.format(y2[24]) + "\t" + df.format(y2[22]) + "\t" + df.format(y2[20])
 		//dough-tomato
-		+ "\t" + df.format(y[18])
+		+ "\t" + df.format(y2[18])
 		//tomato
-		+ "\t" + df.format(y[16]) + "\t" + df.format(y[14]) + "\t" + df.format(y[12])
+		+ "\t" + df.format(y2[16]) + "\t" + df.format(y2[14]) + "\t" + df.format(y2[12])
 		//tomato-mozzarella
-		+ "\t" + df.format(y[10])
+		+ "\t" + df.format(y2[10])
 		//mozzarella
-		+ "\t" + df.format(y[8]) + "\t" + df.format(y[6]) + "\t" + df.format(y[4]) + "\t" + df.format(y[2])
+		+ "\t" + df.format(y2[8]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[4]) + "\t" + df.format(y2[2])
 		//top
-		+ "\t" + df.format(y[0])
-		);
+		+ "\t" + df.format(y2[0])
+);
+for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
+	y2 = ode.getInitialState();
+	integrator.integrate(ode, 0., y2, t, y2);
+	System.out.println(
+	//pan
+	df.format(y2[34])
+		//pan-dough
+		+ "\t" + df.format(y2[32])
+		//dough
+		+ "\t" + df.format(y2[30]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[26]) + "\t" + df.format(y2[24]) + "\t" + df.format(y2[22]) + "\t" + df.format(y2[20])
+		//dough-tomato
+		+ "\t" + df.format(y2[18])
+		//tomato
+		+ "\t" + df.format(y2[16]) + "\t" + df.format(y2[14]) + "\t" + df.format(y2[12])
+		//tomato-mozzarella
+		+ "\t" + df.format(y2[10])
+		//mozzarella
+		+ "\t" + df.format(y2[8]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[4]) + "\t" + df.format(y2[2])
+		//top
+		+ "\t" + df.format(y2[0])
+);
 }
 
 		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);
