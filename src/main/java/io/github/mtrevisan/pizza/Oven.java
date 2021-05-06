@@ -32,7 +32,9 @@ import org.apache.commons.math3.ode.nonstiff.GraggBulirschStoerIntegrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
+import java.util.Locale;
 
 
 public final class Oven{
@@ -192,6 +194,7 @@ public final class Oven{
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
 java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
+df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 double[] y2 = ode.getInitialState();
 System.out.println(
 	//pan

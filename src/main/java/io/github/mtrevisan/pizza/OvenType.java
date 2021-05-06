@@ -40,8 +40,6 @@ public enum OvenType{
 	/** Specific gas constant for water vapor [J / (kg · K)]. */
 	private static final double R_WATER_VAPOR = 461.495;
 
-	private static final double[] WATER_VAPOR_PRESSURE_COEFFICIENTS = {0.99999683, -9.0826951e-3, 7.8736169e-5, -6.1117958e-7, 4.3884187e-9, -2.9883885e-11, 2.1874425e-13, -1.7892321e-15, 1.1112018e-17, -3.0994571e-20};
-
 	private static final double[] AIR_VISCOSITY_COEFFICIENTS = {170.258, 0.605434, -1.33200e-3};
 	private static final double[] AIR_VISCOSITY_PRESSURE_COEFFICIENTS = {-2.44358e-3, 1.17237, 0.125541};
 	private static final double[] AIR_CONDUCTIVITY_COEFFICIENTS = {-3.9333e-4, 1.0184e-4, -4.8574e-8, 1.5207e-11};
@@ -101,11 +99,7 @@ public enum OvenType{
 	 */
 	static double heatTransferCoefficient(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
-		//calculate air density [kg / m³]
-		final double dryAirDensity = airPressure * 100. / (R_DRY_AIR * (airTemperature + ABSOLUTE_ZERO));
-		final double waterVaporPressure = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, airTemperature), 8.);
-		final double moistDensity = airRelativeHumidity * waterVaporPressure / (R_WATER_VAPOR * (airTemperature + ABSOLUTE_ZERO));
-		final double airDensity = dryAirDensity + moistDensity;
+		final double airDensity = calculateAirDensity(airTemperature, airPressure, airRelativeHumidity);
 
 		//calculate air dynamic viscosity [N · s / m²2]
 		final double airViscosity0 = Helper.evaluatePolynomial(AIR_VISCOSITY_COEFFICIENTS, airTemperature);

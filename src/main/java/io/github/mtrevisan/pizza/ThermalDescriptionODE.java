@@ -96,10 +96,12 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final double bakingTemperatureBottom;
 	/** [m] */
 	private final double distanceHeaterBottom;
+	/** [°C] */
 	private final double ambientTemperature;
-
-	//ambient humidity ratio
-	private final double humidityRatioAmbient;
+	/** Air pressure [hPa]. */
+	private final double airPressure;
+	/** Air relative humidity [%]. */
+	private final double airRelativeHumidity;
 	//surface humidity ratio
 	private final double humidityRatioSurface;
 
@@ -267,8 +269,8 @@ cp	dough specific heat
 		this.bakingTemperatureBottom = bakingTemperatureBottom;
 		this.distanceHeaterBottom = distanceHeaterBottom;
 		this.ambientTemperature = ambientTemperature;
-
-		this.humidityRatioAmbient = airRelativeHumidity;
+		this.airPressure = airPressure;
+		this.airRelativeHumidity = airRelativeHumidity;
 
 		//heat transfer coefficient:
 		heatTransferCoefficient = ovenType.heatTransferCoefficient(bakingTemperatureTop);
@@ -399,7 +401,7 @@ cp	dough specific heat
 		//mozzarella layers
 		for(int i = 0; i < layersMozzarella; i ++)
 			state[((i + layersTomato + layersDough + layersPan) << 1) + 7] = moistureContentMozzarella0 / moistureContentDough0;
-		state[((layersMozzarella + layersTomato + layersDough + layersPan) << 1) + 7] = humidityRatioAmbient;
+		state[((layersMozzarella + layersTomato + layersDough + layersPan) << 1) + 7] = airRelativeHumidity;
 		return state;
 	}
 
@@ -581,15 +583,13 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		for(int i = 0; i < layersDough; i ++)
 			calculateInnerDoughLayer(-- index, y, dydt);
 
+		//TODO add contact layer between dough and baking parchment paper
+		//TODO add contact layer between baking parchment paper and pan
 		calculatePanDoughInterfaceLayer(-- index, y, dydt);
 
 		//pan layers
 		for(int i = 0; i < layersPan - 1; i ++)
 			calculateInnerPanLayer(-- index, y, dydt);
-
-		//TODO add contact layer between dough and baking parchment paper
-		//TODO add contact layer between baking parchment paper and pan
-		//TODO consider layer 1 as convection and irradiation, not only convection
 
 		//bottom layer, dough in contact with heated tray
 		calculateBottomLayer(-- index, y, dydt);
@@ -760,7 +760,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			//surface mass transfer coefficient [kg H₂O / (m² · s)]
 			final double massTransferSurface = massTransferSurface(layerTemperature);
 			final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivity * density)
-				* (humidityRatioSurface - humidityRatioAmbient) * layerThickness / (2. * moistureContentDough0);
+				* (humidityRatioSurface - airRelativeHumidity) * layerThickness / (2. * moistureContentDough0);
 //			final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
 //				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
 //				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
