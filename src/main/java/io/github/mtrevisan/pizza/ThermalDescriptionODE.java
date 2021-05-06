@@ -464,7 +464,7 @@ The layers are:
 - tomato
 - dough
 - (baking parchment paper)
-- tray
+- pan
 - air (convection + radiation bottom)
 */
 
@@ -597,7 +597,6 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
 	static int pi = 0;
 
-	//FIXME recipe.density(densityFat, dough.ingredientsTemperature, dough.atmosphericPressure)
 	/**
 	 * @param temperature	Temperature [°C].
 	 * @param protein	Protein content [%].
@@ -792,60 +791,67 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	private void calculateBoundaryTopLayer(final int layer, final double[] y, final double[] dydt,
 			final double density, final double specificHeat, final double conductivity, final double layerThickness,
 			final double moistureDiffusivity){
-//		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
-		final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
-//		final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
+		if(distanceHeaterTop > 0. || ovenType == OvenType.FORCED_CONVECTION){
+			final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
+			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
+//			final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
 
-		//surface mass transfer coefficient [kg H₂O / (m² · s)]
-//		final double massTransferSurface = massTransferSurface(layerTemperature);
-//		final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivity * density)
-//			* (humidityRatioSurface - humidityRatioAmbient) * layerThickness / (2. * moistureContentDough0);
-//		final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
-//			* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
-//			- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
-//			/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
+			//surface mass transfer coefficient [kg H₂O / (m² · s)]
+			final double massTransferSurface = massTransferSurface(layerTemperature);
+			final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivity * density)
+				* (humidityRatioSurface - humidityRatioAmbient) * layerThickness / (2. * moistureContentDough0);
+//			final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
+//				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
+//				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
+//				/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
 //
-//		setTheta(layer, dydt, 4. * thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS)
-//			/ Math.pow(layerThickness, 2.));
+//			setTheta(layer, dydt, 4. * thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS)
+//				/ Math.pow(layerThickness, 2.));
 //
-//		setC(layer, dydt, 4. * moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y)
-//			+ moistureContentSurface) / Math.pow(layerThickness, 2.));
+//			setC(layer, dydt, 4. * moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y)
+//				+ moistureContentSurface) / Math.pow(layerThickness, 2.));
 
-		final double viewFactor = 0.87;
-		//FIXME
-		final double temperature = (distanceHeaterTop > 0.? bakingTemperatureTop: ambientTemperature);
-		final double theta = calculateFourierTemperature(temperature, ambientTemperature, bakingTemperatureTop);
-//		final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
-		final double radiationFactor = calculateRadiationFactor(EMISSIVITY_PIZZA, bakingPan.area(), viewFactor);
-		final double layerTheta = getTheta(layer, y);
-		setTheta(layer, dydt, 2. * (
-				thermalDiffusivity * (theta - layerTheta) / layerThickness
-					+ SIGMA * radiationFactor * (Math.pow(theta, 4.) - Math.pow(layerTheta, 4.))
-					+ heatTransferCoefficient * (theta - layerTheta)
-			) / (density * specificHeat * layerThickness)
-		);
+			final double viewFactor = 0.87;
+			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureTop:
+				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
+			final double theta = calculateFourierTemperature(temperature, ambientTemperature, bakingTemperatureTop);
+			final double thetaTop = calculateFourierTemperature(bakingTemperatureTop, ambientTemperature, bakingTemperatureTop);
+//			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
+			final double radiationFactor = calculateRadiationFactor(EMISSIVITY_PIZZA, bakingPan.area(), viewFactor);
+			final double layerTheta = getTheta(layer, y);
+			setTheta(layer, dydt, 2. * (
+					thermalDiffusivity * (theta - layerTheta) / layerThickness
+						+ (distanceHeaterTop > 0.? SIGMA * radiationFactor * (Math.pow(thetaTop, 4.) - Math.pow(layerTheta, 4.)): 0.)
+						+ heatTransferCoefficient * (theta - layerTheta)
+				) / (density * specificHeat * layerThickness)
+			);
 
-		setC(layer, dydt, 2. * moistureDiffusivity * (getC(layer - 1, y) - getC(layer, y)) / Math.pow(layerThickness, 2.));
+			setC(layer, dydt, 4. / Math.pow(layerThickness, 2.)
+				* moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
+		}
 	}
 
 	//dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
 	private void calculateBoundaryBottomLayer(final int layer, final double[] y, final double[] dydt,
 			final double density, final double specificHeat, final double conductivity, final double layerThickness){
-		final double viewFactor = 0.87;
-		//FIXME
-		final double temperature = (distanceHeaterBottom > 0.? bakingTemperatureBottom: ambientTemperature);
-		final double theta = calculateFourierTemperature(temperature, ambientTemperature, bakingTemperatureTop);
-		final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
-		final double radiationFactor = calculateRadiationFactor(bakingPan.material.emissivity, bakingPan.area(), viewFactor);
-		final double layerTheta = getTheta(layer, y);
-		setTheta(layer, dydt, 2. * (
-			thermalDiffusivity * (theta - layerTheta) / layerThickness
-				+ SIGMA * radiationFactor * (Math.pow(theta, 4.) - Math.pow(layerTheta, 4.))
-				+ heatTransferCoefficient * (theta - layerTheta)
-			) / (density * specificHeat * layerThickness)
-		);
+		if(distanceHeaterBottom > 0. || ovenType == OvenType.FORCED_CONVECTION){
+			final double viewFactor = 0.87;
+			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureBottom:
+				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
+			final double theta = calculateFourierTemperature(temperature, ambientTemperature, bakingTemperatureTop);
+			final double thetaBottom = calculateFourierTemperature(bakingTemperatureBottom, ambientTemperature, bakingTemperatureTop);
+			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
+			final double radiationFactor = calculateRadiationFactor(bakingPan.material.emissivity, bakingPan.area(), viewFactor);
+			final double layerTheta = getTheta(layer, y);
+			setTheta(layer, dydt, 2. * (
+				thermalDiffusivity * (theta - layerTheta) / layerThickness
+					+ (distanceHeaterBottom > 0.? SIGMA * radiationFactor * (Math.pow(thetaBottom, 4.) - Math.pow(layerTheta, 4.)): 0.)
+					+ heatTransferCoefficient * (theta - layerTheta)
+				) / (density * specificHeat * layerThickness)
+			);
 
-		//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
+			//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
+		}
 	}
 
 	private double calculateRadiationFactor(final double emissivity, final double area, final double viewFactor){
