@@ -190,7 +190,7 @@ public final class Oven{
 		layerThicknessTomato /= 100.;
 		layerThicknessDough /= 100.;
 		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessDough,
-			OvenType.FORCED_CONVECTION, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
+			ovenType, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
 java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
@@ -198,43 +198,43 @@ df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 double[] y2 = ode.getInitialState();
 System.out.println(
 	//pan
-	df.format(y2[34])
-		//pan-dough
-		+ "\t" + df.format(y2[32])
-		//dough
-		+ "\t" + df.format(y2[30]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[26]) + "\t" + df.format(y2[24]) + "\t" + df.format(y2[22]) + "\t" + df.format(y2[20])
-		//dough-tomato
-		+ "\t" + df.format(y2[18])
-		//tomato
-		+ "\t" + df.format(y2[16]) + "\t" + df.format(y2[14]) + "\t" + df.format(y2[12])
-		//tomato-mozzarella
-		+ "\t" + df.format(y2[10])
-		//mozzarella
-		+ "\t" + df.format(y2[8]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[4]) + "\t" + df.format(y2[2])
-		//top
-		+ "\t" + df.format(y2[0])
+	df.format(y2[0])
+	//pan-dough
+	+ "\t" + df.format(y2[2])
+	//dough
+	+ "\t" + df.format(y2[4]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[8]) + "\t" + df.format(y2[10]) + "\t" + df.format(y2[12]) + "\t" + df.format(y2[14])
+	//dough-tomato
+	+ "\t" + df.format(y2[16])
+	//tomato
+	+ "\t" + df.format(y2[18]) + "\t" + df.format(y2[20]) + "\t" + df.format(y2[22])
+	//tomato-mozzarella
+	+ "\t" + df.format(y2[24])
+	//mozzarella
+	+ "\t" + df.format(y2[26]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[30]) + "\t" + df.format(y2[32])
+	//top
+	+ "\t" + df.format(y2[34])
 );
 for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
 	y2 = ode.getInitialState();
 	integrator.integrate(ode, 0., y2, t, y2);
 	System.out.println(
-	//pan
-	df.format(y2[34])
-		//pan-dough
-		+ "\t" + df.format(y2[32])
-		//dough
-		+ "\t" + df.format(y2[30]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[26]) + "\t" + df.format(y2[24]) + "\t" + df.format(y2[22]) + "\t" + df.format(y2[20])
-		//dough-tomato
-		+ "\t" + df.format(y2[18])
-		//tomato
-		+ "\t" + df.format(y2[16]) + "\t" + df.format(y2[14]) + "\t" + df.format(y2[12])
-		//tomato-mozzarella
-		+ "\t" + df.format(y2[10])
-		//mozzarella
-		+ "\t" + df.format(y2[8]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[4]) + "\t" + df.format(y2[2])
-		//top
-		+ "\t" + df.format(y2[0])
-);
+		//pan
+		df.format(y2[0])
+			//pan-dough
+			+ "\t" + df.format(y2[2])
+			//dough
+			+ "\t" + df.format(y2[4]) + "\t" + df.format(y2[6]) + "\t" + df.format(y2[8]) + "\t" + df.format(y2[10]) + "\t" + df.format(y2[12]) + "\t" + df.format(y2[14])
+			//dough-tomato
+			+ "\t" + df.format(y2[16])
+			//tomato
+			+ "\t" + df.format(y2[18]) + "\t" + df.format(y2[20]) + "\t" + df.format(y2[22])
+			//tomato-mozzarella
+			+ "\t" + df.format(y2[24])
+			//mozzarella
+			+ "\t" + df.format(y2[26]) + "\t" + df.format(y2[28]) + "\t" + df.format(y2[30]) + "\t" + df.format(y2[32])
+			//top
+			+ "\t" + df.format(y2[34])
+	);
 }
 
 		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);

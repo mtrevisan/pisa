@@ -65,6 +65,10 @@ class OvenTest{
 		final Oven oven = Oven.create(OvenType.FORCED_CONVECTION)
 			.withDistanceHeaterTop(0.1)
 			.withDistanceHeaterBottom(0.1);
+//		final Oven oven = Oven.create(OvenType.NATURAL_CONVECTION)
+//			.withDistanceHeaterTop(0.1);
+//		final Oven oven = Oven.create(OvenType.NATURAL_CONVECTION)
+//			.withDistanceHeaterBottom(0.1);
 		final BakingInstruments bakingInstruments = new BakingInstruments()
 			.withBakingPans(new BakingPanAbstract[]{
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.2),
