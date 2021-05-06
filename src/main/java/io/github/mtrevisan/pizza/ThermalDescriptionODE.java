@@ -622,52 +622,14 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private void calculateTopLayer(final int layer, final double[] y, final double[] dydt){
-		//FIXME if distanceHeaterTop is zero, there is heating anyway if forced convection air oven is used and distanceHeaterBottom is non zero
-//		final double thetaS = calculateFourierTemperature((distanceHeaterTop > 0.? bakingTemperatureTop: ambientTemperature),
-//			ambientTemperature, bakingTemperatureTop);
-
-		//at pizza surface
-
 		final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y), ambientTemperature, bakingTemperatureTop);
 		final double conductivityMozzarella = thermalConductivityMozzarella.apply(layerTemperature, y);
-		final double thermalDiffusivityMozzarella = calculateThermalDiffusivity(conductivityMozzarella, specificHeatMozzarella, densityMozzarella);
-		final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
 
-		//surface mass transfer coefficient [kg H₂O / (m² · s)]
-		final double massTransferSurface = massTransferSurface(layerTemperature);
 		final double moistureDiffusivityMozzarella = moistureDiffusivityMozzarella(layerTemperature);
-		final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivityMozzarella * densityMozzarella)
-			* (humidityRatioSurface - humidityRatioAmbient) * layerThicknessMozzarella / (2. * moistureContentDough0);
-		final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivityMozzarella / layerThicknessMozzarella)
-			* (heatTransferCoefficient + 2. * conductivityMozzarella * getTheta(layer, y) / layerThicknessMozzarella
-			- 2. * moistureDiffusivityMozzarella * densityMozzarella * vaporizationLatentHeatWater * moistureContentDough0
-			/ (layerThicknessMozzarella * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
-
-//		setTheta(layer, dydt, 4. * thermalDiffusivityMozzarella * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS)
-//			/ Math.pow(layerThicknessMozzarella, 2.));
-//
-//		setC(layer, dydt, 4. * moistureDiffusivityMozzarella * (getC(layer - 1, y) - 2. * getC(layer, y)
-//			+ moistureContentSurface) / Math.pow(layerThicknessMozzarella, 2.));
 
 		calculateBoundaryTopLayer(layer, y, dydt,
 			densityMozzarella, specificHeatMozzarella, conductivityMozzarella, layerThicknessMozzarella,
 			moistureDiffusivityMozzarella);
-	}
-
-	/**
-	 * @param temperature	Temperature [°C].
-	 * @return	Vaporization latent heat of water, Lv [J / kg].
-	 */
-	private double calculateVaporizationLatentHeatWater(final double temperature){
-		return 1000. * (temperature <= 260.?
-			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature):
-			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
-	}
-
-	private double massTransferSurface(final double temperature){
-		return (ovenType == OvenType.FORCED_CONVECTION?
-			4.6332 * Math.exp(-277.5 / temperature):
-			4.5721 * Math.exp(-292.8 / temperature));
 	}
 
 	private void calculateInnerMozzarellaLayer(final int layer, final double[] y, final double[] dydt){
@@ -803,9 +765,9 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
 //				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
 //				/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
-//
-//			setTheta(layer, dydt, 4. * thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS)
-//				/ Math.pow(layerThickness, 2.));
+
+//			setTheta(layer, dydt, 4. / Math.pow(layerThickness, 2.)
+//				* thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
 
 			final double viewFactor = 0.87;
 			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureTop:
@@ -825,6 +787,22 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			setC(layer, dydt, 4. / Math.pow(layerThickness, 2.)
 				* moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
 		}
+	}
+
+	/**
+	 * @param temperature	Temperature [°C].
+	 * @return	Vaporization latent heat of water, Lv [J / kg].
+	 */
+	private double calculateVaporizationLatentHeatWater(final double temperature){
+		return 1000. * (temperature <= 260.?
+			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature):
+			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
+	}
+
+	private double massTransferSurface(final double temperature){
+		return (ovenType == OvenType.FORCED_CONVECTION?
+			4.6332 * Math.exp(-277.5 / temperature):
+			4.5721 * Math.exp(-292.8 / temperature));
 	}
 
 	//dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
