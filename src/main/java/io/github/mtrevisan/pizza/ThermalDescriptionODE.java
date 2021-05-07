@@ -279,12 +279,6 @@ cp	dough specific heat
 		heatTransferCoefficient = ovenType.heatTransferCoefficient(bakingTemperatureTop);
 		humidityRatioSurface = 0.1837 + (-0.0014607 + 0.000004477 * bakingTemperatureTop) * bakingTemperatureTop;
 
-
-		final double thermalConductivityAir = OvenType.calculateAirThermalConductivity(ambientTemperature);
-		final double specificHeatAir = OvenType.calculateAirSpecificHeat(ambientTemperature);
-		final double densityAir = OvenType.calculateAirDensity(ambientTemperature, airPressure, airRelativeHumidity);
-		final double thermalDiffusivityAir = calculateThermalDiffusivity(thermalConductivityAir, specificHeatAir, densityAir);
-
 		this.bakingPan = bakingPan;
 
 		thermalConductivityMozzarella = (temperature, y) -> {
@@ -799,6 +793,11 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 //			setTheta(layer, dydt, 4. / Math.pow(layerThickness, 2.)
 //				* thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
 
+			final double thermalConductivityAir = OvenType.calculateAirThermalConductivity(ambientTemperature);
+			final double specificHeatAir = OvenType.calculateAirSpecificHeat(ambientTemperature);
+			final double densityAir = OvenType.calculateAirDensity(ambientTemperature, airPressure, airRelativeHumidity);
+			final double thermalDiffusivityAir = calculateThermalDiffusivity(thermalConductivityAir, specificHeatAir, densityAir);
+
 			final double viewFactor = 0.87;
 			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureTop:
 				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
@@ -814,7 +813,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			);
 
 
-//			setTheta(layer, dydt, 4. / (density * specificHeat * layerThickness + densityAirTop * specificHeatAirTop * layerThicknessAirTop)
+//			setTheta(layer, dydt, 4. / (density * specificHeat * layerThickness + densityAir * specificHeatAir * layerThicknessAirTop)
 //				* (conductivity * (getTheta(layer - 1, y) - layerTheta) / layerThickness
 //				- conductivityAirTop * (layerTheta - getTheta(layer + 1, y)) / layerThicknessAirTop));
 //
