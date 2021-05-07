@@ -45,7 +45,6 @@ public final class Procedure{
 	StretchAndFoldStage[] stretchAndFoldStages;
 
 	final Duration doughMaking;
-	final Duration[] stagesWork;
 	final Duration seasoning;
 	final LocalTime timeToBake;
 
@@ -56,35 +55,31 @@ public final class Procedure{
 	 * @param targetVolumeExpansionRatioAtLeaveningStage	Leavening stage in which to reach the given volume expansion ratio (index
 	 * 	between 0 and `leaveningStages.length`).
 	 * @param doughMaking	Duration of dough making.
-	 * @param stagesWork	Duration done at the end of each stage.
 	 * @param seasoning	Duration of seasoning.
 	 * @param timeToBake	Time to start baking.
 	 */
 	public static Procedure create(final LeaveningStage[] leaveningStages, final double targetVolumeExpansionRatio,
-			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration[] stagesWork,
-			final Duration seasoning, final LocalTime timeToBake) throws DoughException{
+			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration seasoning,
+			final LocalTime timeToBake) throws DoughException{
 		return new Procedure(leaveningStages, targetVolumeExpansionRatio, targetVolumeExpansionRatioAtLeaveningStage,
-			doughMaking, stagesWork, seasoning, timeToBake);
+			doughMaking, seasoning, timeToBake);
 	}
 
 	private Procedure(final LeaveningStage[] leaveningStages, final double targetDoughVolumeExpansionRatio,
-			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration[] stagesWork,
-			final Duration seasoning, final LocalTime timeToBake) throws DoughException{
+			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration seasoning,
+			final LocalTime timeToBake) throws DoughException{
 		if(targetVolumeExpansionRatioAtLeaveningStage < 0 || targetVolumeExpansionRatioAtLeaveningStage >= leaveningStages.length)
 			throw DoughException.create("Target volume expansion ratio at leavening stage must be between 0 and {}",
 				(leaveningStages.length - 1));
 		Objects.requireNonNull(doughMaking, "Time to make the dough not set");
 		Objects.requireNonNull(seasoning, "Time to season not set");
 		Objects.requireNonNull(timeToBake, "Time to bake not set");
-		if(stagesWork == null || stagesWork.length != leaveningStages.length)
-			throw DoughException.create("Number of work at each stage does not match number of leavening stages");
 
 		this.leaveningStages = leaveningStages;
 		this.targetDoughVolumeExpansionRatio = targetDoughVolumeExpansionRatio;
 		this.targetVolumeExpansionRatioAtLeaveningStage = targetVolumeExpansionRatioAtLeaveningStage;
 		this.timeToBake = timeToBake;
 		this.doughMaking = doughMaking;
-		this.stagesWork = stagesWork;
 		this.seasoning = seasoning;
 	}
 

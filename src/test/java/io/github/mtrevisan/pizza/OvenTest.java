@@ -50,7 +50,8 @@ class OvenTest{
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withAirRelativeHumidity(0.55);
-		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6));
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6))
+			.withAfterStageWork(Duration.ofMinutes(10));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
 		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
 			.withVolumeDecrease(0.05);
@@ -60,7 +61,7 @@ class OvenTest{
 			.withVolumeDecrease(0.05);
 		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
-			Duration.ofMinutes(10), new Duration[]{Duration.ofMinutes(10), Duration.ZERO}, Duration.ofMinutes(15), LocalTime.of(20, 0))
+			Duration.ofMinutes(10), Duration.ofMinutes(15), LocalTime.of(20, 0))
 			.withStretchAndFoldStages(stretchAndFoldStages);
 		final Oven oven = Oven.create(OvenType.FORCED_CONVECTION)
 			.withDistanceHeaterTop(0.1)
@@ -70,9 +71,9 @@ class OvenTest{
 //		final Oven oven = Oven.create(OvenType.NATURAL_CONVECTION)
 //			.withDistanceHeaterBottom(0.1);
 		final BakingInstruments bakingInstruments = new BakingInstruments()
-			.withBakingPans(new BakingPanAbstract[]{
+			.withBakingPans(
 				RectangularBakingPan.create(23., 25., BakingPanMaterial.CAST_IRON, 0.2),
-				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.2)});
+				CircularBakingPan.create(22.5, BakingPanMaterial.ALUMINIUM, 0.2));
 		//FIXME
 		final double doughWeight = bakingInstruments.getBakingPansTotalArea() * 0.76222;
 		final Recipe recipe = dough.createRecipe(procedure, doughWeight);

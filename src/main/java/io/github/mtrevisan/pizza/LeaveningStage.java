@@ -41,6 +41,8 @@ public final class LeaveningStage{
 	final double temperature;
 	/** Leavening duration [hrs]. */
 	final Duration duration;
+	/** Duration of work done after stage [hrs]. */
+	Duration afterStageWork;
 	/** Volume decrease after leavening stage [% v/v]. */
 	double volumeDecrease;
 
@@ -57,14 +59,29 @@ public final class LeaveningStage{
 	private LeaveningStage(){
 		temperature = 0.;
 		this.duration = Duration.ZERO;
+		this.afterStageWork = Duration.ZERO;
 	}
 
 	private LeaveningStage(final double temperature, final Duration duration) throws DoughException{
 		if(duration == null || duration.isNegative() || duration.isZero())
-			throw DoughException.create("Duration should be present and non-negative");
+			throw DoughException.create("Duration should be present and posituve");
 
 		this.temperature = temperature;
 		this.duration = duration;
+		this.afterStageWork = Duration.ZERO;
+	}
+
+	/**
+	 * @param afterStageWork	Length of work done at the end of the stage [hrs].
+	 * @return	The instance.
+	 */
+	public LeaveningStage withAfterStageWork(final Duration afterStageWork) throws DoughException{
+		if(afterStageWork == null || afterStageWork.isNegative())
+			throw DoughException.create("Work after stage should be present and non-negative");
+
+		this.afterStageWork = afterStageWork;
+
+		return this;
 	}
 
 	/**
@@ -83,7 +100,10 @@ public final class LeaveningStage{
 	@Override
 	public String toString(){
 		return getClass().getSimpleName() + "{" + temperature + " °C for " + Helper.round(duration.toMinutes() / 60., 2)
-			+ " hrs" + (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
+			+ " hrs"
+			+ (!afterStageWork.isZero()? ", after-stage work duration " + Helper.round(afterStageWork.toMinutes() / 60., 2)
+			+ " hrs": "")
+			+ (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
 			+ "}";
 	}
 

@@ -32,7 +32,7 @@ public class BakingInstruments{
 	BakingPanAbstract[] bakingPans;
 
 
-	public final BakingInstruments withBakingPans(final BakingPanAbstract[] bakingPans) throws OvenException{
+	public final BakingInstruments withBakingPans(final BakingPanAbstract... bakingPans) throws OvenException{
 		if(bakingPans == null || bakingPans.length == 0)
 			throw OvenException.create("Missing baking pans");
 

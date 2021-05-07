@@ -475,9 +475,9 @@ public final class Dough{
 		//calculate times:
 		LocalTime last = procedure.timeToBake.minus(procedure.seasoning);
 		recipe.withSeasoningInstant(last);
-		final LocalTime[][] stageStartEndInstants = new LocalTime[procedure.stagesWork.length][2];
-		for(int i = procedure.stagesWork.length - 1; i >= 0; i --){
-			last = last.minus(procedure.stagesWork[i]);
+		final LocalTime[][] stageStartEndInstants = new LocalTime[procedure.leaveningStages.length][2];
+		for(int i = stageStartEndInstants.length - 1; i >= 0; i --){
+			last = last.minus(procedure.leaveningStages[i].afterStageWork);
 			stageStartEndInstants[i][1] = last;
 			last = last.minus(procedure.leaveningStages[i].duration);
 			stageStartEndInstants[i][0] = last;
