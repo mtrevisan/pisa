@@ -413,20 +413,24 @@ cp	dough specific heat
 		return state;
 	}
 
-	public final double getMinimumFoodTemperature(final double[] stage){
-		int offset = 1 + layersPan;
-		double min = getTheta(offset, stage);
+	/**
+	 * @param state	State array.
+	 * @return	Minimum food temperature [°C].
+	 */
+	public final double getMinimumFoodTemperature(final double[] state){
 		//dough layers
+		int offset = 1 + layersPan;
+		double min = getTheta(offset, state);
 		for(int i = 1; i < layersDough; i ++)
-			min = Math.min(getTheta(i + offset, stage), min);
+			min = Math.min(getTheta(i + offset, state), min);
 		//tomato layers
 		offset += 1 + layersDough;
 		for(int i = 0; i < layersTomato; i ++)
-			min = Math.min(getTheta(i + offset, stage), min);
+			min = Math.min(getTheta(i + offset, state), min);
 		//mozzarella layers
 		offset += 1 + layersTomato;
 		for(int i = 0; i < layersMozzarella; i ++)
-			min = Math.min(getTheta(i + offset, stage), min);
+			min = Math.min(getTheta(i + offset, state), min);
 		return calculateInverseFourierTemperature(min);
 	}
 
@@ -781,16 +785,16 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		if(distanceHeaterTop > 0. || ovenType == OvenType.FORCED_CONVECTION){
 			final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y));
 			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
-//			final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
+			final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
 
 			//surface mass transfer coefficient [kg H₂O / (m² · s)]
 			final double massTransferSurface = massTransferSurface(layerTemperature);
 			final double moistureContentSurface = getC(layer, y) - massTransferSurface / (moistureDiffusivity * density)
 				* (humidityRatioSurface - airRelativeHumidity) * layerThickness / (2. * moistureContentDough0);
-//			final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
-//				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
-//				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
-//				/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
+			final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
+				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
+				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
+				/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
 
 //			setTheta(layer, dydt, 4. / Math.pow(layerThickness, 2.)
 //				* thermalDiffusivity * (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + thetaS));
@@ -800,7 +804,6 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
 			final double theta = calculateFourierTemperature(temperature);
 			final double thetaTop = calculateFourierTemperature(bakingTemperatureTop);
-//			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
 			final double radiationFactor = calculateRadiationFactor(EMISSIVITY_PIZZA, bakingPan.area(), viewFactor);
 			final double layerTheta = getTheta(layer, y);
 			setTheta(layer, dydt, 2. * (
@@ -810,8 +813,18 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 				) / (density * specificHeat * layerThickness)
 			);
 
-			setC(layer, dydt, 4. / Math.pow(layerThickness, 2.)
-				* moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
+
+//			setTheta(layer, dydt, 4. / (density * specificHeat * layerThickness + densityAirTop * specificHeatAirTop * layerThicknessAirTop)
+//				* (conductivity * (getTheta(layer - 1, y) - layerTheta) / layerThickness
+//				- conductivityAirTop * (layerTheta - getTheta(layer + 1, y)) / layerThicknessAirTop));
+//
+//			setC(layer, dydt, 4. / Math.pow(layerThickness, 2.)
+//				* (moistureDiffusivity * (getC(layer - 1, y) - getC(layer, y)) / layerThickness
+//				- moistureDiffusivityAirTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessAirTop));
+
+
+//			setC(layer, dydt, 4. / Math.pow(layerThickness, 2.)
+//				* moistureDiffusivity * (getC(layer - 1, y) - 2. * getC(layer, y) + moistureContentSurface));
 		}
 	}
 
