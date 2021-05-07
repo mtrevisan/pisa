@@ -392,20 +392,42 @@ cp	dough specific heat
 	public final double[] getInitialState(){
 		//array of initial temperature (as Fourier temperature) and moisture content
 		final double[] state = new double[getDimension()];
-		//pan layers
+		int offset = layersPan;
 		//dough layers
 		for(int i = 0; i < layersDough; i ++)
-			state[((i + layersPan) << 1) + 3] = 1.;
-		state[((layersDough + layersPan) << 1) + 3] = (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0);
+			setC(i + offset, state, 1.);
+		offset += layersDough + 1;
+		setC(offset, state, (moistureContentDough0 + moistureContentTomato0) / (2. * moistureContentDough0));
 		//tomato layers
+		offset ++;
 		for(int i = 0; i < layersTomato; i ++)
-			state[((i + layersDough + layersPan) << 1) + 5] = moistureContentTomato0 / moistureContentDough0;
-		state[((layersTomato + layersDough + layersPan) << 1) + 5] = (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0);
+			setC(i + offset, state, moistureContentTomato0 / moistureContentDough0);
+		offset += layersTomato;
+		setC(offset, state, (moistureContentTomato0 + moistureContentMozzarella0) / (2. * moistureContentDough0));
 		//mozzarella layers
+		offset ++;
 		for(int i = 0; i < layersMozzarella; i ++)
-			state[((i + layersTomato + layersDough + layersPan) << 1) + 7] = moistureContentMozzarella0 / moistureContentDough0;
-		state[((layersMozzarella + layersTomato + layersDough + layersPan) << 1) + 7] = airRelativeHumidity;
+			setC(i + offset, state, moistureContentMozzarella0 / moistureContentDough0);
+		offset += layersMozzarella;
+		setC(offset, state, airRelativeHumidity);
 		return state;
+	}
+
+	public final double getMinimumFoodTemperature(final double[] stage){
+		int offset = 1 + layersPan;
+		double min = getTheta(offset, stage);
+		//dough layers
+		for(int i = 1; i < layersDough; i ++)
+			min = Math.min(getTheta(i + offset, stage), min);
+		//tomato layers
+		offset += 1 + layersDough;
+		for(int i = 0; i < layersTomato; i ++)
+			min = Math.min(getTheta(i + offset, stage), min);
+		//mozzarella layers
+		offset += 1 + layersTomato;
+		for(int i = 0; i < layersMozzarella; i ++)
+			min = Math.min(getTheta(i + offset, stage), min);
+		return calculateInverseFourierTemperature(min);
 	}
 
 /*
@@ -833,13 +855,11 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	}
 
 	private double calculateRadiationFactor(final double emissivity, final double area, final double viewFactor){
-		//TODO
-		return emissivity;
-//		return 1. / (
-//			1. / (viewFactor * area)
-//			+ (1. - EMISSIVITY_NI_CR_WIRE) / (EMISSIVITY_NI_CR_WIRE * area)
-//			+ (1. - emissivity) / (emissivity * area)
-//		);
+		return 1. / (
+			1. / (viewFactor * area)
+			+ (1. - EMISSIVITY_NI_CR_WIRE) / (EMISSIVITY_NI_CR_WIRE * area)
+			+ (1. - emissivity) / (emissivity * area)
+		);
 	}
 
 	/**

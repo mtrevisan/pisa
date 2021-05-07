@@ -237,17 +237,14 @@ for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
 	);
 }
 
-		final double dbdt = calculateFourierTemperature(desiredBakedDoughTemperature, dough.ingredientsTemperature, bakingTemperatureTop);
+		final double dbdt = desiredBakedDoughTemperature;
 		final UnivariateFunction f = time -> {
 			final double[] y = ode.getInitialState();
 			if(time > 0.)
 				integrator.integrate(ode, 0., y, time, y);
 
 			//https://blog.thermoworks.com/bread/homemade-bread-temperature-is-key/
-			double min = y[0];
-			for(int i = 2; i < y.length; i += 2)
-				min = Math.min(y[i], min);
-			return min - dbdt;
+			return ode.getMinimumFoodTemperature(y) - dbdt;
 		};
 		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
 		return Duration.ofSeconds((long)time);
