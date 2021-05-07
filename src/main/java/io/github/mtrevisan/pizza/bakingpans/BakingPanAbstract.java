@@ -33,10 +33,10 @@ public abstract class BakingPanAbstract{
 	//[cm]
 	//https://www.centralrestaurant.com/resources/pizza-pans-buying-guide/
 	public double thickness;
-	public boolean hasBakingParchmentPaper;
+	boolean hasBakingParchmentPaper;
 
 
-	protected BakingPanAbstract(final BakingPanMaterial material, final double thickness){
+	BakingPanAbstract(final BakingPanMaterial material, final double thickness){
 		Objects.requireNonNull(material, "Material must be present");
 		if(thickness <= 0.)
 			throw new IllegalArgumentException("Thickness must be positive");

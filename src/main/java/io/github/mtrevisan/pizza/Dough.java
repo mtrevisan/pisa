@@ -168,7 +168,7 @@ public final class Dough{
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
-	SugarType sugarType;
+	private SugarType sugarType;
 	/** Raw sugar content [% w/w]. */
 	private double rawSugar = 1.;
 	/** Water content in sugar [% w/w]. */
@@ -604,7 +604,7 @@ public final class Dough{
 	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The estimated lag [hrs].
 	 */
-	public double estimatedLag(final double yeast){
+	private double estimatedLag(final double yeast){
 		//transform [% w/w] to [g/l]
 		final double s = fractionOverTotal(salt * 10.);
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
@@ -662,7 +662,7 @@ public final class Dough{
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	double sugarFactor(final double temperature){
+	private double sugarFactor(final double temperature){
 		/**
 		 * base is pH 5.4±0.1, 20 mg/l glucose
 		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
@@ -703,7 +703,7 @@ public final class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double saltFactor(){
+	private double saltFactor(){
 		final double s = fractionOverTotal(salt);
 		final double x = 11.7362 * s;
 		final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
@@ -718,7 +718,7 @@ public final class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double waterFactor(){
+	private double waterFactor(){
 		return (HYDRATION_MIN <= water && water < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, water): 0.);
 	}
 
@@ -728,7 +728,7 @@ public final class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double waterChlorineDioxideFactor(){
+	private double waterChlorineDioxideFactor(){
 		final double w = fractionOverTotal(water);
 		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
@@ -777,7 +777,7 @@ public final class Dough{
 	 *
 	 * @return	Correction factor.
 	 */
-	double atmosphericPressureFactor(final double atmosphericPressure){
+	private double atmosphericPressureFactor(final double atmosphericPressure){
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}

@@ -66,27 +66,19 @@ public enum BakingPanMaterial{
 	 * @return The thermal conductivity [W / (m * K)].
 	 */
 	public double thermalConductivity(final double temperature){
-		switch(this){
-			case CAST_IRON:
-				return 52.;
-			case ALUMINIUM:
-				return Helper.evaluatePolynomial(THERMAL_CONDUCTIVITY_COEFFICIENTS, temperature);
-			case STAINLESS_STEEL_304:
-				//14 - 17
-				return 14.4;
-			case STAINLESS_STEEL_316:
-				//13 - 17
-				return (13. + 17.) / 2.;
-			case CERAMIC:
-				//80 - 200
-				return (80. + 200.) / 2.;
-			case CLAY:
-				//0.15 - 1.8
-				return (0.15 + 1.8) / 2.;
-			case CORDIERITE_STONE:
-				return 3.;
-		}
-		return 0.;
+		return switch(this){
+			case CAST_IRON -> 52.;
+			case ALUMINIUM -> Helper.evaluatePolynomial(THERMAL_CONDUCTIVITY_COEFFICIENTS, temperature);
+			//14 - 17
+			case STAINLESS_STEEL_304 -> 14.4;
+			//13 - 17
+			case STAINLESS_STEEL_316 -> (13. + 17.) / 2.;
+			//80 - 200
+			case CERAMIC -> (80. + 200.) / 2.;
+			//0.15 - 1.8
+			case CLAY -> (0.15 + 1.8) / 2.;
+			case CORDIERITE_STONE -> 3.;
+		};
 	};
 
 }

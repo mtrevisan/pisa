@@ -28,7 +28,7 @@ package io.github.mtrevisan.pizza.bakingpans;
 public class CircularBakingPan extends BakingPanAbstract{
 
 	/** Baking pan diameter [cm]. */
-	double diameter;
+	private double diameter;
 
 
 	public static CircularBakingPan create(final double diameter, final BakingPanMaterial material, final double thickness){
