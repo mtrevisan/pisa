@@ -62,8 +62,8 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	//Stefan-Boltzmann constant [W / (m² · K⁴)]
 	private static final double SIGMA = 5.670374419e-8;
 
-	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS = {2500.9, -2.36719, 1.246e-4, -5.17e-6, -5.e-8, 1.45e-10, -2.7e-13};
-	private static final double[] WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS = {-16456273.5, 322865.7917, -2632.707957, 11.42226714, -0.02781080181, 3.6031127e-5, -1.94069959e-8};
+	private static final double[] WATER_EVAPORATION_LATENT_HEAT_LOW_COEFFICIENTS = {2500.9, -2.36719, 1.246e-4, -5.17e-6, -5.e-8, 1.45e-10, -2.7e-13};
+	private static final double[] WATER_EVAPORATION_LATENT_HEAT_HIGH_COEFFICIENTS = {-16456273.5, 322865.7917, -2632.707957, 11.42226714, -0.02781080181, 3.6031127e-5, -1.94069959e-8};
 
 	private static final double EMISSIVITY_NI_CR_WIRE = 0.87;
 	private static final double EMISSIVITY_FE_CR_AL_WIRE = 0.70;
@@ -245,7 +245,7 @@ h	convective-heat heat transfer coefficient
 ms_n-1	mass of steam from the previous node that condenses giving its heat to node n
 ms_n	mass of steam from node n that condenses giving its heat to next node
 ms_ret	mass of steam retained
-Hf	heat of vaporization
+Hf	heat of evaporation
 ρ	dough density
 cp	dough specific heat
 */
@@ -503,7 +503,7 @@ where hr is the heat transfer coefficient [W / (m² · K)]
 where K is the surface mass transfer coefficient [kg H₂O / (m² · s)]
 where Dm is the moisture diffusivity [m² / s]
 where ρ is the density [kg / m³]
-where Lv is the latent heat of vaporization [J / kg]
+where Lv is the latent heat of evaporation [J / kg]
 
 heat transfer at the interface between the dough and the tomato layer:
 Kd · dT/dx|x=5-6 - Kt · dT/dx|x=6-7 = dT6/dt · (ρ_d · cp_d · Δx5-6 + ρ_t · cp_t · Δx6-7) / 2
@@ -772,6 +772,8 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			- moistureDiffusivityTop * (getC(layer, y) - getC(layer + 1, y)) / layerThicknessTop));
 	}
 
+	//https://www.comsol.com/blogs/how-to-model-heat-and-moisture-transport-in-air-with-comsol/
+	//https://cran.r-project.org/web/packages/humidity/vignettes/humidity-measures.html
 	//dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
 	private void calculateBoundaryTopLayer(final int layer, final double[] y, final double[] dydt,
 			final double density, final double specificHeat, final double conductivity, final double layerThickness,
@@ -779,7 +781,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 		if(distanceHeaterTop > 0. || ovenType == OvenType.FORCED_CONVECTION){
 			final double layerTemperature = calculateInverseFourierTemperature(getTheta(layer, y));
 			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
-			final double vaporizationLatentHeatWater = calculateVaporizationLatentHeatWater(layerTemperature);
+			final double evaporationLatentHeatWater = calculateEvaporationLatentHeatWater(layerTemperature);
 
 			//surface mass transfer coefficient [kg H₂O / (m² · s)]
 			final double massTransferSurface = massTransferSurface(layerTemperature);
@@ -787,7 +789,7 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 				* (humidityRatioSurface - airRelativeHumidity) * layerThickness / (2. * moistureContentDough0);
 			final double thetaS = 1. / (heatTransferCoefficient + 2. * conductivity / layerThickness)
 				* (heatTransferCoefficient + 2. * conductivity * getTheta(layer, y) / layerThickness
-				- 2. * moistureDiffusivity * density * vaporizationLatentHeatWater * moistureContentDough0
+				- 2. * moistureDiffusivity * density * evaporationLatentHeatWater * moistureContentDough0
 				/ (layerThickness * (bakingTemperatureTop - ambientTemperature)) * (getC(layer, y) - moistureContentSurface));
 
 //			setTheta(layer, dydt, 4. / Math.pow(layerThickness, 2.)
@@ -829,12 +831,12 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 
 	/**
 	 * @param temperature	Temperature [°C].
-	 * @return	Vaporization latent heat of water, Lv [J / kg].
+	 * @return	Evaporation latent heat of water, Lv [J / kg].
 	 */
-	private double calculateVaporizationLatentHeatWater(final double temperature){
+	private double calculateEvaporationLatentHeatWater(final double temperature){
 		return 1000. * (temperature <= 260.?
-			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature):
-			Helper.evaluatePolynomial(WATER_VAPORIZATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
+			Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature):
+			Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
 	}
 
 	private double massTransferSurface(final double temperature){
