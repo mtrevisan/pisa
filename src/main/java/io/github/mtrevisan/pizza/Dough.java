@@ -852,4 +852,19 @@ public final class Dough{
 		return (correctForIngredients? flourWeight * flour.saltContent + fat * fatSaltContent: 0.);
 	}
 
+
+	/**
+	 * FIXME without any reference!!
+	 *
+	 * Physical data expressed on the strength of the gluten mesh.
+	 * <p>In theory it is the maximum time that a dough can "remain leavened".
+	 * <br />
+	 * This figure does not take into account other variables of the dough, such as hydration or the quality of the flour.</p>
+	 *
+	 * @return	Resilience.
+	 */
+	public Duration getMaxLeaveningDuration(){
+		return Duration.ofMinutes((long)((flour.strength - 157.8) * 60. / 11.11));
+	}
+
 }
