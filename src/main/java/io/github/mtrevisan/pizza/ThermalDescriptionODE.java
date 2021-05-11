@@ -762,8 +762,9 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double moistureDiffusivityTop,
 			final double densityBottom, final double specificHeatBottom, final double conductivityBottom, final double layerThicknessBottom,
 			final double moistureDiffusivityBottom){
-		setTheta(layer, dydt, 4. / (densityBottom * specificHeatBottom * layerThicknessBottom
-			+ densityTop * specificHeatTop * layerThicknessTop)
+		final double volumetricHeatCapacityBottom = densityBottom * specificHeatBottom;
+		final double volumetricHeatCapacityTop = densityTop * specificHeatTop;
+		setTheta(layer, dydt, 4. / (volumetricHeatCapacityBottom * layerThicknessBottom + volumetricHeatCapacityTop * layerThicknessTop)
 			* (conductivityBottom * (getTheta(layer - 1, y) - getTheta(layer, y)) / layerThicknessBottom
 			- conductivityTop * (getTheta(layer, y) - getTheta(layer + 1, y)) / layerThicknessTop));
 
@@ -807,15 +808,17 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double thetaTop = calculateFourierTemperature(bakingTemperatureTop);
 			final double radiationFactor = calculateRadiationFactor(EMISSIVITY_PIZZA, bakingPan.area(), viewFactor);
 			final double layerTheta = getTheta(layer, y);
+			final double volumetricHeatCapacity = density * specificHeat;
 			setTheta(layer, dydt, 2. * (
 					thermalDiffusivity * (theta - layerTheta) / layerThickness
 						+ (distanceHeaterTop > 0.? SIGMA * radiationFactor * (Math.pow(thetaTop, 4.) - Math.pow(layerTheta, 4.)): 0.)
 						+ heatTransferCoefficient * (theta - layerTheta)
-				) / (density * specificHeat * layerThickness)
+				) / (volumetricHeatCapacity * layerThickness)
 			);
 
 
-//			setTheta(layer, dydt, 4. / (density * specificHeat * layerThickness + densityAir * specificHeatAir * layerThicknessAirTop)
+//			final double volumetricHeatCapacityAir = densityAir * specificHeatAir;
+//			setTheta(layer, dydt, 4. / (volumetricHeatCapacity * layerThickness + volumetricHeatCapacityAir * layerThicknessAirTop)
 //				* (conductivity * (getTheta(layer - 1, y) - layerTheta) / layerThickness
 //				- conductivityAirTop * (layerTheta - getTheta(layer + 1, y)) / layerThicknessAirTop));
 //
@@ -857,11 +860,12 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
 			final double radiationFactor = calculateRadiationFactor(bakingPan.material.emissivity, bakingPan.area(), viewFactor);
 			final double layerTheta = getTheta(layer, y);
+			final double volumetricHeatCapacity = density * specificHeat;
 			setTheta(layer, dydt, 2. * (
 				thermalDiffusivity * (theta - layerTheta) / layerThickness
 					+ (distanceHeaterBottom > 0.? SIGMA * radiationFactor * (Math.pow(thetaBottom, 4.) - Math.pow(layerTheta, 4.)): 0.)
 					+ heatTransferCoefficient * (theta - layerTheta)
-				) / (density * specificHeat * layerThickness)
+				) / (volumetricHeatCapacity * layerThickness)
 			);
 
 			//at the bottom: dC/d𝜓|𝜓=0 = 0, where 𝜓 = x / L
