@@ -875,8 +875,11 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double thermalDiffusivityAir = calculateThermalDiffusivity(thermalConductivityAir, specificHeatAir, densityAir);
 
 			final double viewFactor = 0.87;
-			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureTop:
-				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
+			double temperature = ambientTemperature;
+			if(distanceHeaterTop > 0.)
+				temperature = bakingTemperatureTop;
+			else if(bakingTemperatureBottom > 0. && ovenType == OvenType.FORCED_CONVECTION)
+				temperature = (bakingTemperatureTop > 0.? (bakingTemperatureTop + bakingTemperatureBottom) / 2.: bakingTemperatureBottom);
 			final double theta = calculateFourierTemperature(temperature);
 			final double thetaTop = calculateFourierTemperature(bakingTemperatureTop);
 			final double radiationFactor = calculateRadiationFactor(EMISSIVITY_PIZZA, bakingPan.area(), viewFactor);
@@ -926,8 +929,11 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double density, final double specificHeat, final double conductivity, final double layerThickness){
 		if(distanceHeaterBottom > 0. || ovenType == OvenType.FORCED_CONVECTION){
 			final double viewFactor = 0.87;
-			final double temperature = (ovenType == OvenType.NATURAL_CONVECTION? bakingTemperatureBottom:
-				(bakingTemperatureTop + bakingTemperatureBottom) / 2.);
+			double temperature = ambientTemperature;
+			if(distanceHeaterBottom > 0.)
+				temperature = bakingTemperatureBottom;
+			else if(bakingTemperatureTop > 0. && ovenType == OvenType.FORCED_CONVECTION)
+				temperature = (bakingTemperatureBottom > 0.? (bakingTemperatureTop + bakingTemperatureBottom) / 2.: bakingTemperatureTop);
 			final double theta = calculateFourierTemperature(temperature);
 			final double thetaBottom = calculateFourierTemperature(bakingTemperatureBottom);
 			final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
