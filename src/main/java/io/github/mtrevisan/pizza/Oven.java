@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.services.TimeWatch;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
@@ -253,7 +254,11 @@ for(int t = 1; t <= 1700; t += (t == 1? 19: 40)){
 			//https://blog.thermoworks.com/bread/homemade-bread-temperature-is-key/
 			return ode.getMinimumFoodTemperature(y) - dbdt;
 		};
+
+		final TimeWatch watch = TimeWatch.start();
 		final double time = solverBakingTime.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_BAKING_TIME_MAX);
+		watch.stop();
+		System.out.println(watch.toStringMinuteSeconds());
 		return Duration.ofSeconds((long)time);
 	}
 
