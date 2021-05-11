@@ -48,7 +48,7 @@ public final class Oven{
 	/**
 	 * [s]
 	 *
-	 * @see #calculateBakingDuration(Dough, BakingInstruments, double, double, double, double)
+	 * @see #calculateBakingDuration(Dough, BakingInstruments, double, double, double, double, double)
 	 */
 	private static final double SOLVER_BAKING_TIME_MAX = 1800.;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
@@ -58,7 +58,7 @@ public final class Oven{
 
 
 	//accuracy is ±1 s
-	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.003, 1., 1.e-5, 1.e-5);
+	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.00001, 1., 1.e-5, 1.e-5);
 	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(0.1, 5);
 
 
@@ -155,13 +155,17 @@ public final class Oven{
 		final double seasoningMozzarella = totalBakingPansArea / 2.45;
 		//[g]
 		final double seasoningTomato = totalBakingPansArea / 4.15;
+		//FIXME [g]
+		final double seasoningOil = totalBakingPansArea / 513.5;
 
 		//[cm]
 		final double layerThicknessMozzarella = seasoningMozzarella / (densityMozzarella * totalBakingPansArea);
 		//[cm]
 		final double layerThicknessTomato = seasoningTomato / (densityTomato * totalBakingPansArea);
+		//[cm]
+		final double layerThicknessOil = seasoningOil / (densityFat * totalBakingPansArea);
 		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialLayerThicknessDough,
-			layerThicknessMozzarella, layerThicknessTomato, DESIRED_BAKED_DOUGH_TEMPERATURE);
+			layerThicknessOil, layerThicknessMozzarella, layerThicknessTomato, DESIRED_BAKED_DOUGH_TEMPERATURE);
 
 		return BakingInstructions.create()
 			.withBakingTemperature(bakingTemperature)
@@ -185,11 +189,12 @@ public final class Oven{
 	 * @return	Baking duration.
 	 */
 	private Duration calculateBakingDuration(final Dough dough, final BakingInstruments bakingInstruments, double layerThicknessDough,
-			double layerThicknessMozzarella, double layerThicknessTomato, final double desiredBakedDoughTemperature){
+			double layerThicknessOil, double layerThicknessMozzarella, double layerThicknessTomato, final double desiredBakedDoughTemperature){
 		layerThicknessMozzarella /= 100.;
 		layerThicknessTomato /= 100.;
+		layerThicknessOil /= 100.;
 		layerThicknessDough /= 100.;
-		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessDough,
+		final ThermalDescriptionODE ode = new ThermalDescriptionODE(layerThicknessMozzarella, layerThicknessTomato, layerThicknessOil, layerThicknessDough,
 			ovenType, bakingTemperatureTop, distanceHeaterTop, bakingTemperatureBottom, distanceHeaterBottom,
 			dough.ingredientsTemperature, dough.atmosphericPressure, dough.airRelativeHumidity, bakingInstruments.bakingPans[0]);
 
@@ -214,9 +219,10 @@ System.out.println(
 	//top
 	+ "\t" + df.format(y2[34])
 );
+int t_prev = 0;
+y2 = ode.getInitialState();
 for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
-	y2 = ode.getInitialState();
-	integrator.integrate(ode, 0., y2, t, y2);
+	integrator.integrate(ode, t_prev, y2, t, y2);
 	System.out.println(
 		//pan
 		df.format(y2[0])
@@ -235,6 +241,7 @@ for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
 			//top
 			+ "\t" + df.format(y2[34])
 	);
+	t_prev = t;
 }
 
 		final double dbdt = desiredBakedDoughTemperature;

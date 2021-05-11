@@ -66,7 +66,7 @@ class OvenTest{
 			.withDistanceHeaterTop(0.1175)
 			.withDistanceHeaterBottom(0.08);
 //		final Oven oven = Oven.create(OvenType.NATURAL_CONVECTION)
-//			.withDistanceHeaterTop(0.12);
+//			.withDistanceHeaterTop(0.1175);
 //		final Oven oven = Oven.create(OvenType.NATURAL_CONVECTION)
 //			.withDistanceHeaterBottom(0.08);
 		final BakingInstruments bakingInstruments = new BakingInstruments()
