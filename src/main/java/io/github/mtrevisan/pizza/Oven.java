@@ -58,7 +58,7 @@ public final class Oven{
 
 
 	//accuracy is ±1 s
-	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.00001, 1., 1.e-5, 1.e-5);
+	private final FirstOrderIntegrator integrator = new GraggBulirschStoerIntegrator(0.00005, 1., 1.e-5, 1.e-5);
 	private final BaseUnivariateSolver<UnivariateFunction> solverBakingTime = new BracketingNthOrderBrentSolver(0.1, 5);
 
 
@@ -221,7 +221,7 @@ System.out.println(
 );
 int t_prev = 0;
 y2 = ode.getInitialState();
-for(int t = 1; t <= 2500; t += (t == 1? 19: 40)){
+for(int t = 1; t <= 1700; t += (t == 1? 19: 40)){
 	integrator.integrate(ode, t_prev, y2, t, y2);
 	System.out.println(
 		//pan
