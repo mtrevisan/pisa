@@ -913,9 +913,9 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 	 * @return	Evaporation latent heat of water, Lv [J / kg].
 	 */
 	private double calculateEvaporationLatentHeatWater(final double temperature){
-		return 1000. * (temperature <= 260.?
-			Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature):
-			Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
+		return 1000. * (temperature <= 260.
+			? Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_LOW_COEFFICIENTS, temperature)
+			: Helper.evaluatePolynomial(WATER_EVAPORATION_LATENT_HEAT_HIGH_COEFFICIENTS, temperature));
 	}
 
 	private double massTransferSurface(final double temperature){
