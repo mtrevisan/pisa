@@ -343,9 +343,9 @@ class DoughTest{
 				CircularBakingPan.create(24., BakingPanMaterial.ALUMINIUM, 0.02)
 			);
 		final double bakingPansTotalArea = bakingInstruments.getBakingPansTotalArea();
-		final double sauceOil = bakingPansTotalArea / 146.8;
+		final double sauceOil = bakingPansTotalArea / 171.;
 		final double sauceTomato = bakingPansTotalArea / 4.47;
-		final double sauceMozzarella = bakingPansTotalArea / 2.85;
+		final double sauceMozzarella = bakingPansTotalArea / 2.93;
 		final double sauceOregano = bakingPansTotalArea / 1400.;
 		//FIXME
 		final double doughWeight = bakingPansTotalArea * 0.68;
@@ -371,9 +371,9 @@ class DoughTest{
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(20, 0), recipe.getSeasoningInstant());
 		Assertions.assertEquals(740., dough.getMaxLeaveningDuration().toMinutes(), 0.1);
-		Assertions.assertEquals(7., sauceOil, 1.);
+		Assertions.assertEquals(6., sauceOil, 1.);
 		Assertions.assertEquals(230., sauceTomato, 1.);
-		Assertions.assertEquals(360., sauceMozzarella, 1.);
+		Assertions.assertEquals(350., sauceMozzarella, 1.);
 		Assertions.assertEquals(0.73, sauceOregano, 0.01);
 	}
 
