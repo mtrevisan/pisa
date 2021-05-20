@@ -525,12 +525,13 @@ let
 then
 (1') dθ[m]/dτ = α · (θ[m-1] - 2 · θ[m] + θ[m+1]) / d𝜓²
 (2') dθ[m]/dτ = 2 · (k · (θ[m-1] - θ[m]) / d𝜓 + σ · ε · (T∞⁴ - θ[m]⁴) + h · (T∞ - θ[m])) / (ρ · Cp · d𝜓)
-(3') dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
+(3') dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / d𝜓A + kB · (θ[m+1] - θ[m]) / d𝜓B) / (ρA · CpA · d𝜓A + ρB · CpB · d𝜓B)
 
 The layers are:
 - air (convection + radiation top)
 - mozzarella
-- tomato
+- (tomato)
+- (oil)
 - dough
 - (baking parchment paper)
 - pan
@@ -822,11 +823,12 @@ dθ1/dt = 100 · α_d / (3 · Ld²) · (θB - 3 · θ1 + θ2)
 			final double moistureDiffusivity){
 		final double thermalDiffusivity = calculateThermalDiffusivity(conductivity, specificHeat, density);
 
+		final double tmp = 1. / Math.pow(layerThickness, 2.);
 		setTheta(layer, dydt, thermalDiffusivity
-			* (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)) / Math.pow(layerThickness, 2.));
+			* (getTheta(layer - 1, y) - 2. * getTheta(layer, y) + getTheta(layer + 1, y)) * tmp);
 
 		setC(layer, dydt, moistureDiffusivity
-			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)) / Math.pow(layerThickness, 2.));
+			* (getC(layer - 1, y) - 2. * getC(layer, y) + getC(layer + 1, y)) * tmp);
 	}
 
 	//dθ[m]/dτ = 4 · (kA · (θ[m-1] - θ[m]) / LA + kB · (θ[m+1] - θ[m]) / LB) / (ρA · CpA · LA + ρB · CpB · LB)
