@@ -473,8 +473,6 @@ class DoughTest{
 		Assertions.assertEquals(6.76, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(8.87, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
-		Assertions.assertEquals(406.6, doughWeight * bakingInstruments.bakingPans[0].area() / bakingPansTotalArea, 0.1);
-		Assertions.assertEquals(307.6, doughWeight * bakingInstruments.bakingPans[1].area() / bakingPansTotalArea, 0.1);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(13, 20), LocalTime.of(13, 50),
 			LocalTime.of(14, 20)}, recipe.getStretchAndFoldStartInstants());
@@ -485,7 +483,13 @@ class DoughTest{
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(20, 0), recipe.getSeasoningInstant());
 		Assertions.assertEquals(740., dough.getMaxLeaveningDuration().toMinutes(), 0.1);
-		Assertions.assertEquals(6., sauceOil, 1.);
+
+		final double percent1 = bakingInstruments.bakingPans[0].area() / bakingPansTotalArea;
+		final double percent2 = bakingInstruments.bakingPans[1].area() / bakingPansTotalArea;
+		Assertions.assertEquals(406.6, doughWeight * percent1, 0.1);
+		Assertions.assertEquals(307.6, doughWeight * percent2, 0.1);
+		Assertions.assertEquals(3.5, sauceOil * percent1, 0.1);
+		Assertions.assertEquals(2.6, sauceOil * percent2, 0.1);
 		Assertions.assertEquals(235., sauceTomato, 1.);
 		Assertions.assertEquals(350., sauceMozzarella, 1.);
 		Assertions.assertEquals(0.75, sauceOregano, 0.01);

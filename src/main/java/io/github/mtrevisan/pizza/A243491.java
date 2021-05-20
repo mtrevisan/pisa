@@ -603,6 +603,14 @@ public class A243491{
 			+ water * params[INDEX_WATER][index];
 	}
 
+	/**
+	 * http://www.mscampicchio.com/tecal_10.php
+	 * Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101
+	 * http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf
+	 *
+	 * @param temperature   temperature [°C].
+	 * @return	Cp [J / (kg · K)]
+	 */
 	private double specificHeat(final double temperature, final double[][] params, final int index){
 		final double protein = 2.0082 + (0.0012089 - 1.3129e-6 * temperature) * temperature;
 		final double fat = 1.9842 + (0.0014733 - 4.8008e-6 * temperature) * temperature;

@@ -5,45 +5,15 @@
 
 
 Sub IDYSeek()
-	  Dim params As LeaveningParameters
-	  params.fatDensity = cellvalue(data, params.fatType, "density")
-	  params.atmosphericPressure = Range("inputAtmosphericPressure").Value2
-	  params.bakingTemperature = Range("inputBakingTemperature").Value2
-	  params.targetArea = Range("inputArea").Value2
-	  params.targetHeight = Range("inputHeight").Value2
-
-		Dim inputFlourStrength As Integer: inputFlourStrength = Range("inputFlourStrength").Value2
-		Dim inputFlour1Strength As Integer: inputFlour1Strength = Range("inputFlour1Strength").Value2
-		Dim inputFlour2Strength As Integer: inputFlour2Strength = Range("inputFlour2Strength").Value2
-		Dim diffFlourFlour2 As Integer: diffFlourFlour2 = inputFlourStrength - inputFlour2Strength
-		Dim diffFlour1Flour2 As Integer: diffFlour1Flour2 = inputFlour1Strength - inputFlour2Strength
-		Dim diffFlour1Flour As Integer: diffFlour1Flour = inputFlour1Strength - inputFlourStrength
-		Dim hasFlour1 As Boolean: hasFlour1 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) > 0 _
-			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) >= 0)
-		Dim hasFlour2 As Boolean: hasFlour2 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) >= 0 _
-			 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) > 0)
-		Do
-			 yeastWeight = totalFlour * rawYeastFactor
-			 flourWeight = WorksheetFunction.Max(totalFlour - yeastWeight * (1 - rawYeastContent), 0)
-			 flourWeight1 = IIf(hasFlour1, flourWeight * diffFlourFlour2 / diffFlour1Flour2, 0)
-			 flourWeight2 = IIf(hasFlour2, flourWeight * diffFlour1Flour / diffFlour1Flour2, 0)
-			 sugarWeight = flourWeight * params.sugar / sugarInSugar
-
-			 ' refine approximation
-		Loop Until Abs(difference) < WEIGHT_PRECISION
+	Dim inputFlourStrength As Integer: inputFlourStrength = Range("inputFlourStrength").Value2
+	Dim inputFlour1Strength As Integer: inputFlour1Strength = Range("inputFlour1Strength").Value2
+	Dim inputFlour2Strength As Integer: inputFlour2Strength = Range("inputFlour2Strength").Value2
+	Dim diffFlourFlour2 As Integer: diffFlourFlour2 = inputFlourStrength - inputFlour2Strength
+	Dim diffFlour1Flour2 As Integer: diffFlour1Flour2 = inputFlour1Strength - inputFlour2Strength
+	Dim diffFlour1Flour As Integer: diffFlour1Flour = inputFlour1Strength - inputFlourStrength
+	Dim hasFlour1 As Boolean: hasFlour1 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) > 0 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) >= 0)
+	Dim hasFlour2 As Boolean: hasFlour2 = (Sgn(diffFlourFlour2) * Sgn(diffFlour1Flour2) >= 0 And Sgn(diffFlour1Flour) * Sgn(diffFlour1Flour2) > 0)
+	flourWeight = WorksheetFunction.Max(totalFlour - yeastWeight * (1 - rawYeastContent), 0)
+	flourWeight1 = IIf(hasFlour1, flourWeight * diffFlourFlour2 / diffFlour1Flour2, 0)
+	flourWeight2 = IIf(hasFlour2, flourWeight * diffFlour1Flour / diffFlour1Flour2, 0)
 End Sub
-
-
-' http://www.mscampicchio.com/tecal_10.php
-' Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101
-' http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf
-Private Function estimateSpecificHeat(protein As Double, fat As Double, carbohydrate As Double, fiber As Double, ash As Double, temperature As Double) As Double
-    Dim cp_protein As Double: cp_protein = 2.0082 + (1.2089 - 0.0013129 * temperature) * temperature
-    Dim cp_fat As Double: cp_fat = 1.9842 + (1.4733 - 0.0048008 * temperature) * temperature
-    Dim cp_carbohydrate As Double: cp_carbohydrate = 1.5488 + (1.9625 - 0.0059399 * temperature) * temperature
-    Dim cp_fiber As Double: cp_fiber = 1.8459 + (1.8306 - 0.0046509 * temperature) * temperature
-    Dim cp_ash As Double: cp_ash = 1.0926 + (1.8896 - 0.0036817 * temperature) * temperature
-
-    ' Cp [kJ/(kg * K)]
-    estimateSpecificHeat = (cp_protein * protein + cp_fat * fat + cp_carbohydrate * carbohydrate + cp_fiber * fiber + cp_ash * ash) / 100
-End Function
