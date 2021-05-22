@@ -576,7 +576,7 @@ public final class Dough{
 			previousStage = currentStage;
 		}
 
-		return volumeExpansionRatio * (1. - currentStage.volumeDecrease) - procedure.targetDoughVolumeExpansionRatio;
+		return volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
 	}
 
 	private double getHours(final Duration duration){

@@ -191,6 +191,7 @@ class DoughTest{
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
 	}
 
+
 	@Test
 	void pizza20210502() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
@@ -378,11 +379,12 @@ class DoughTest{
 	}
 
 	@Test
-	void paninUeta20210516() throws DoughException, YeastException, OvenException{
+	void paninUeta20210516() throws DoughException, YeastException{
+		final double waterInEgg = 0.58 * 0.74;
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
-			.addWater(0.5 - 0.58 * 0.74, 0.02, 0., 7.9, 237.)
+			.addWater(0.5 - waterInEgg, 0.02, 0., 7.9, 237.)
 			//water in 58 g of egg (74% water content)
-			.addWater(0.58 * 0.74, 0., 0., 7.9, 0.)
+			.addWater(waterInEgg, 0., 0., 7.9, 0.)
 			.addSugar(0.098, SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.0049)
 			.addFat(0.098, 0.81, 0., 0.)
@@ -420,6 +422,60 @@ class DoughTest{
 		Assertions.assertArrayEquals(new LocalTime[][]{
 				new LocalTime[]{LocalTime.of(12, 50), LocalTime.of(18, 50)},
 				new LocalTime[]{LocalTime.of(19, 0), LocalTime.of(20, 0)}
+			},
+			recipe.getStageStartEndInstants());
+		Assertions.assertEquals(LocalTime.of(20, 0), recipe.getSeasoningInstant());
+	}
+
+	@Test
+	void futurePaninUeta20210522() throws DoughException, YeastException{
+		//water in 58 g of egg (76.15% water content) [%]
+		final double waterInEgg = 58. * 0.7615 / 500.;
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
+			.addWater(0.5 - waterInEgg, 0.02, 0., 7.9, 237.)
+			.addWater(waterInEgg, 0., 0., 7.25, 0.)
+			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSalt(0.005)
+			.addFat(0.16, 0.81, 0., 0.)
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(260.))
+			.withIngredientsTemperature(21.4)
+			.withDoughTemperature(27.)
+			.withAtmosphericPressure(1015.6);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(3l))
+			.withAfterStageWork(Duration.ofMinutes(10l))
+			.withVolumeDecrease(0.8);
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l))
+			.withAfterStageWork(Duration.ofMinutes(10l))
+			.withVolumeDecrease(0.8);
+		final LeaveningStage stage3 = LeaveningStage.create(35., Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
+			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
+			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30l))
+			.withVolumeDecrease(0.05);
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2, stage3}, 1.8,
+			0,
+				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
+				LocalTime.of(20, 15))
+			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
+		final Recipe recipe = dough.createRecipe(procedure, 500. + 250. + 50. + 2.5 + 80. + 0.95);
+
+		Assertions.assertEquals(500., recipe.getFlour(), 1.);
+		Assertions.assertEquals(250., recipe.getWater(), 1.);
+		Assertions.assertEquals(41.2, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(50., recipe.getSugar(), 0.1);
+		Assertions.assertEquals(0.95, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(2.5, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(80., recipe.getFat(), 0.1);
+		Assertions.assertEquals(LocalTime.of(14, 55), recipe.getDoughMakingInstant());
+		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(15, 40), LocalTime.of(16, 10),
+			LocalTime.of(16, 40)}, recipe.getStretchAndFoldStartInstants());
+		Assertions.assertArrayEquals(new LocalTime[][]{
+				new LocalTime[]{LocalTime.of(15, 10), LocalTime.of(18, 10)},
+				new LocalTime[]{LocalTime.of(18, 20), LocalTime.of(19, 20)},
+				new LocalTime[]{LocalTime.of(19, 30), LocalTime.of(20, 0)}
 			},
 			recipe.getStageStartEndInstants());
 		Assertions.assertEquals(LocalTime.of(20, 0), recipe.getSeasoningInstant());
