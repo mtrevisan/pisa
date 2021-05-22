@@ -31,9 +31,6 @@ import java.time.Duration;
 
 public final class LeaveningStage{
 
-	//V_after = V_prior * (1 - VOLUME_DECREASE_CUT) [% v/v]
-	public static final double VOLUME_DECREASE_CUT_DEFAULT = 0.4187;
-
 	public static final LeaveningStage ZERO = new LeaveningStage();
 
 
@@ -42,9 +39,8 @@ public final class LeaveningStage{
 	/** Leavening duration [hrs]. */
 	final Duration duration;
 	/** Duration of work done after stage [hrs]. */
+	//TODO consider leavening for this time at ambient temperature
 	Duration afterStageWork;
-	/** Volume decrease after leavening stage [% v/v]. */
-	double volumeDecrease;
 
 
 	/**
@@ -84,26 +80,12 @@ public final class LeaveningStage{
 		return this;
 	}
 
-	/**
-	 * @param volumeDecrease	Volume decrease after leavening stage [% v/v].
-	 * @return	The instance.
-	 */
-	public LeaveningStage withVolumeDecrease(final double volumeDecrease) throws DoughException{
-		if(volumeDecrease <= 0. || volumeDecrease >= 1.)
-			throw DoughException.create("Volume decrease [% v/v] should be between 0 and 1");
-
-		this.volumeDecrease = volumeDecrease;
-
-		return this;
-	}
-
 	@Override
 	public String toString(){
 		return getClass().getSimpleName() + "{" + temperature + " °C for " + Helper.round(duration.toMinutes() / 60., 2)
 			+ " hrs"
 			+ (!afterStageWork.isZero()? ", after-stage work duration " + Helper.round(afterStageWork.toMinutes() / 60., 2)
 			+ " hrs": "")
-			+ (volumeDecrease > 0.? ", volume decrease " + Helper.round(volumeDecrease * 100., 1) + "%": "")
 			+ "}";
 	}
 

@@ -526,7 +526,7 @@ public final class Dough{
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		final double lambda = estimatedLag(yeast);
 
-		LeaveningStage currentStage = procedure.leaveningStages[0];
+		LeaveningStage currentStage;
 		LeaveningStage previousStage = LeaveningStage.ZERO;
 
 		double volumeExpansionRatio = 0.;
@@ -562,7 +562,7 @@ public final class Dough{
 					currentStage.temperature, ingredientsFactors[i]);
 
 				//account for stage volume decrease
-				volumeExpansionRatio += previousVolume * (1. - previousStage.volumeDecrease) - currentVolume;
+				volumeExpansionRatio += previousVolume - currentVolume;
 			}
 			else if(i == 0){
 				final double currentVolume = yeastModel.volumeExpansionRatio(getHours(duration.plus(currentStage.duration)),
