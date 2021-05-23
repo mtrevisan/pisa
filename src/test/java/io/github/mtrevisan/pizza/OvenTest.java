@@ -52,12 +52,9 @@ class OvenTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6))
 			.withAfterStageWork(Duration.ofMinutes(10));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30));
 		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 				Duration.ofMinutes(10), Duration.ofMinutes(15), LocalTime.of(20, 0))
@@ -109,12 +106,9 @@ class OvenTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6))
 			.withAfterStageWork(Duration.ofMinutes(10));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30));
 		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), Duration.ofMinutes(15), LocalTime.of(20, 0))
@@ -164,12 +158,9 @@ class OvenTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6))
 			.withAfterStageWork(Duration.ofMinutes(10));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30));
 		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), Duration.ofMinutes(15), LocalTime.of(20, 0))
@@ -219,12 +210,9 @@ class OvenTest{
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6))
 			.withAfterStageWork(Duration.ofMinutes(10));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1));
-		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
-		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30))
-			.withVolumeDecrease(0.05);
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30));
 		final StretchAndFoldStage[] stretchAndFoldStages = {safStage1, safStage2, safStage3};
 		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8, 0,
 			Duration.ofMinutes(10), Duration.ofMinutes(15), LocalTime.of(20, 0))

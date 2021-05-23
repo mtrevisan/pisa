@@ -52,7 +52,7 @@ public class SaccharomycesCerevisiaeTEMOHAYA_MI26Yeast extends YeastModelAbstrac
 	}
 
 	@Override
-	final double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
 		//± 0.006 °C
 		return 0.377;

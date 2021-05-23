@@ -48,7 +48,7 @@ public class LactobacillusPontisN131Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificVolumeGrowthRate(){
 		//± 0.01 hrs^-1
 		return 0.45;
 	}

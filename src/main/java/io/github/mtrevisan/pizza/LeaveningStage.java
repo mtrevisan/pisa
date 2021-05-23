@@ -82,11 +82,11 @@ public final class LeaveningStage{
 
 	@Override
 	public String toString(){
-		return getClass().getSimpleName() + "{" + temperature + " °C for " + Helper.round(duration.toMinutes() / 60., 2)
+		return getClass().getSimpleName() + "[" + temperature + " °C for " + Helper.round(duration.toMinutes() / 60., 2)
 			+ " hrs"
 			+ (!afterStageWork.isZero()? ", after-stage work duration " + Helper.round(afterStageWork.toMinutes() / 60., 2)
 			+ " hrs": "")
-			+ "}";
+			+ "]";
 	}
 
 }

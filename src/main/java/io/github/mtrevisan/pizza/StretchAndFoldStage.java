@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.utils.Helper;
-
 import java.time.Duration;
 
 
@@ -37,8 +35,6 @@ public final class StretchAndFoldStage{
 
 	/** Interval at which to apply stretch & fold [hrs]. */
 	final Duration lapse;
-	/** Volume decrease after stretch & fold phase [% v/v]. */
-	double volumeDecrease;
 
 
 	/**
@@ -51,26 +47,11 @@ public final class StretchAndFoldStage{
 
 	private StretchAndFoldStage(final Duration lapse){
 		this.lapse = lapse;
-		volumeDecrease = VOLUME_DECREASE_DEFAULT;
-	}
-
-	/**
-	 * @param volumeDecrease	Volume decrease after stretch & fold phase [% v/v].
-	 * @return	The instance.
-	 */
-	public StretchAndFoldStage withVolumeDecrease(final double volumeDecrease) throws DoughException{
-		if(volumeDecrease <= 0. || volumeDecrease >= 1.)
-			throw DoughException.create("Volume decrease [% v/v] should be between 0 and 1");
-
-		this.volumeDecrease = volumeDecrease;
-
-		return this;
 	}
 
 	@Override
 	public String toString(){
-		return getClass().getSimpleName() + "{lapse: " + lapse + " hrs, reduction: "
-			+ Helper.round(volumeDecrease * 100., 2) + "%}";
+		return getClass().getSimpleName() + "[lapse: " + lapse + " hrs]";
 	}
 
 }

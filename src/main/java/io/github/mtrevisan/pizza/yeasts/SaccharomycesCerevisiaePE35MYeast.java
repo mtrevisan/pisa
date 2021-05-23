@@ -52,7 +52,7 @@ public class SaccharomycesCerevisiaePE35MYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
 		//± 0.008 °C
 		return 0.375;

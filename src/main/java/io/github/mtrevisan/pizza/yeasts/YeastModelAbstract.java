@@ -36,8 +36,8 @@ public abstract class YeastModelAbstract{
 	//Temperature above which no growth occurs [°C]
 	public abstract double getTemperatureMax();
 
-	//Maximum specific growth rate [hrs^-1]
-	abstract double getMaximumSpecificGrowthRate();
+	//Maximum specific volume growth rate [hrs^-1]
+	abstract double getMaximumSpecificVolumeGrowthRate();
 
 
 	/**
@@ -59,7 +59,7 @@ public abstract class YeastModelAbstract{
 		final double tOpt = getTemperatureOpt();
 		final double d = (temperature - tMax) * Math.pow(temperature - tMin, 2.);
 		final double e = (tOpt - tMin) * ((tOpt - tMin) * (temperature - tOpt) - (tOpt - tMax) * (tOpt + tMin - 2. * temperature));
-		return getMaximumSpecificGrowthRate() * (d / e);
+		return getMaximumSpecificVolumeGrowthRate() * (d / e);
 	}
 
 	/**
@@ -84,8 +84,8 @@ public abstract class YeastModelAbstract{
 
 	@Override
 	public final String toString(){
-		return getClass().getSimpleName() + "{T(" + getTemperatureMin() + ", " + getTemperatureOpt() + ", " + getTemperatureMax()
-			+ "), μ: " + getMaximumSpecificGrowthRate() + "}";
+		return getClass().getSimpleName() + "[T(" + getTemperatureMin() + ", " + getTemperatureOpt() + ", " + getTemperatureMax()
+			+ "), μ: " + getMaximumSpecificVolumeGrowthRate() + "]";
 	}
 
 }

@@ -125,6 +125,11 @@ public final class Dough{
 	public static final double PURE_WATER_PH = 5.4;
 
 	/**
+	 * NOTE: for a concentration of 0.5 g/ml, with a IDY density of 1/1.74 g/ml
+	 */
+	private static final double PH_MAX = 9.;
+
+	/**
 	 * @see #atmosphericPressureFactor(double)
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
@@ -518,7 +523,7 @@ public final class Dough{
 	private double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
 		for(int i = 0; i < procedure.leaveningStages.length; i ++){
-			ingredientsFactors[i] = ingredientsFactor(procedure.leaveningStages[i].temperature, atmosphericPressure);
+			ingredientsFactors[i] = ingredientsFactor(yeast, procedure.leaveningStages[i].temperature, atmosphericPressure);
 			if(ingredientsFactors[i] == 0.)
 				return Double.POSITIVE_INFINITY;
 		}
@@ -532,27 +537,8 @@ public final class Dough{
 		double volumeExpansionRatio = 0.;
 		Duration duration = previousStage.duration;
 
-		int stretchAndFoldIndex = 0;
-		Duration stretchAndFoldDuration = Duration.ZERO;
-
 		for(int i = 0; i < procedure.leaveningStages.length && i <= procedure.targetVolumeExpansionRatioAtLeaveningStage; i ++){
 			currentStage = procedure.leaveningStages[i];
-
-			//apply stretch&fold volume reduction:
-			double stretchAndFoldVolumeDecrease = 0.;
-			while(procedure.stretchAndFoldStages != null && stretchAndFoldIndex < procedure.stretchAndFoldStages.length){
-				final StretchAndFoldStage stretchAndFoldStage = procedure.stretchAndFoldStages[stretchAndFoldIndex];
-				if(stretchAndFoldDuration.plus(stretchAndFoldStage.lapse).compareTo(duration.plus(currentStage.duration)) > 0)
-					break;
-
-				stretchAndFoldIndex ++;
-				stretchAndFoldDuration = stretchAndFoldDuration.plus(stretchAndFoldStage.lapse);
-				final double volumeAtStretchAndFold = yeastModel.volumeExpansionRatio(getHours(duration.minus(previousStage.duration)
-					.plus(stretchAndFoldDuration)), lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
-				stretchAndFoldVolumeDecrease += (volumeAtStretchAndFold - stretchAndFoldVolumeDecrease) * stretchAndFoldStage.volumeDecrease;
-			}
-			volumeExpansionRatio -= stretchAndFoldVolumeDecrease;
-
 
 			//avoid modifying `lambda` if the temperature is the same
 			if(i > 0 && previousStage.temperature != currentStage.temperature){
@@ -640,13 +626,13 @@ public final class Dough{
 	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
-	private double ingredientsFactor(final double temperature, final double atmosphericPressure){
+	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
 		final double kSugar = sugarFactor(temperature);
 		final double kFat = fatFactor();
 		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
 		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
-		final double kWaterPH = waterPHFactor(temperature);
+		final double kWaterPH = waterPHFactor(yeast, temperature);
 		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
@@ -719,7 +705,9 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	private double waterFactor(){
-		return (HYDRATION_MIN <= water && water < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, water): 0.);
+		return 1.;
+		//FIXME this should be accounted for in the oven!
+//		return (HYDRATION_MIN <= water && water < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, water): 0.);
 	}
 
 	/**
@@ -738,28 +726,35 @@ public final class Dough{
 	 * @see <a href="https://oatao.univ-toulouse.fr/1556/1/Serra_1556.pdf">Serra, Strehaiano, Taillandier. Influence of temperature and pH on Saccharomyces bayanus var. uvarum growth; impact of a wine yeast interspecifichy bridization on these parameters. 2005.</a>
 	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
+	 * @param yeast	yeast [g]
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	private double waterPHFactor(final double temperature){
+	private double waterPHFactor(final double yeast, final double temperature){
+		//TODO
+//		if(yeast > 0. && waterPH >= yeast * rawYeast * PH_MAX * 2.)
+//			return 0.;
+
+		return 1.;
+
 		/**
 		 * base is pH 5.4±0.1, 20 mg/l glucose
 		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
 		 */
-		final double basePH = 5.4;
-		final double baseSugar = 20. / 1000.;
-		final double baseMu = (0.22
-			+ (0.42625 + (-0.301 + 0.052 * basePH) * basePH)
-			+ (-0.026125 + 0.0095 * basePH) * temperature
-			+ (0.00011 - 0.00004 * basePH) * baseSugar
-		) / 9.;
-
-		final double s = fractionOverTotal(sugar);
-		return Math.max((0.22
-			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
-				+ (-0.026125 + 0.0095 * waterPH) * temperature
-				+ (0.00011 - 0.00004 * waterPH) * s
-		) / (9. * baseMu), 0.);
+//		final double basePH = 5.4;
+//		final double baseSugar = 20. / 1000.;
+//		final double baseMu = (0.22
+//			+ (0.42625 + (-0.301 + 0.052 * basePH) * basePH)
+//			+ (-0.026125 + 0.0095 * basePH) * temperature
+//			+ (0.00011 - 0.00004 * basePH) * baseSugar
+//		) / 9.;
+//
+//		final double s = fractionOverTotal(sugar);
+//		return Math.max((0.22
+//			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
+//				+ (-0.026125 + 0.0095 * waterPH) * temperature
+//				+ (0.00011 - 0.00004 * waterPH) * s
+//		) / (9. * baseMu), 0.);
 	}
 
 	/**

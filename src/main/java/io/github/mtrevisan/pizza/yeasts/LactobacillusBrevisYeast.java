@@ -48,7 +48,7 @@ public class LactobacillusBrevisYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getMaximumSpecificGrowthRate(){
+	final double getMaximumSpecificVolumeGrowthRate(){
 		//± 0.2 hrs^-1
 		return 1.8;
 	}
