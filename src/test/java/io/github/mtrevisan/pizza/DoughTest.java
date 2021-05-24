@@ -93,7 +93,7 @@ class DoughTest{
 		final double yeast2 = dough.yeast;
 
 		Assertions.assertEquals(0.025_01, yeast1, 0.000_01);
-		Assertions.assertEquals(yeast2, yeast1, 0.000_01);
+		Assertions.assertEquals(yeast2, yeast1, 0.000_001);
 	}
 
 	@Test
@@ -394,7 +394,7 @@ class DoughTest{
 		Assertions.assertEquals(255., recipe.getWater(), 0.1);
 		Assertions.assertEquals(43.1, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(49.98, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.80, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(0.81, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(2.5, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(49.98, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
@@ -547,7 +547,7 @@ class DoughTest{
 		Assertions.assertEquals(274.5, recipe.getWater(), 0.1);
 		Assertions.assertEquals(36.3, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(1.27, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.66, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(0.67, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(6.76, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(8.87, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);

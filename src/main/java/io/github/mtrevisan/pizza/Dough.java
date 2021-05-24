@@ -148,7 +148,7 @@ public final class Dough{
 	 *
 	 * @see #calculateYeast(Procedure)
 	 */
-	private static final double SOLVER_YEAST_MAX = 1.;
+	private static final double SOLVER_YEAST_MAX = 0.2;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
 
 	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
@@ -504,6 +504,9 @@ public final class Dough{
 	 */
 	@SuppressWarnings("ThrowInsideCatchBlockWhichIgnoresCaughtException")
 	void calculateYeast(final Procedure procedure) throws YeastException{
+		//reset variable
+		yeast = 0.;
+
 		try{
 			final UnivariateFunction f = yeast -> calculateVolumeExpansionRatioDifference(yeast, procedure);
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
@@ -629,7 +632,7 @@ public final class Dough{
 		final double kSalt = saltFactor();
 		final double kWater = waterFactor();
 		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
-		final double kWaterPH = waterPHFactor(yeast, temperature);
+		final double kWaterPH = waterPHFactor(yeast);
 		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
@@ -724,54 +727,66 @@ public final class Dough{
 	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
 	 * Hardness
-	 * Various minerals can be found in water. Two of them—calcium and magnesium—play a major role in water hardness and also in dough-making. The type and amount of these minerals varies with the locale.
-	 * Medium-hard water—that is, water with 50 to 100 ppm (parts per million) of carbonates—is the best for baking. It contains the right amount of mineral salts—mostly of calcium and magnesium—which strengthen gluten and also, to some extent, serve as yeast nutrients.
-	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2 percent. It can also help to increase the salt portion up to 2.5 percent of flour weight. On the baked pizza, the soft water tends to produce a crust texture and color that’s less than optimum.
-	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or malted flour might help.
-	 * Water from a city source usually has a proper degree of hardness for good dough development. However, a pizzeria in a small town or one that draws ground water might have excessively hard water.
+	 * Various minerals can be found in water. Two of them—calcium and magnesium—play a major role in water hardness and also in
+	 * dough-making. The type and amount of these minerals varies with the locale.
+	 * Medium-hard water—that is, water with 50 to 100 ppm (parts per million) of carbonates—is the best for baking. It contains the right
+	 * amount of mineral salts—mostly of calcium and magnesium—which strengthen gluten and also, to some extent, serve as yeast nutrients.
+	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s
+	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2 percent. It can also help
+	 * to increase the salt portion up to 2.5 percent of flour weight. On the baked pizza, the soft water tends to produce a crust texture
+	 * and color that’s less than optimum.
+	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or
+	 * rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or
+	 * malted flour might help.
+	 * Water from a city source usually has a proper degree of hardness for good dough development. However, a pizzeria in a small town or
+	 * one that draws ground water might have excessively hard water.
 	 *
 	 * pH
-	 * To measure acidity and alkalinity, science created the pH scale (pronounced pee-AYCH). It describes the acidity or alkalinity of a solution, including foods, in terms of a number called a pH value, which ranges from 0 (zero) to 14.
-	 * A neutral substance (neither acidic nor alkaline) has a pH value of 7.0. Acidic substances have pH’s below seven, with acidity increasing as pH approaches zero. Alkaline substances have pH’s above seven, with alkalinity increasing as pH approaches fourteen.
-	 * Examples of acidic foods are milk (pH6.5), tomato juice (pH4), apple juice (pH3), and lemon juice (pH2). Examples of alkaline foods are ripe olives (pH7.5), soda crackers (pH8), and baking soda (pH8). Soap has a pH of ten. Acidic foods tend to taste sour; alkaline foods tend to taste bitter.
-	 * Pure or distilled water has a pH of 7.0. However, with the addition of minerals and other substances, it becomes either acidic or alkaline.
-	 * pH is important in dough-making because it affects chemical and biological reactions. Most notably, it affects the rate of amylase enzyme performance (conversion of starch to sugar) and, as a result, the rate of fermentation. The optimum pH for starch conversion and fermentation and, hence, for pizza dough, is about five, or slightly acidic. This pH level is best achieved by using water with pH6.5 to 8.0, with pH7.0 being the optimum.
+	 * pH is important in dough-making because it affects chemical and biological reactions. Most notably, it affects the rate of amylase
+	 * enzyme performance (conversion of starch to sugar) and, as a result, the rate of fermentation. The optimum pH for starch conversion
+	 * and fermentation and, hence, for pizza dough, is about 5, or slightly acidic. This pH level is best achieved by using water with
+	 * pH 6.5 to 8, with pH 7 being the optimum.
 	 *
 	 * http://ache.org.rs/CICEQ/2010/No2/12_3141_2009.pdf
 	 * https://www.scielo.br/pdf/bjm/v39n2/a24.pdf
+	 * https://core.ac.uk/download/pdf/12040042.pdf
 	 *
 	 * @param yeast	yeast [% w/w]
-	 * @param temperature    Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	private double waterPHFactor(final double yeast, final double temperature){
-//		final double compositePH = waterPH * fractionOverTotal(water)
+	private double waterPHFactor(final double yeast){
+		//TODO
+//		final double totalFraction = totalFraction();
+//		final double compositePH = (
+//			waterPH * water
 //			//flour
-//			+ 6.2 * fractionOverTotal(1.)
-//			+ 5.5 * fractionOverTotal(sugar)
-//			+ 3.3 * fractionOverTotal(yeast);
-//		return Math.max(compositePH <= 5.6? -0.5126 + 0.2701 * compositePH: 2.64171 - 0.2941 * compositePH, 0.);
+//			+ 6.2 * 1.
+//			+ 5.5 * sugar
+//			+ 3.3 * yeast) / totalFraction;
+//		return Math.max(compositePH <= 5.6? compositePH / 5.6: 1. - (compositePH - 5.6) / 3.4, 0.);
 
-//		/**
-//		 * base is pH 5.4±0.1, 20 mg/l glucose
-//		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
-//		 */
-//		final double basePH = 5.4;
-//		final double baseSugar = 20. / 1000.;
-//		final double baseMu = (0.22
-//			+ (0.42625 + (-0.301 + 0.052 * basePH) * basePH)
-//			+ (-0.026125 + 0.0095 * basePH) * temperature
-//			+ (0.00011 - 0.00004 * basePH) * baseSugar
-//		) / 9.;
-//
-//		final double s = fractionOverTotal(sugar);
-//		return Math.max((0.22
-//			+ (0.42625 + (-0.301 + 0.052 * waterPH) * waterPH)
-//			+ (-0.026125 + 0.0095 * waterPH) * temperature
-//			+ (0.00011 - 0.00004 * waterPH) * s
-//		) / (9. * baseMu), 0.);
+		/**
+		 * base is pH 5.4±0.1, 20 mg/l glucose
+		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
+		 */
+//		final double baseMu = getPHMu(temperature, 5.4, 20. / 1000.);
+
+//		return Math.max(getPHMu(temperature, compositePH, sugar / totalFraction) / baseMu, 0.);
 
 		return 1.;
+	}
+
+	private double getPHMu(final double temperature, final double ph, final double sugar){
+		final double t = (temperature - 18.) / (30. - 18.);
+		final double s = (sugar - 150.) / (250. - 150.);
+		final double p = (ph - 2.75) / (4.25 - 2.75);
+		return 0.22
+			+ (0.108 - 0.014 * t) * t
+			+ (0.025 + 0.013 * p) * p
+			+ (-0.040 + 0.032 * s) * s
+			+ 0.019 * t * p
+			+ 0.010 * t * s
+			- 0.001 * p * s;
 	}
 
 	/**
