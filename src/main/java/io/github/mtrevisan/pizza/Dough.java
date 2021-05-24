@@ -641,7 +641,6 @@ public final class Dough{
 
 	/**
 	 * @see <a href="https://uwaterloo.ca/chem13-news-magazine/april-2015/activities/fermentation-sugars-using-yeast-discovery-experiment">The fermentation of sugars using yeast: A discovery experiment</a>
-	 * @see <a href="https://www.bib.irb.hr/389483/download/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlic, Querol, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzevii and their interspecific hybrid. 2009.</a>
 	 * @see <a href="http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555">Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology</a>
 	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
@@ -649,22 +648,25 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	private double sugarFactor(final double temperature){
-		/**
-		 * base is pH 5.4±0.1, 20 mg/l glucose
-		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
-		 */
-		final double basePH = 5.4;
-		final double baseSugar = 20. / 1000.;
-		final double baseMu = (0.3945 + (-0.00407 + 0.0000096 * baseSugar) * baseSugar
-			+ (-0.00375 + 0.000025 * baseSugar) * temperature
-			+ (0.003 - 0.00002 * baseSugar) * basePH
-			) / 3.;
+		//TODO
+		return 1.;
 
-		final double s = fractionOverTotal(sugar);
-		return (0.3945 + (-0.00407 + 0.0000096 * s) * s
-			+ (-0.00375 + 0.000025 * s) * temperature
-			+ (0.003 - 0.00002 * s) * waterPH
-		) / (3. * baseMu);
+//		/**
+//		 * base is pH 5.4±0.1, 20 mg/l glucose
+//		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
+//		 */
+//		final double basePH = 5.4;
+//		final double baseSugar = 20. / 1000.;
+//		final double baseMu = (0.3945 + (-0.00407 + 0.0000096 * baseSugar) * baseSugar
+//			+ (-0.00375 + 0.000025 * baseSugar) * temperature
+//			+ (0.003 - 0.00002 * baseSugar) * basePH
+//			) / 3.;
+//
+//		final double s = fractionOverTotal(sugar);
+//		return (0.3945 + (-0.00407 + 0.0000096 * s) * s
+//			+ (-0.00375 + 0.000025 * s) * temperature
+//			+ (0.003 - 0.00002 * s) * waterPH
+//		) / (3. * baseMu);
 	}
 
 	/**
