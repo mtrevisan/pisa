@@ -28,15 +28,18 @@ package io.github.mtrevisan.pizza;
 /**
  * Factor as ratio of specific growth rate w.r.t. glucose for aerobic cultures.
  *
- * @see <a href="https://hal.insa-toulouse.fr/hal-02559361/file/b_b_vanDijken2000.pdf">van Dijken, Bauer, Brambilla, Duboc, Francois, Gancedo, Giuseppin, Heijen, Hoare, Lange. An interlaboratory comparison of physiological and genetic properties of four Saccharomyces cerevisiae strains. 2000.</a>
- * @see <a href="https://hal.insa-toulouse.fr/hal-02559361/file/b_b_vanDijken2000.pdf">Marques, Raghavendran, Stambuk, Gombert. Sucrose andSaccharomyces cerevisiae: a relationshipmost sweet. 2016.</a>
+ * @see <a href="https://academic.oup.com/femsyr/article/16/1/fov107/2467713">van Dijken, Bauer, Brambilla, Duboc, Francois, Gancedo, Giuseppin, Heijen, Hoare, Lange. An interlaboratory comparison of physiological and genetic properties of four Saccharomyces cerevisiae strains. 2000.</a>
+ * @see <a href="https://hal.insa-toulouse.fr/hal-02559361/file/b_b_vanDijken2000.pdf">Marques, Raghavendran, Stambuk, Gombert. Sucrose and Saccharomyces cerevisiae: a relationship most sweet. 2016.</a>
  */
 public enum SugarType{
 	@SuppressWarnings("PointlessArithmeticExpression")
 	GLUCOSE(0.41 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.),
-	SUCROSE(0.38 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
+	//maltose is a disaccharide, formed by glucose and glucose
 	MALTOSE(0.40 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
-	GALACTOSE(0.28 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.);
+	//sucrose is a disaccharide, formed by glucose and fructose
+	SUCROSE(0.38 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
+	//lactose is a disaccharide, formed by glucose and galactose
+	LACTOSE(0.28 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.);
 
 
 	/** Equivalent quantity in glucose to obtain the same maximum volume expansion ratio. */
