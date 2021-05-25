@@ -126,13 +126,11 @@ public final class Oven{
 		bakingInstruments.validate();
 
 		//FIXME
-		final double densityFat = 0.9175;
-		//FIXME
 		final double densityTomato = 1.06;
 		//FIXME
 		final double densityMozzarella = 1.029;
 
-		final double densityDough = recipe.density(densityFat, dough.ingredientsTemperature, dough.atmosphericPressure);
+		final double densityDough = recipe.density(dough.fatDensity, dough.ingredientsTemperature, dough.atmosphericPressure);
 		final double totalBakingPansArea = bakingInstruments.getBakingPansTotalArea();
 		//[cm]
 		final double initialLayerThicknessDough = recipe.doughWeight() / (densityDough * totalBakingPansArea);
@@ -164,7 +162,7 @@ public final class Oven{
 		//[cm]
 		final double layerThicknessTomato = seasoningTomato / (densityTomato * totalBakingPansArea);
 		//[cm]
-		final double layerThicknessOil = seasoningOil / (densityFat * totalBakingPansArea);
+		final double layerThicknessOil = seasoningOil / (dough.fatDensity * totalBakingPansArea);
 		final Duration bakingDuration = calculateBakingDuration(dough, bakingInstruments, initialLayerThicknessDough,
 			layerThicknessOil, layerThicknessMozzarella, layerThicknessTomato, DESIRED_BAKED_DOUGH_TEMPERATURE);
 

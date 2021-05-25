@@ -83,7 +83,7 @@ public final class Dough{
 	/**
 	 * (should be 2.04 mol/l = 2.04 · MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
 	 *
-	 * @see #saltFactor()
+	 * @see #saltFactor(double)
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
 	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10.;
@@ -178,6 +178,8 @@ public final class Dough{
 	private double fat;
 	/** Raw fat content [% w/w]. */
 	private double rawFat = 1.;
+	/** Fat density [g / ml]. */
+	double fatDensity;
 	/** Water content in fat [% w/w]. */
 	private double fatWaterContent;
 	/** Salt content in fat [% w/w]. */
@@ -267,17 +269,20 @@ public final class Dough{
 
 	/**
 	 * @param fat	Fat quantity w.r.t. flour [% w/w].
+	 * @param density	Fat density [g / ml].
 	 * @param fatContent	Sucrose content [% w/w].
 	 * @param waterContent	Water content [% w/w].
 	 * @param saltContent	Salt content [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
 	 */
-	public Dough addFat(final double fat, final double fatContent, final double waterContent, final double saltContent)
-			throws DoughException{
-		rawFat = (this.fat * rawFat + fat * fatContent) / (this.fat + fat);
-		fatWaterContent = (this.fat * fatWaterContent + fat * waterContent) / (this.fat + fat);
-		fatSaltContent = (this.fat * fatSaltContent + fat * saltContent) / (this.fat + fat);
+	public Dough addFat(final double fat, final double fatContent, final double density, final double waterContent,
+			final double saltContent) throws DoughException{
+		final double factor = 1. / (this.fat + fat);
+		rawFat = (this.fat * rawFat + fat * fatContent) * factor;
+		fatDensity = (this.fat * fatDensity + fat * density) * factor;
+		fatWaterContent = (this.fat * fatWaterContent + fat * waterContent) * factor;
+		fatSaltContent = (this.fat * fatSaltContent + fat * saltContent) * factor;
 
 		this.fat += fat * fatContent;
 		addWater(fat * waterContent, 0., 0., PURE_WATER_PH, 0.);
@@ -446,9 +451,9 @@ public final class Dough{
 		if(fractionOverTotal(salt) > SALT_MAX)
 			throw DoughException.create("Salt [% w/w] must be less than {}%", Helper.round(SALT_MAX * 100., 1));
 
-		//convert [% w/w] to [mol/l]
+		//convert [% w/w] to [mol / l]
 		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
-		//convert [% w/w] to [mol/l]
+		//convert [% w/w] to [mol / l]
 		final double sodiumChloride = fractionOverTotal(salt * 10.) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
 		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221)))
 				* (glucose / (0.0066 + 0.7096 * glucose))) || glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
@@ -590,8 +595,9 @@ public final class Dough{
 	 * @return	The estimated lag [hrs].
 	 */
 	private double estimatedLag(final double yeast){
-		//transform [% w/w] to [g/l]
-		final double s = fractionOverTotal(salt * 10.);
+		final double yeastRatio = getYeastRatio(yeast);
+		//transform [% w/w] to [g / l]
+		final double s = fractionOverTotal(salt) * 10. / yeastRatio;
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
 
 		//FIXME this formula is for 36±1 °C
@@ -627,16 +633,17 @@ public final class Dough{
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
-		final double kSugar = sugarFactor(temperature);
-		final double kFat = fatFactor();
-		final double kSalt = saltFactor();
-		final double kWater = waterFactor();
-		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
-		final double kWaterPH = waterPHFactor(yeast);
-		final double kWaterFixedResidue = waterFixedResidueFactor();
-		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
+//		final double kSugar = sugarFactor(temperature);
+//		final double kFat = fatFactor();
+		final double kSalt = saltFactor(yeast);
+//		final double kWater = waterFactor();
+//		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
+//		final double kWaterPH = waterPHFactor(yeast);
+//		final double kWaterFixedResidue = waterFixedResidueFactor();
+//		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
+//		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
+		return kSalt * kAtmosphericPressure;
 	}
 
 	/**
@@ -682,21 +689,42 @@ public final class Dough{
 	}
 
 	/**
+	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 * @see <a href="https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf">Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64.</a>
 	 * @see <a href="https://aem.asm.org/content/aem/43/4/757.full.pdf">Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
-	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
-	 * @see <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/jsfa.4575">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
+	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
+	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double saltFactor(){
-		final double s = fractionOverTotal(salt);
-		final double x = 11.7362 * s;
-		final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
-		final double b = s / (87.5679 - 0.2725 * s);
-		return Math.exp(a * b);
+	private double saltFactor(final double yeast){
+		double factor = 1.;
+		if(salt > 0.){
+			final double yeastRatio = getYeastRatio(yeast);
+			final double s = fractionOverTotal(salt) / yeastRatio;
+			final double x = 11.7362 * s;
+			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
+			final double b = s / (87.5679 - 0.2725 * s);
+			factor = Math.exp(a * b);
+		}
+		return factor;
+	}
+
+	private double getYeastRatio(final double yeast){
+		final double temperature = (doughTemperature != null? doughTemperature:
+			(ingredientsTemperature != null? ingredientsTemperature: 25.));
+		final double doughDensity = Recipe.create()
+			.withFlour(1.)
+			.withWater(water)
+			.withYeast(yeast)
+			.withSugar(sugar)
+			.withFat(fat)
+			.withSalt(salt)
+			.density(fatDensity, temperature, atmosphericPressure);
+		/** the following formulas ({@link #saltFactor(double)} and {@link #estimatedLag(double)}) are for 2.51e7 CFU/ml yeast */
+		return fractionOverTotal(yeast * rawYeast) * doughDensity * (YeastType.FY_CELL_COUNT / 2.51e7);
 	}
 
 	/**
