@@ -110,7 +110,7 @@ public final class Dough{
 	static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
 	/**
-	 * [mg/l] = 1 ppm
+	 * [mg/l]
 	 *
 	 * @see #waterChlorineDioxideFactor()
 	 */
@@ -595,7 +595,8 @@ public final class Dough{
 	 * @return	The estimated lag [hrs].
 	 */
 	private double estimatedLag(final double yeast){
-		final double yeastRatio = getYeastRatio(yeast);
+		///the following formula is for 2.51e7 CFU/ml yeast
+		final double yeastRatio = getYeastRatio(yeast, 2.51e7);
 		//transform [% w/w] to [g / l]
 		final double s = fractionOverTotal(salt) * 10. / yeastRatio;
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
@@ -637,13 +638,12 @@ public final class Dough{
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast);
 //		final double kWater = waterFactor();
-//		final double kWaterChlorineDioxide = waterChlorineDioxideFactor();
+		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(yeast);
 //		final double kWaterPH = waterPHFactor(yeast);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
-//		final double kHydration = kWater * kWaterChlorineDioxide * kWaterPH * kWaterFixedResidue;
+		final double kHydration = /*kWater * */ kWaterChlorineDioxide /* * kWaterPH * kWaterFixedResidue */;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-//		return kSugar * kFat * kSalt * kHydration * kAtmosphericPressure;
-		return kSalt * kAtmosphericPressure;
+		return /*kSugar * kFat * */ kSalt * kHydration * kAtmosphericPressure;
 	}
 
 	/**
@@ -702,7 +702,8 @@ public final class Dough{
 	private double saltFactor(final double yeast){
 		double factor = 1.;
 		if(salt > 0.){
-			final double yeastRatio = getYeastRatio(yeast);
+			///the following formula is for 2.51e7 CFU/ml yeast
+			final double yeastRatio = getYeastRatio(yeast, 2.51e7);
 			final double s = fractionOverTotal(salt) / yeastRatio;
 			final double x = 11.7362 * s;
 			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
@@ -710,21 +711,6 @@ public final class Dough{
 			factor = Math.exp(a * b);
 		}
 		return factor;
-	}
-
-	private double getYeastRatio(final double yeast){
-		final double temperature = (doughTemperature != null? doughTemperature:
-			(ingredientsTemperature != null? ingredientsTemperature: 25.));
-		final double doughDensity = Recipe.create()
-			.withFlour(1.)
-			.withWater(water)
-			.withYeast(yeast)
-			.withSugar(sugar)
-			.withFat(fat)
-			.withSalt(salt)
-			.density(fatDensity, temperature, atmosphericPressure);
-		/** the following formulas ({@link #saltFactor(double)} and {@link #estimatedLag(double)}) are for 2.51e7 CFU/ml yeast */
-		return fractionOverTotal(yeast * rawYeast) * doughDensity * (YeastType.FY_CELL_COUNT / 2.51e7);
 	}
 
 	/**
@@ -741,13 +727,31 @@ public final class Dough{
 
 	/**
 	 * https://academic.oup.com/mutage/article/19/2/157/1076450
-	 * Buschini, Carboni, Furlini, Poli, Rossi. sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests [2004]
+	 * Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.
 	 *
+	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterChlorineDioxideFactor(){
-		final double w = fractionOverTotal(water);
+	private double waterChlorineDioxideFactor(final double yeast){
+		///the following formula is for 1e8 CFU/ml yeast
+		final double yeastRatio = getYeastRatio(yeast, 1.e8);
+
+		final double w = fractionOverTotal(water) / yeastRatio;
 		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
+	}
+
+	private double getYeastRatio(final double yeast, final double baseDensity){
+		final double temperature = (doughTemperature != null? doughTemperature:
+			(ingredientsTemperature != null? ingredientsTemperature: 25.));
+		final double doughDensity = Recipe.create()
+			.withFlour(1.)
+			.withWater(water)
+			.withYeast(yeast)
+			.withSugar(sugar)
+			.withFat(fat)
+			.withSalt(salt)
+			.density(fatDensity, temperature, atmosphericPressure);
+		return fractionOverTotal(yeast * rawYeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
 	}
 
 	/**
