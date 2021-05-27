@@ -83,7 +83,7 @@ public final class Dough{
 	/**
 	 * (should be 2.04 mol/l = 2.04 · MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10. [% w/w] = 11.922324876 (?)) [% w/w]
 	 *
-	 * @see #saltFactor(double)
+	 * @see #saltFactor(double, double)
 	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6333755/">Stratford, Steels, Novodvorska, Archer, Avery. Extreme Osmotolerance and Halotolerance in Food-Relevant Yeasts and the Role of Glycerol-Dependent Cell Individuality. 2018.</a>
 	 */
 	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10.;
@@ -112,7 +112,7 @@ public final class Dough{
 	/**
 	 * [mg/l]
 	 *
-	 * @see #waterChlorineDioxideFactor()
+	 * @see #waterChlorineDioxideFactor(double, double)
 	 */
 	public static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
 	/**
@@ -202,12 +202,7 @@ public final class Dough{
 	private double waterPH = PURE_WATER_PH;
 	/** Fixed residue in water [mg/l]. */
 	private double waterFixedResidue;
-	/**
-	 * Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6].
-	 *
-	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
-	 * https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf
-	 */
+	/** Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6]. */
 	private double waterCalciumCarbonate;
 
 	/** Yeast quantity [% w/w]. */
@@ -525,15 +520,21 @@ public final class Dough{
 	}
 
 	private double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
+		//FIXME
+		final double temperature = (doughTemperature != null? doughTemperature:
+			(ingredientsTemperature != null? ingredientsTemperature: 25.));
+		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(temperature, yeast);
+		final double aliveYeast = kWaterChlorineDioxide * yeast;
+
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
 		for(int i = 0; i < procedure.leaveningStages.length; i ++){
-			ingredientsFactors[i] = ingredientsFactor(yeast, procedure.leaveningStages[i].temperature, atmosphericPressure);
+			ingredientsFactors[i] = ingredientsFactor(aliveYeast, procedure.leaveningStages[i].temperature, atmosphericPressure);
 			if(ingredientsFactors[i] == 0.)
 				return Double.POSITIVE_INFINITY;
 		}
 
-		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-		final double lambda = estimatedLag(yeast);
+		final double alpha = maximumRelativeVolumeExpansionRatio(aliveYeast);
+		final double lambda = estimatedLag(temperature, aliveYeast);
 
 		LeaveningStage currentStage;
 		LeaveningStage previousStage = LeaveningStage.ZERO;
@@ -591,12 +592,13 @@ public final class Dough{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
+	 * @param temperature	Temperature [°C].
 	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The estimated lag [hrs].
 	 */
-	private double estimatedLag(final double yeast){
+	private double estimatedLag(final double temperature, final double yeast){
 		///the following formula is for 2.51e7 CFU/ml yeast
-		final double yeastRatio = getYeastRatio(yeast, 2.51e7);
+		final double yeastRatio = getYeastRatio(temperature, yeast, 2.51e7);
 		//transform [% w/w] to [g / l]
 		final double s = fractionOverTotal(salt) * 10. / yeastRatio;
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
@@ -636,12 +638,11 @@ public final class Dough{
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
-		final double kSalt = saltFactor(yeast);
+		final double kSalt = saltFactor(temperature, yeast);
 //		final double kWater = waterFactor();
-		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(yeast);
-//		final double kWaterPH = waterPHFactor(yeast);
+		final double kWaterPH = waterPHFactor(temperature, yeast);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
-		final double kHydration = /*kWater * */ kWaterChlorineDioxide /* * kWaterPH * kWaterFixedResidue */;
+		final double kHydration = /*kWater * */kWaterPH/* * kWaterFixedResidue*/;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
 		return /*kSugar * kFat * */ kSalt * kHydration * kAtmosphericPressure;
 	}
@@ -699,11 +700,11 @@ public final class Dough{
 	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double saltFactor(final double yeast){
+	private double saltFactor(final double temperature, final double yeast){
 		double factor = 1.;
 		if(salt > 0.){
 			///the following formula is for 2.51e7 CFU/ml yeast
-			final double yeastRatio = getYeastRatio(yeast, 2.51e7);
+			final double yeastRatio = getYeastRatio(temperature, yeast, 2.51e7);
 			final double s = fractionOverTotal(salt) / yeastRatio;
 			final double x = 11.7362 * s;
 			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
@@ -732,17 +733,15 @@ public final class Dough{
 	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterChlorineDioxideFactor(final double yeast){
+	private double waterChlorineDioxideFactor(final double temperature, final double yeast){
 		///the following formula is for 1e8 CFU/ml yeast
-		final double yeastRatio = getYeastRatio(yeast, 1.e8);
+		final double yeastRatio = getYeastRatio(temperature, yeast, 1.e8);
 
-		final double w = fractionOverTotal(water) / yeastRatio;
+		final double w = (yeastRatio > 0.? fractionOverTotal(water) / yeastRatio: 0.);
 		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
-	private double getYeastRatio(final double yeast, final double baseDensity){
-		final double temperature = (doughTemperature != null? doughTemperature:
-			(ingredientsTemperature != null? ingredientsTemperature: 25.));
+	private double getYeastRatio(final double temperature, final double yeast, final double baseDensity){
 		final double doughDensity = Recipe.create()
 			.withFlour(1.)
 			.withWater(water)
@@ -755,24 +754,10 @@ public final class Dough{
 	}
 
 	/**
-	 * @see <a href="https://academic.oup.com/femsyr/article/15/2/fou005/534737">Peña, Sánchez, Álvarez, Calahorra, Ramírez. Effects of high medium pH on growth, metabolism and transport in Saccharomyces cerevisiae. 2015.</a>
-	 * @see <a href="https://oatao.univ-toulouse.fr/1556/1/Serra_1556.pdf">Serra, Strehaiano, Taillandier. Influence of temperature and pH on Saccharomyces bayanus var. uvarum growth; impact of a wine yeast interspecifichy bridization on these parameters. 2005.</a>
 	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
+	 * @see <a href="https://academic.oup.com/femsyr/article/15/2/fou005/534737">Peña, Sánchez, Álvarez, Calahorra, Ramírez. Effects of high medium pH on growth, metabolism and transport in Saccharomyces cerevisiae. 2015.</a>
 	 *
-	 * Hardness
-	 * Various minerals can be found in water. Two of them—calcium and magnesium—play a major role in water hardness and also in
-	 * dough-making. The type and amount of these minerals varies with the locale.
-	 * Medium-hard water—that is, water with 50 to 100 ppm (parts per million) of carbonates—is the best for baking. It contains the right
-	 * amount of mineral salts—mostly of calcium and magnesium—which strengthen gluten and also, to some extent, serve as yeast nutrients.
-	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s
-	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2 percent. It can also help
-	 * to increase the salt portion up to 2.5 percent of flour weight. On the baked pizza, the soft water tends to produce a crust texture
-	 * and color that’s less than optimum.
-	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or
-	 * rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or
-	 * malted flour might help.
-	 * Water from a city source usually has a proper degree of hardness for good dough development. However, a pizzeria in a small town or
-	 * one that draws ground water might have excessively hard water.
+	 * @see <a href="https://oatao.univ-toulouse.fr/1556/1/Serra_1556.pdf">Serra, Strehaiano, Taillandier. Influence of temperature and pH on Saccharomyces bayanus var. uvarum growth; impact of a wine yeast interspecifichy bridization on these parameters. 2005.</a>
 	 *
 	 * pH
 	 * pH is important in dough-making because it affects chemical and biological reactions. Most notably, it affects the rate of amylase
@@ -784,18 +769,24 @@ public final class Dough{
 	 * https://www.scielo.br/pdf/bjm/v39n2/a24.pdf
 	 * https://core.ac.uk/download/pdf/12040042.pdf
 	 *
+	 * Maximum specific growth rate decreases until 2.7 pH, then rises until 6 pH, then decreases again, reaching 0 at 9 pH.
+	 *
 	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterPHFactor(final double yeast){
+	private double waterPHFactor(final double temperature, final double yeast){
 		//TODO
-//		final double totalFraction = totalFraction();
-//		final double compositePH = (
-//			waterPH * water
-//			//flour
-//			+ 6.2 * 1.
-//			+ 5.5 * sugar
-//			+ 3.3 * yeast) / totalFraction;
+		final double totalFraction = totalFraction();
+		final double compositePH = (
+			waterPH * water
+			//flour
+			+ 6.2 * 1.
+			+ 5.5 * sugar
+			+ 3.3 * yeast) / totalFraction;
+		final double cph = (compositePH - 2.75) / (4.25 - 2.75);
+		final double t = (temperature - 18.) / (30. - 18.);
+		final double as = (0.025 + 0.013 * cph) * cph
+			+ 0.019 * t * cph;
 //		return Math.max(compositePH <= 5.6? compositePH / 5.6: 1. - (compositePH - 5.6) / 3.4, 0.);
 
 		/**
@@ -824,6 +815,24 @@ public final class Dough{
 
 	/**
 	 * TODO Se la durezza dell’acqua è troppo elevata la fermentazione subisce rallentamenti a causa della formazione di una struttura glutinica troppo rigida. In caso contrario, dove la durezza dell’acqua risulta essere troppo scarsa, l’impasto si presenta assai appiccicoso e poco manipolabile. In questo frangente sarà utile abbassare l’idratazione.
+	 *
+	 * Hardness
+	 * Various minerals can be found in water. Two of them—calcium and magnesium—play a major role in water hardness and also in
+	 * dough-making. The type and amount of these minerals varies with the locale.
+	 * Medium-hard water—that is, water with 50 to 100 ppm (parts per million) of carbonates—is the best for baking. It contains the right
+	 * amount of mineral salts—mostly of calcium and magnesium—which strengthen gluten and also, to some extent, serve as yeast nutrients.
+	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s
+	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2 percent. It can also help
+	 * to increase the salt portion up to 2.5 percent of flour weight. On the baked pizza, the soft water tends to produce a crust texture
+	 * and color that’s less than optimum.
+	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or
+	 * rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or
+	 * malted flour might help.
+	 * Water from a city source usually has a proper degree of hardness for good dough development. However, a pizzeria in a small town or
+	 * one that draws ground water might have excessively hard water.
+	 *
+	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
+	 * https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf
 	 *
 	 * @return	Correction factor.
 	 */
