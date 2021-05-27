@@ -519,11 +519,11 @@ public final class Dough{
 		}
 	}
 
-	private double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
+	double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
 		//FIXME
 		final double temperature = (doughTemperature != null? doughTemperature:
 			(ingredientsTemperature != null? ingredientsTemperature: 25.));
-		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(temperature, yeast);
+		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(yeast, temperature);
 		final double aliveYeast = kWaterChlorineDioxide * yeast;
 
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
@@ -534,7 +534,7 @@ public final class Dough{
 		}
 
 		final double alpha = maximumRelativeVolumeExpansionRatio(aliveYeast);
-		final double lambda = estimatedLag(temperature, aliveYeast);
+		final double lambda = estimatedLag(aliveYeast, temperature);
 
 		LeaveningStage currentStage;
 		LeaveningStage previousStage = LeaveningStage.ZERO;
@@ -592,13 +592,13 @@ public final class Dough{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
-	 * @param temperature	Temperature [°C].
-	 * @param yeast	Quantity of yeast [% w/w].
+	 * @param yeast   Quantity of yeast [% w/w].
+	 * @param temperature   Temperature [°C].
 	 * @return	The estimated lag [hrs].
 	 */
-	private double estimatedLag(final double temperature, final double yeast){
+	private double estimatedLag(final double yeast, final double temperature){
 		///the following formula is for 2.51e7 CFU/ml yeast
-		final double yeastRatio = getYeastRatio(temperature, yeast, 2.51e7);
+		final double yeastRatio = getYeastRatio(yeast, temperature, 2.51e7);
 		//transform [% w/w] to [g / l]
 		final double s = fractionOverTotal(salt) * 10. / yeastRatio;
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
@@ -630,21 +630,34 @@ public final class Dough{
 	 * </ul>
 	 * </p>
 	 *
+	 * Yeast aging: https://onlinelibrary.wiley.com/doi/pdf/10.1002/bit.27210
+	 *
 	 * @param yeast	yeast [% w/w]
 	 * @param temperature	Temperature [°C].
 	 * @param atmosphericPressure	Atmospheric pressure [hPa].
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
+//		final double kTemperature = temperatureFactor(temperature);
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
-		final double kSalt = saltFactor(temperature, yeast);
-//		final double kWater = waterFactor();
-		final double kWaterPH = waterPHFactor(temperature, yeast);
+		final double kSalt = saltFactor(yeast, temperature);
+		final double kWater = waterFactor();
+//		final double kWaterPH = waterPHFactor(yeast, temperature);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
-		final double kHydration = /*kWater * */kWaterPH/* * kWaterFixedResidue*/;
+		final double kHydration = kWater/* * kWaterPH * kWaterFixedResidue*/;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kSugar * kFat * */ kSalt * kHydration * kAtmosphericPressure;
+		return /*kTemperature * kSugar * kFat * */kSalt * kHydration * kAtmosphericPressure;
+	}
+
+	/**
+	 * https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwja7bqJ6-nwAhUk_7sIHbO_DcE4HhAWMAF6BAgCEAQ&url=https%3A%2F%2Fdigikogu.taltech.ee%2Ftestimine%2Fet%2FDownload%2F0a9ce955-b3f0-4513-94c2-148de01a6e46%2FEffectofchangingenvironmentalconditionsonthe.pdf&usg=AOvVaw0TgJTvRIHCd4Od6YRm8uNW
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return	Correction factor.
+	 */
+	private double temperatureFactor(final double temperature){
+		return Math.exp(17.177 - 5449.8 / (temperature + Water.ABSOLUTE_ZERO));
 	}
 
 	/**
@@ -652,12 +665,24 @@ public final class Dough{
 	 * @see <a href="http://www.biologydiscussion.com/industrial-microbiology-2/yeast-used-in-bakery-foods/yeast-used-in-bakery-foods-performance-determination-forms-effect-industrial-microbiology/86555">Yeast used in bakery foods: Performance, determination, forms & effect. Industrial Microbiology</a>
 	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
+	 * https://ttu-ir.tdl.org/bitstream/handle/2346/8716/31295003966958.pdf
+	 * https://iranjournals.nlai.ir/bitstream/handle/123456789/88633/5855EFA78193B19FE41ABB3F40CED664.pdf
+	 *
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
 	private double sugarFactor(final double temperature){
+		//[g/l]
+		final double s = 1000. * getSugarRatio(sugar, temperature);
 		//TODO
-		return 1.;
+		//Monod equation
+		//T[°C]	Ki[g/l]
+		//30	14.1
+		//34	14.5
+		//37	19.0
+		final double k = (0.2454 + 0.0067 * temperature) * temperature;
+		return s / (k + s);
+//		return 1.;
 
 //		/**
 //		 * base is pH 5.4±0.1, 20 mg/l glucose
@@ -697,14 +722,14 @@ public final class Dough{
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
 	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
-	 * @param yeast	yeast [% w/w]
+	 * @param yeast   yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double saltFactor(final double temperature, final double yeast){
+	private double saltFactor(final double yeast, final double temperature){
 		double factor = 1.;
 		if(salt > 0.){
 			///the following formula is for 2.51e7 CFU/ml yeast
-			final double yeastRatio = getYeastRatio(temperature, yeast, 2.51e7);
+			final double yeastRatio = getYeastRatio(yeast, temperature, 2.51e7);
 			final double s = fractionOverTotal(salt) / yeastRatio;
 			final double x = 11.7362 * s;
 			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
@@ -721,8 +746,11 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	private double waterFactor(){
+		//TODO
 		return 1.;
-		//FIXME this should be accounted for in the oven!
+
+//		return (-2.0987 + 7.5743 * water) * water;
+
 //		return (HYDRATION_MIN <= water && water < HYDRATION_MAX? Helper.evaluatePolynomial(WATER_COEFFICIENTS, water): 0.);
 	}
 
@@ -730,18 +758,18 @@ public final class Dough{
 	 * https://academic.oup.com/mutage/article/19/2/157/1076450
 	 * Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.
 	 *
-	 * @param yeast	yeast [% w/w]
+	 * @param yeast   yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterChlorineDioxideFactor(final double temperature, final double yeast){
+	private double waterChlorineDioxideFactor(final double yeast, final double temperature){
 		///the following formula is for 1e8 CFU/ml yeast
-		final double yeastRatio = getYeastRatio(temperature, yeast, 1.e8);
+		final double yeastRatio = getYeastRatio(yeast, temperature, 1.e8);
 
 		final double w = (yeastRatio > 0.? fractionOverTotal(water) / yeastRatio: 0.);
 		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
-	private double getYeastRatio(final double temperature, final double yeast, final double baseDensity){
+	private double getYeastRatio(final double yeast, final double temperature, final double baseDensity){
 		final double doughDensity = Recipe.create()
 			.withFlour(1.)
 			.withWater(water)
@@ -751,6 +779,22 @@ public final class Dough{
 			.withSalt(salt)
 			.density(fatDensity, temperature, atmosphericPressure);
 		return fractionOverTotal(yeast * rawYeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
+	}
+
+	private double getSugarRatio(final double sugar, final double temperature){
+		double sugarRatio = 0.;
+		if(sugar > 0.){
+			final double doughDensity = Recipe.create()
+				.withFlour(1.)
+				.withWater(water)
+				.withYeast(yeast)
+				.withSugar(sugar)
+				.withFat(fat)
+				.withSalt(salt)
+				.density(fatDensity, temperature, atmosphericPressure);
+			sugarRatio = fractionOverTotal(sugar) * sugarType.factor * doughDensity;
+		}
+		return sugarRatio;
 	}
 
 	/**
@@ -768,13 +812,16 @@ public final class Dough{
 	 * http://ache.org.rs/CICEQ/2010/No2/12_3141_2009.pdf
 	 * https://www.scielo.br/pdf/bjm/v39n2/a24.pdf
 	 * https://core.ac.uk/download/pdf/12040042.pdf
+	 * https://www.researchgate.net/profile/Sandra-Antonini/publication/335275152_Interaction_of_4-ethylphenol_pH_sucrose_and_ethanol_on_the_growth_and_fermentation_capacity_of_the_industrial_strain_of_Saccharomyces_cerevisiae_PE-2/links/5d5edff0299bf1b97cff2252/Interaction-of-4-ethylphenol-pH-sucrose-and-ethanol-on-the-growth-and-fermentation-capacity-of-the-industrial-strain-of-Saccharomyces-cerevisiae-PE-2.pdf
 	 *
-	 * Maximum specific growth rate decreases until 2.7 pH, then rises until 6 pH, then decreases again, reaching 0 at 9 pH.
+	 * https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91662/
+	 *
+	 * Maximum specific growth rate starts at 0 at 0 pH, then rises until before 2.1 pH, decreases until 2.7 pH, then rises until 6 pH, then decreases again, reaching 0 at 9 pH.
 	 *
 	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterPHFactor(final double temperature, final double yeast){
+	private double waterPHFactor(final double yeast, final double temperature){
 		//TODO
 		final double totalFraction = totalFraction();
 		final double compositePH = (

@@ -54,7 +54,7 @@ public class SaccharomycesCerevisiaeCECT10131Yeast extends YeastModelAbstract{
 	@Override
 	final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
-		//± 0.009 °C
+		//± 0.009 hrs^-1
 		return 0.449;
 	}
 

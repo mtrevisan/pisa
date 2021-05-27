@@ -53,7 +53,7 @@ public class SaccharomycesCerevisiaeCEN_PK113_7DYeast extends YeastModelAbstract
 	@Override
 	final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.3, 22 mg/l glucose
-		//± 0.018 °C
+		//± 0.018 hrs^-1
 		return 0.368;
 	}
 

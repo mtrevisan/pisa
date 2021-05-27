@@ -54,7 +54,7 @@ public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 	@Override
 	final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.4±0.1, 20 mg/l glucose
-		//± 0.012 °C
+		//± 0.012 hrs^-1
 		return 0.307;
 	}
 

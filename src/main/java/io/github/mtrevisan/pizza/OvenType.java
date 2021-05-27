@@ -44,9 +44,6 @@ public enum OvenType{
 	};
 
 
-	//[°C]
-	private static final double ABSOLUTE_ZERO = 273.15;
-
 	/** Specific gas constant for dry air [J / (kg · K)]. */
 	private static final double R_DRY_AIR = 287.05;
 	/** Specific gas constant for water vapor [J / (kg · K)]. */
@@ -59,11 +56,11 @@ public enum OvenType{
 
 
 	static double calculateAirDensity(final double temperature, final double pressure, final double relativeHumidity){
-		final double densityDryAir = pressure * 100. / (R_DRY_AIR * (temperature + ABSOLUTE_ZERO));
+		final double densityDryAir = pressure * 100. / (R_DRY_AIR * (temperature + Water.ABSOLUTE_ZERO));
 		//Arden Buck equation
 		//https://en.wikipedia.org/wiki/Arden_Buck_equation
 		final double vaporPressureWater = 611.21 * Math.exp((18.678 - temperature / 234.5) * (temperature / (temperature + 257.14)));
-		final double densityMoist = relativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (temperature + ABSOLUTE_ZERO));
+		final double densityMoist = relativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (temperature + Water.ABSOLUTE_ZERO));
 		return densityDryAir + densityMoist;
 	}
 
@@ -72,7 +69,7 @@ public enum OvenType{
 	 * @return	Air thermal conductivity [W / (m · K)].
 	 */
 	static double calculateAirThermalConductivity(final double temperature){
-		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + ABSOLUTE_ZERO);
+		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + Water.ABSOLUTE_ZERO);
 	}
 
 	/**
@@ -82,7 +79,7 @@ public enum OvenType{
 	 * @return	The air specific heat [J / (kg · K)].
 	 */
 	static double calculateAirSpecificHeat(final double temperature){
-		return 1002.5 + 275.e-6 * Math.pow(temperature + ABSOLUTE_ZERO - 200., 2.);
+		return 1002.5 + 275.e-6 * Math.pow(temperature + Water.ABSOLUTE_ZERO - 200., 2.);
 	}
 
 	/**
@@ -112,7 +109,7 @@ public enum OvenType{
 		final double airViscosity = 1.e-7 * (airViscosity0 + airViscosityP);
 
 		//calculate air thermal conductivity [W / (m · K)]
-		final double airConductivity = Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, airTemperature + ABSOLUTE_ZERO);
+		final double airConductivity = Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, airTemperature + Water.ABSOLUTE_ZERO);
 
 		//calculate air Prandtl number at 1000 hPa
 		//specificHeat * airViscosity / airConductivity;
