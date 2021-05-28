@@ -639,7 +639,7 @@ public final class Dough{
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
 //		final double kTemperature = temperatureFactor(temperature);
-//		final double kSugar = sugarFactor(temperature);
+		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
 		final double kWater = waterFactor();
@@ -647,7 +647,7 @@ public final class Dough{
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater/* * kWaterPH * kWaterFixedResidue*/;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kTemperature * kSugar * kFat * */kSalt * kHydration * kAtmosphericPressure;
+		return /*kTemperature * */kSugar * /*kFat * */kSalt * kHydration * kAtmosphericPressure;
 	}
 
 	/**
@@ -667,22 +667,33 @@ public final class Dough{
 	 *
 	 * https://ttu-ir.tdl.org/bitstream/handle/2346/8716/31295003966958.pdf
 	 * https://iranjournals.nlai.ir/bitstream/handle/123456789/88633/5855EFA78193B19FE41ABB3F40CED664.pdf
+	 * https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwip0IKgz-zwAhVo_7sIHWWMA7QQFjAHegQICxAE&url=https%3A%2F%2Fwww.mdpi.com%2F2311-5637%2F5%2F1%2F10%2Fpdf&usg=AOvVaw1l5HVZ9GZR2v0oIdwKZ_fo
+	 *
+	 * https://www.craftybaking.com/how-baking-works/yeast
 	 *
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
 	private double sugarFactor(final double temperature){
 		//[g/l]
-		final double s = 1000. * getSugarRatio(sugar, temperature);
+		final double s = 1000. * getSugarRatio(sugar + (flour != null? flour.sugar * SugarType.GLUCOSE.factor: 0.), temperature);
 		//TODO
 		//Monod equation
 		//T[°C]	Ki[g/l]
 		//30	14.1
 		//34	14.5
 		//37	19.0
-		final double k = (0.2454 + 0.0067 * temperature) * temperature;
-		return s / (k + s);
-//		return 1.;
+//		final double k = (0.2454 + 0.0067 * temperature) * temperature;
+//		return s / (k + s);
+
+//		//Andrews model:
+//		//Monod saturation constant [g/l]
+//		final double Ks = 7.919;
+//		//inhibition constant [g/l]
+//		final double Ksi = 249.365;
+//		return s / ((Ks + s) * (1 + s / Ksi));
+
+		return 1.;
 
 //		/**
 //		 * base is pH 5.4±0.1, 20 mg/l glucose
@@ -792,7 +803,7 @@ public final class Dough{
 				.withFat(fat)
 				.withSalt(salt)
 				.density(fatDensity, temperature, atmosphericPressure);
-			sugarRatio = fractionOverTotal(sugar) * sugarType.factor * doughDensity;
+			sugarRatio = fractionOverTotal(sugar) * (sugarType != null? sugarType.factor: SugarType.GLUCOSE.factor) * doughDensity;
 		}
 		return sugarRatio;
 	}
@@ -961,11 +972,11 @@ public final class Dough{
 	}
 
 	private double calculateFatCorrection(final double flourWeight){
-		return (correctForIngredients? flourWeight * flour.fatContent: 0.);
+		return (correctForIngredients? flourWeight * flour.fat: 0.);
 	}
 
 	private double calculateSaltCorrection(final double flourWeight){
-		return (correctForIngredients? flourWeight * flour.saltContent + fat * fatSaltContent: 0.);
+		return (correctForIngredients? flourWeight * flour.salt + fat * fatSaltContent: 0.);
 	}
 
 

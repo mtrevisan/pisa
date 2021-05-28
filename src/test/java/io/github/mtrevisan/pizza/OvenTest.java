@@ -45,7 +45,7 @@ class OvenTest{
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withAirRelativeHumidity(0.55);
@@ -99,7 +99,7 @@ class OvenTest{
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withAirRelativeHumidity(0.55);
@@ -151,7 +151,7 @@ class OvenTest{
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withAirRelativeHumidity(0.55);
@@ -203,7 +203,7 @@ class OvenTest{
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
 			.withAirRelativeHumidity(0.55);

@@ -30,46 +30,53 @@ public final class Flour{
 	/** W. */
 	final double strength;
 	/** Salt content [% w/w]. */
-	final double saltContent;
+	final double salt;
 	/** Fat content [% w/w]. */
-	final double fatContent;
+	final double fat;
+	/** Sugar (glucose) content [% w/w]. */
+	final double sugar;
 
 
 	public static Flour create(){
-		return new Flour(0., 0., 0.);
+		return new Flour(0., 0., 0., 0.);
 	}
 
 	/**
 	 * @param strength	Salt content [% w/w].
+	 * @param sugar	sugar content [% w/w].
 	 * @return	The instance.
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
-	public static Flour create(final double strength) throws DoughException{
-		return create(strength, 0., 0.);
+	public static Flour create(final double strength, final double sugar) throws DoughException{
+		return create(strength, 0., 0., sugar);
 	}
 
 	/**
 	 * @param strength	Strength.
-	 * @param saltContent	Salt content [% w/w].
-	 * @param fatContent	Fat content [% w/w].
+	 * @param salt	Salt content [% w/w].
+	 * @param fat	Fat content [% w/w].
+	 * @param sugar	sugar content [% w/w].
 	 * @return	The instance.
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
-	public static Flour create(final double strength, final double saltContent, final double fatContent) throws DoughException{
+	public static Flour create(final double strength, final double salt, final double fat, final double sugar) throws DoughException{
 		if(strength <= 0.)
 			throw DoughException.create("Strength mush be positive");
-		if(saltContent < 0.)
+		if(salt < 0.)
 			throw DoughException.create("Salt content must be non-negative");
-		if(fatContent < 0.)
+		if(fat < 0.)
 			throw DoughException.create("Fat content must be non-negative");
+		if(sugar < 0.)
+			throw DoughException.create("Sugar content must be non-negative");
 
-		return new Flour(strength, saltContent, fatContent);
+		return new Flour(strength, salt, fat, sugar);
 	}
 
-	private Flour(final double strength, final double saltContent, final double fatContent){
+	private Flour(final double strength, final double salt, final double fat, final double sugar){
 		this.strength = strength;
-		this.saltContent = saltContent;
-		this.fatContent = fatContent;
+		this.salt = salt;
+		this.fat = fat;
+		this.sugar = sugar;
 	}
 
 	/**

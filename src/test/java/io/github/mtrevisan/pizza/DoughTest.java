@@ -151,7 +151,7 @@ class DoughTest{
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.002)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(230., 0.001, 0.0008))
+			.withFlour(Flour.create(230., 0.001, 0.0008, 1.3))
 			.withIngredientsTemperature(16.9)
 			.withCorrectForIngredients()
 			.withAtmosphericPressure(1007.1);
@@ -193,7 +193,7 @@ class DoughTest{
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(20.6)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1004.1);
@@ -247,7 +247,7 @@ class DoughTest{
 			.addSalt(0.015)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295.))
+			.withFlour(Flour.create(295., 1.3))
 			.withIngredientsTemperature(20.3)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -307,7 +307,7 @@ class DoughTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295.))
+			.withFlour(Flour.create(295., 1.3))
 			.withIngredientsTemperature(21.2)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1004.5);
@@ -373,7 +373,7 @@ class DoughTest{
 			.addSalt(0.0049)
 			.addFat(0.098, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295.))
+			.withFlour(Flour.create(295., 1.3))
 			.withIngredientsTemperature(20.3)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -419,7 +419,7 @@ class DoughTest{
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(21.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -468,7 +468,7 @@ class DoughTest{
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260.))
+			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(21.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -515,7 +515,7 @@ class DoughTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295.))
+			.withFlour(Flour.create(295., 1.3))
 			.withIngredientsTemperature(21.2)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1004.5);

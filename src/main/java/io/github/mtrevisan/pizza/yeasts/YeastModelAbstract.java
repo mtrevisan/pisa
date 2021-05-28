@@ -37,6 +37,7 @@ public abstract class YeastModelAbstract{
 	public abstract double getTemperatureMax();
 
 	//Maximum specific volume growth rate [hrs^-1]
+	//https://assets.researchsquare.com/files/rs-182823/v1_stamped.pdf
 	abstract double getMaximumSpecificVolumeGrowthRate();
 
 
