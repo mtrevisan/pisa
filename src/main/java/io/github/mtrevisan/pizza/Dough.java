@@ -639,7 +639,7 @@ public final class Dough{
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
 //		final double kTemperature = temperatureFactor(temperature);
-		final double kSugar = sugarFactor(temperature);
+//		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
 		final double kWater = waterFactor();
@@ -647,7 +647,7 @@ public final class Dough{
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater/* * kWaterPH * kWaterFixedResidue*/;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kTemperature * */kSugar * /*kFat * */kSalt * kHydration * kAtmosphericPressure;
+		return /*kTemperature * kSugar * kFat * */kSalt * kHydration * kAtmosphericPressure;
 	}
 
 	/**
@@ -683,8 +683,8 @@ public final class Dough{
 		//30	14.1
 		//34	14.5
 		//37	19.0
-//		final double k = (0.2454 + 0.0067 * temperature) * temperature;
-//		return s / (k + s);
+//		//Monod saturation constant [g/l]
+//		final double Ks = (0.2454 + 0.0067 * temperature) * temperature;
 
 //		//Andrews model:
 //		//Monod saturation constant [g/l]
