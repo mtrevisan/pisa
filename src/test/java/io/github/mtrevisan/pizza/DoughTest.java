@@ -458,9 +458,9 @@ class DoughTest{
 	}
 
 	@Test
-	void futurePaninUeta20210xxx() throws DoughException, YeastException{
-		//water in 58 g of egg (76.15% water content) [%]
-		final double waterInEgg = 58. * 0.7615 / 600.;
+	void paninUeta20210530() throws DoughException, YeastException{
+		//water in 59 g of egg (76.15% water content and 12.5% shell) [%]
+		final double waterInEgg = 59. * (1. - 0.125) * 0.7615 / 600.;
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.5 - waterInEgg, 0., 0., 6.65, 0.)
 			.addWater(waterInEgg, 0., 0., 7.25, 0.)
@@ -469,9 +469,9 @@ class DoughTest{
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 1.3))
-			.withIngredientsTemperature(21.4)
+			.withIngredientsTemperature(21.7)
 			.withDoughTemperature(27.)
-			.withAtmosphericPressure(1015.6);
+			.withAtmosphericPressure(1016.1);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l))
 			.withAfterStageWork(Duration.ofMinutes(10l));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l))
@@ -488,8 +488,8 @@ class DoughTest{
 		final Recipe recipe = dough.createRecipe(procedure, (677.4 + 250. + 50. + 2.5 + 80. + 0.95) / 2.);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 1.);
-		Assertions.assertEquals(139., recipe.getWater() - waterInEgg * recipe.getFlour() / 2., 1.);
-		Assertions.assertEquals(41.2, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(140., recipe.getWater() - waterInEgg * recipe.getFlour() / 2., 1.);
+		Assertions.assertEquals(40.4, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(30., recipe.getSugar(), 0.1);
 		Assertions.assertEquals(0.96, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(1.5, recipe.getSalt(), 0.01);
