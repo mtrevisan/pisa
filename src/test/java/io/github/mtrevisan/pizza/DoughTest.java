@@ -506,6 +506,55 @@ class DoughTest{
 		Assertions.assertEquals(LocalTime.of(18, 30), recipe.getSeasoningInstant());
 	}
 
+	@Test
+	void futurePaninUeta20210530() throws DoughException, YeastException{
+		//water in 59 g of egg (76.15% water content and 12.5% shell) [%]
+		final double waterInEgg = 59. * (1. - 0.125) * 0.7615 / 300.;
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
+			.addWater(0.51 - waterInEgg, 0., 0., 6.65, 0.)
+			.addWater(waterInEgg, 0., 0., 7.25, 0.)
+			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSalt(0.005)
+			.addFat(0.16, 0.815, 0.9175, 0.16, 0.025)
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(260., 1.3))
+			.withIngredientsTemperature(21.7)
+			.withDoughTemperature(27.)
+			.withAtmosphericPressure(1016.1);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l))
+			.withAfterStageWork(Duration.ofMinutes(10l));
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l))
+			.withAfterStageWork(Duration.ofMinutes(10l));
+		final LeaveningStage stage3 = LeaveningStage.create(35., Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2, stage3}, 2.2,
+			0,
+			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
+			LocalTime.of(18, 45))
+			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
+		final Recipe recipe = dough.createRecipe(procedure, (701. + 250. + 50. + 2.5 + 80. + 0.96) / 2.);
+
+		Assertions.assertEquals(300., recipe.getFlour(), 1.);
+		Assertions.assertEquals(121., recipe.getWater() - waterInEgg * recipe.getFlour(), 1.);
+		Assertions.assertEquals(39.6, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(30., recipe.getSugar(), 0.1);
+		Assertions.assertEquals(0.96, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(2.7, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(48., recipe.getFat(), 0.1);
+		Assertions.assertEquals(LocalTime.of(10, 25), recipe.getDoughMakingInstant());
+		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(11, 10), LocalTime.of(11, 40),
+			LocalTime.of(12, 10)}, recipe.getStretchAndFoldStartInstants());
+		Assertions.assertArrayEquals(new LocalTime[][]{
+				new LocalTime[]{LocalTime.of(10, 40), LocalTime.of(16, 40)},
+				new LocalTime[]{LocalTime.of(16, 50), LocalTime.of(17, 50)},
+				new LocalTime[]{LocalTime.of(18, 0), LocalTime.of(18, 30)}
+			},
+			recipe.getStageStartEndInstants());
+		Assertions.assertEquals(LocalTime.of(18, 30), recipe.getSeasoningInstant());
+	}
+
 	//https://www.utrechtinnovatielab.nl/uploads/media/5c754366395b3/poster-bioreactoren-qvq-studentenproject-2018.pdf
 	@Test
 	void futurePizza20210xxx() throws DoughException, YeastException, OvenException{
