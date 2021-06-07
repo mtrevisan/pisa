@@ -179,7 +179,7 @@ class DoughTest{
 		Assertions.assertEquals(286.6, recipe.getWater(), 0.1);
 		Assertions.assertEquals(1.33, recipe.getSugar(), 0.01);
 		Assertions.assertEquals(0.58, recipe.getYeast(), 0.01);
-		Assertions.assertEquals(6.19, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(6.17, recipe.getSalt(), 0.01);
 		Assertions.assertEquals(5.79, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
 	}
@@ -222,7 +222,7 @@ class DoughTest{
 		Assertions.assertEquals(1.32, recipe.getSugar(), 0.01);
 		Assertions.assertEquals(0.63, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(6.61, recipe.getSalt(), 0.01);
-		Assertions.assertEquals(6.17, recipe.getFat(), 0.01);
+		Assertions.assertEquals(6.16, recipe.getFat(), 0.01);
 		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
 		Assertions.assertEquals(438.3, doughWeight * bakingInstruments.bakingPans[0].area() / bakingPansTotalArea, 0.1);
 		Assertions.assertEquals(303.1, doughWeight * bakingInstruments.bakingPans[1].area() / bakingPansTotalArea, 0.1);
@@ -508,14 +508,12 @@ class DoughTest{
 
 	@Test
 	void futurePaninUeta20210530() throws DoughException, YeastException{
-		//water in 59 g of egg (76.15% water content and 12.5% shell) [%]
-		final double waterInEgg = 59. * (1. - 0.125) * 0.7615 / 300.;
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
-			.addWater(0.51 - waterInEgg, 0., 0., 6.65, 0.)
-			.addWater(waterInEgg, 0., 0., 7.25, 0.)
+			.addMilk(0.25, 6.6, 0.87, 0.037)
+			.addEgg(59. / 300., 6., 0.125, 0.7615, 0.11)
 			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
-			.addFat(0.16, 0.815, 0.9175, 0.16, 0.025)
+			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 1.3))
 			.withIngredientsTemperature(21.7)
@@ -534,15 +532,15 @@ class DoughTest{
 			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 			LocalTime.of(18, 45))
 			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
-		final Recipe recipe = dough.createRecipe(procedure, (701. + 250. + 50. + 2.5 + 80. + 0.96) / 2.);
+		final Recipe recipe = dough.createRecipe(procedure, 498.5);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 1.);
-		Assertions.assertEquals(121., recipe.getWater() - waterInEgg * recipe.getFlour(), 1.);
-		Assertions.assertEquals(39.6, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(120., recipe.getWater(), 1.);
+		Assertions.assertEquals(43.7, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(30., recipe.getSugar(), 0.1);
 		Assertions.assertEquals(0.96, recipe.getYeast(), 0.01);
-		Assertions.assertEquals(2.7, recipe.getSalt(), 0.01);
-		Assertions.assertEquals(48., recipe.getFat(), 0.1);
+		Assertions.assertEquals(1.54, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(45.7, recipe.getFat(), 0.1);
 		Assertions.assertEquals(LocalTime.of(10, 25), recipe.getDoughMakingInstant());
 		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(11, 10), LocalTime.of(11, 40),
 			LocalTime.of(12, 10)}, recipe.getStretchAndFoldStartInstants());

@@ -207,6 +207,11 @@ public final class Dough{
 	/** Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6]. */
 	private double waterCalciumCarbonate;
 
+	/** Total water quantity w.r.t. flour in milk [% w/w]. */
+	private double milkWater;
+	/** Total fat quantity w.r.t. flour in milk [% w/w]. */
+	private double milkFat;
+
 	/** Yeast quantity [% w/w]. */
 	double yeast;
 	private YeastType yeastType;
@@ -214,6 +219,15 @@ public final class Dough{
 	private double rawYeast = 1.;
 
 	private Flour flour;
+
+	/** Egg content w.r.t. flour [% w/w]. */
+	private double egg;
+	/** Total shell quantity w.r.t. egg [% w/w]. */
+	private double eggShell;
+	/** Total water quantity w.r.t. flour in egg [% w/w]. */
+	private double eggWater;
+	/** Total fat quantity w.r.t. flour in egg [% w/w]. */
+	private double eggFat;
 
 	/** Temperature of ingredients [°C]. */
 	Double ingredientsTemperature;
@@ -335,6 +349,60 @@ public final class Dough{
 			waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
 		}
 		this.water += water;
+
+		return this;
+	}
+
+	/**
+	 * @param milk	Milk quantity w.r.t. flour [% w/w].
+	 * @param pH	pH of milk.
+	 * @param waterContent	Water in milk [% w/w].
+	 * @param fatContent	Fat in milk [% w/w].
+	 * @return	This instance.
+	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
+	 */
+	public Dough addMilk(final double milk, final double pH, final double waterContent, final double fatContent) throws DoughException{
+		if(milk < 0.)
+			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
+
+		final double water = milk * waterContent;
+		if(this.water + water > 0.){
+			waterChlorineDioxide = this.water * waterChlorineDioxide / (this.water + water);
+			waterCalciumCarbonate = this.water * waterCalciumCarbonate / (this.water + water);
+			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
+			waterFixedResidue = (this.water * waterFixedResidue + water * 0.09) / (this.water + water);
+		}
+		this.water += water;
+		this.fat += milk * fatContent;
+
+		milkWater = waterContent;
+		milkFat = fatContent;
+
+		return this;
+	}
+
+	/**
+	 * @param egg	Egg weight [% w/w].
+	 * @param pH	pH of egg.
+	 * @param shellContent	Shell in egg [% w/w].
+	 * @param waterContent	Water in egg [% w/w].
+	 * @param fatContent	Fat in egg [% w/w].
+	 * @return	This instance.
+	 */
+	public Dough addEgg(final double egg, final double pH, final double shellContent, final double waterContent, final double fatContent){
+		final double water = egg * (1. - shellContent) * waterContent;
+		if(this.water + water > 0.){
+			waterChlorineDioxide = this.water * waterChlorineDioxide / (this.water + water);
+			waterCalciumCarbonate = this.water * waterCalciumCarbonate / (this.water + water);
+			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
+		}
+		this.water += water;
+		this.fat += egg * (1. - shellContent) * fatContent;
+
+		this.egg += egg;
+		eggShell = shellContent;
+		eggWater = waterContent;
+		eggFat = fatContent;
 
 		return this;
 	}
@@ -642,12 +710,12 @@ public final class Dough{
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
-		final double kWater = waterFactor();
+//		final double kWater = waterFactor();
 //		final double kWaterPH = waterPHFactor(yeast, temperature);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
-		final double kHydration = kWater/* * kWaterPH * kWaterFixedResidue*/;
+//		final double kHydration = kWater * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kTemperature * kSugar * kFat * */kSalt * kHydration * kAtmosphericPressure;
+		return /*kTemperature * kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
 	}
 
 	/**
@@ -927,12 +995,14 @@ public final class Dough{
 		do{
 			yeast = totalFlour * yeastFactor;
 			flour = totalFlour - yeast * (1. - rawYeast);
-			water = Math.max(totalFlour * this.water - waterCorrection, 0.);
 			sugar = totalFlour * sugarFactor;
 			final double fatCorrection = calculateFatCorrection(flour);
-			fat = Math.max(totalFlour * this.fat - fatCorrection, 0.) / rawFat;
+			final double rawEgg = egg * (1. - eggShell);
+			fat = Math.max(totalFlour * this.fat * (1. - milkFat) - rawEgg * eggFat - fatCorrection, 0.) / rawFat;
+			water = Math.max((totalFlour * this.water - rawEgg * eggWater - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
+				/ (milkWater > 0.? milkWater: 1.), 0.);
 			final double saltCorrection = calculateSaltCorrection(flour);
-			salt = Math.max(totalFlour * this.salt - saltCorrection, 0.);
+			salt = Math.max(totalFlour * this.salt - fat * fatSaltContent - saltCorrection, 0.);
 
 			//refine approximation:
 			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
