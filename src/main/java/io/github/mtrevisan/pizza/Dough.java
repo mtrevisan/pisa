@@ -43,8 +43,10 @@ public final class Dough{
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
 
 
-	/** Standard atmosphere [hPa]. */
-	static final double ONE_ATMOSPHERE = 1013.25;
+	/** Standard ambient temperature [°C]. */
+	private static final double STANDARD_AMBIENT_TEMPERATURE = 25.;
+	/** Standard ambient pressure [hPa]. */
+	static final double STANDARD_AMBIENT_PRESSURE = 1013.25;
 
 	/** [g/mol] */
 	private static final double MOLECULAR_WEIGHT_CARBON = 12.0107;
@@ -225,7 +227,7 @@ public final class Dough{
 	/** Relative humidity of the air [% w/w]. */
 	Double airRelativeHumidity;
 	/** Atmospheric pressure [hPa]. */
-	double atmosphericPressure = ONE_ATMOSPHERE;
+	double atmosphericPressure = STANDARD_AMBIENT_PRESSURE;
 
 
 	public static Dough create(final YeastModelAbstract yeastModel) throws DoughException{
@@ -520,12 +522,12 @@ public final class Dough{
 	}
 
 	double calculateVolumeExpansionRatioDifference(final double yeast, final Procedure procedure){
-		//FIXME
 		final double temperature = (doughTemperature != null? doughTemperature:
-			(ingredientsTemperature != null? ingredientsTemperature: 25.));
+			(ingredientsTemperature != null? ingredientsTemperature: STANDARD_AMBIENT_TEMPERATURE));
 		final double kWaterChlorineDioxide = waterChlorineDioxideFactor(yeast, temperature);
 		final double aliveYeast = kWaterChlorineDioxide * yeast;
-
+		final double alpha = maximumRelativeVolumeExpansionRatio(aliveYeast);
+		final double lambda = estimatedLag(aliveYeast, temperature);
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
 		for(int i = 0; i < procedure.leaveningStages.length; i ++){
 			ingredientsFactors[i] = ingredientsFactor(aliveYeast, procedure.leaveningStages[i].temperature, atmosphericPressure);
@@ -533,8 +535,6 @@ public final class Dough{
 				return Double.POSITIVE_INFINITY;
 		}
 
-		final double alpha = maximumRelativeVolumeExpansionRatio(aliveYeast);
-		final double lambda = estimatedLag(aliveYeast, temperature);
 
 		LeaveningStage currentStage;
 		LeaveningStage previousStage = LeaveningStage.ZERO;
