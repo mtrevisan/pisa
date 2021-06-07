@@ -507,7 +507,9 @@ class DoughTest{
 	}
 
 	@Test
-	void futurePaninUeta20210530() throws DoughException, YeastException{
+	void paninUeta20210602() throws DoughException, YeastException{
+		//water in 60 g of egg (76.15% water content and 12.5% shell) [%]
+		final double waterInEgg = 60. * (1. - 0.125) * 0.7615 / 300.;
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addMilk(0.25, 6.6, 0.87, 0.037)
 			.addEgg(59. / 300., 6., 0.125, 0.7615, 0.11)
@@ -516,9 +518,9 @@ class DoughTest{
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 1.3))
-			.withIngredientsTemperature(21.7)
+			.withIngredientsTemperature(22.7)
 			.withDoughTemperature(27.)
-			.withAtmosphericPressure(1016.1);
+			.withAtmosphericPressure(1015.);
 		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l))
 			.withAfterStageWork(Duration.ofMinutes(10l));
 		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l))
