@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.services.SteffenInterpolator;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
@@ -708,7 +706,6 @@ public final class Dough{
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
-		final double kTemperature = temperatureFactor(temperature);
 //		final double kTemperature = 0.9631;
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
@@ -718,30 +715,7 @@ public final class Dough{
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
 //		final double kHydration = kWater * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kTemperature * /*kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
-	}
-
-	/**
-	 * https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwja7bqJ6-nwAhUk_7sIHbO_DcE4HhAWMAF6BAgCEAQ&url=https%3A%2F%2Fdigikogu.taltech.ee%2Ftestimine%2Fet%2FDownload%2F0a9ce955-b3f0-4513-94c2-148de01a6e46%2FEffectofchangingenvironmentalconditionsonthe.pdf&usg=AOvVaw0TgJTvRIHCd4Od6YRm8uNW
-	 * https://www.scielo.br/j/bjm/a/z6YHJbY5J5XhSmsMRpg3Qdm/
-	 * https://www.researchgate.net/publication/260241797_Physiological_characterization_of_thermotolerant_yeast_for_cellulosic_ethanol_production
-	 *
-	 * @param temperature	Temperature [°C].
-	 * @return	Correction factor.
-	 */
-	private double temperatureFactor(final double temperature){
-		final double widthSlope = (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()) / 42.;
-		final double shift = yeastModel.getTemperatureOpt() - widthSlope * 33.;
-		final PolynomialSplineFunction splineFunction = new SteffenInterpolator().interpolate(
-			new double[]{yeastModel.getTemperatureMin(),
-				widthSlope * 26. + shift * 26. / (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()),
-				yeastModel.getTemperatureOpt(),
-				widthSlope * 38. + shift * 4. / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureOpt()),
-				widthSlope * 41. + shift / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureOpt()),
-				yeastModel.getTemperatureMax()},
-			new double[]{0., 0.46875, 1., 0.625, 0.1875, 0.}
-		);
-		return Math.max(splineFunction.value(temperature), 0.);
+		return /*kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
 	}
 
 	/**
