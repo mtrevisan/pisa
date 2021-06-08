@@ -18,8 +18,8 @@ import org.apache.commons.math3.util.MathArrays;
  */
 public class SteffenInterpolator{
 
-	public PolynomialSplineFunction interpolate(final double[] x, final double[] y)
-			throws DimensionMismatchException, NumberIsTooSmallException, NonMonotonicSequenceException{
+	public PolynomialSplineFunction interpolate(final double[] x, final double[] y) throws DimensionMismatchException,
+			NumberIsTooSmallException, NonMonotonicSequenceException{
 		if(x.length != y.length)
 			throw new DimensionMismatchException(x.length, y.length);
 		if(x.length < 3)

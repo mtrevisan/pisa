@@ -31,7 +31,7 @@ public abstract class YeastModelAbstract{
 	public abstract double getTemperatureMin();
 
 	//Temperature at which the maximum specific growth rate equals its optimal value [°C]
-	abstract double getTemperatureOpt();
+	public abstract double getTemperatureOpt();
 
 	//Temperature above which no growth occurs [°C]
 	public abstract double getTemperatureMax();

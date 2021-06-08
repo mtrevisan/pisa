@@ -38,7 +38,7 @@ public class SaccharomycesCerevisiaeAverageYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		return 32.27;
 	}
 

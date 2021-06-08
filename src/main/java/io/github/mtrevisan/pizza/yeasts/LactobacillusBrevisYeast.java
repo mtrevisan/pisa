@@ -38,7 +38,7 @@ public class LactobacillusBrevisYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		return 44.6;
 	}
 

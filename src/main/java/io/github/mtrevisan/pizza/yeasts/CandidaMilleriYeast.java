@@ -39,7 +39,7 @@ public class CandidaMilleriYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		return 27.0;
 	}
 

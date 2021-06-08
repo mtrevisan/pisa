@@ -40,7 +40,7 @@ public class SaccharomycesBayanusUvarumNCAIM789Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		//± 0.23 °C
 		return 26.78;
 	}

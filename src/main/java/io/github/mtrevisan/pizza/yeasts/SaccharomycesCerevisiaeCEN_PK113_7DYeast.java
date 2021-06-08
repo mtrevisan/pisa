@@ -39,7 +39,7 @@ public class SaccharomycesCerevisiaeCEN_PK113_7DYeast extends YeastModelAbstract
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		//± 0.85 °C
 		return 30.03;
 	}

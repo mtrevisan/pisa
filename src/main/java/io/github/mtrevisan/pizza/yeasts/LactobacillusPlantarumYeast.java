@@ -40,7 +40,7 @@ public class LactobacillusPlantarumYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		return 36.6;
 		//± 3.2 °C
 //		return 37.1;

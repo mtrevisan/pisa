@@ -40,7 +40,7 @@ public class SaccharomycesCerevisiaeTEMOHAYA_MI26Yeast extends YeastModelAbstrac
 	}
 
 	@Override
-	final double getTemperatureOpt(){
+	public final double getTemperatureOpt(){
 		//± 0.35 °C
 		return 34.19;
 	}

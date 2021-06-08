@@ -709,6 +709,7 @@ public final class Dough{
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
 		final double kTemperature = temperatureFactor(temperature);
+//		final double kTemperature = 0.9631;
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
@@ -717,7 +718,7 @@ public final class Dough{
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
 //		final double kHydration = kWater * kWaterPH * kWaterFixedResidue;
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kTemperature * kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
+		return /*kTemperature * /*kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
 	}
 
 	/**
@@ -729,13 +730,18 @@ public final class Dough{
 	 * @return	Correction factor.
 	 */
 	private double temperatureFactor(final double temperature){
-		//TODO stretch from min to max, put max-value on opt
+		final double widthSlope = (yeastModel.getTemperatureMax() - yeastModel.getTemperatureMin()) / 42.;
+		final double shift = yeastModel.getTemperatureOpt() - widthSlope * 33.;
 		final PolynomialSplineFunction splineFunction = new SteffenInterpolator().interpolate(
-			new double[]{4., 30., 37., 42., 45., 46.},
+			new double[]{yeastModel.getTemperatureMin(),
+				widthSlope * 26. + shift * 26. / (yeastModel.getTemperatureOpt() - yeastModel.getTemperatureMin()),
+				yeastModel.getTemperatureOpt(),
+				widthSlope * 38. + shift * 4. / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureOpt()),
+				widthSlope * 41. + shift / (yeastModel.getTemperatureMax() - yeastModel.getTemperatureOpt()),
+				yeastModel.getTemperatureMax()},
 			new double[]{0., 0.46875, 1., 0.625, 0.1875, 0.}
 		);
-		final double factor = Math.max(splineFunction.value(temperature), 0d);
-		return Math.exp(17.177 - 5449.8 / (temperature + Water.ABSOLUTE_ZERO));
+		return Math.max(splineFunction.value(temperature), 0.);
 	}
 
 	/**
