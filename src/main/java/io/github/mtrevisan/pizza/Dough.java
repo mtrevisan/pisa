@@ -222,8 +222,6 @@ public final class Dough{
 
 	/** Egg content w.r.t. flour [% w/w]. */
 	private double egg;
-	/** Total shell quantity w.r.t. egg [% w/w]. */
-	private double eggShell;
 	/** Total water quantity w.r.t. flour in egg [% w/w]. */
 	private double eggWater;
 	/** Total fat quantity w.r.t. flour in egg [% w/w]. */
@@ -390,19 +388,19 @@ public final class Dough{
 	 * @return	This instance.
 	 */
 	public Dough addEgg(final double egg, final double pH, final double shellContent, final double waterContent, final double fatContent){
-		final double water = egg * (1. - shellContent) * waterContent;
+		final double rawEgg = egg * (1. - shellContent);
+		final double water = rawEgg * waterContent;
 		if(this.water + water > 0.){
 			waterChlorineDioxide = this.water * waterChlorineDioxide / (this.water + water);
 			waterCalciumCarbonate = this.water * waterCalciumCarbonate / (this.water + water);
 			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
 		}
 		this.water += water;
-		this.fat += egg * (1. - shellContent) * fatContent;
+		this.fat += rawEgg * fatContent;
 
-		this.egg += egg;
-		eggShell = shellContent;
-		eggWater = waterContent;
-		eggFat = fatContent;
+		this.egg += rawEgg;
+		eggWater = rawEgg * waterContent;
+		eggFat = rawEgg * fatContent;
 
 		return this;
 	}
@@ -706,16 +704,15 @@ public final class Dough{
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	private double ingredientsFactor(final double yeast, final double temperature, final double atmosphericPressure){
-//		final double kTemperature = 0.9631;
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
 //		final double kWater = waterFactor();
-//		final double kWaterPH = waterPHFactor(yeast, temperature);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
-//		final double kHydration = kWater * kWaterPH * kWaterFixedResidue;
+//		final double kHydration = kWater * kWaterFixedResidue;
+		final double kPH = phFactor();
 		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
-		return /*kSugar * kFat * */kSalt * /*kHydration * */kAtmosphericPressure;
+		return /*kSugar * kFat * */kSalt * /*kHydration * */kPH * kAtmosphericPressure;
 	}
 
 	/**
@@ -752,23 +749,6 @@ public final class Dough{
 //		return s / ((Ks + s) * (1 + s / Ksi));
 
 		return 1.;
-
-//		/**
-//		 * base is pH 5.4±0.1, 20 mg/l glucose
-//		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
-//		 */
-//		final double basePH = 5.4;
-//		final double baseSugar = 20. / 1000.;
-//		final double baseMu = (0.3945 + (-0.00407 + 0.0000096 * baseSugar) * baseSugar
-//			+ (-0.00375 + 0.000025 * baseSugar) * temperature
-//			+ (0.003 - 0.00002 * baseSugar) * basePH
-//			) / 3.;
-//
-//		final double s = fractionOverTotal(sugar);
-//		return (0.3945 + (-0.00407 + 0.0000096 * s) * s
-//			+ (-0.00375 + 0.000025 * s) * temperature
-//			+ (0.003 - 0.00002 * s) * waterPH
-//		) / (3. * baseMu);
 	}
 
 	/**
@@ -867,66 +847,32 @@ public final class Dough{
 	}
 
 	/**
-	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
-	 * @see <a href="https://academic.oup.com/femsyr/article/15/2/fou005/534737">Peña, Sánchez, Álvarez, Calahorra, Ramírez. Effects of high medium pH on growth, metabolism and transport in Saccharomyces cerevisiae. 2015.</a>
-	 *
+	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1388350/">Rosso, Lobry, Bajard, Flandrois. Convenient model to describe the combined effects of temperature and pH on microbial growth. 1995.</a>
+	 * @see <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91662/">Mambré, Kubaczka, Chéné. Combined effects of pH and sugar on growth rate of Zygosaccharomyces rouxii, a bakery product spoilage yeast. 1999.</a>
+	 * @see <a href="https://www.researchgate.net/profile/Sandra-Antonini/publication/335275152_Interaction_of_4-ethylphenol_pH_sucrose_and_ethanol_on_the_growth_and_fermentation_capacity_of_the_industrial_strain_of_Saccharomyces_cerevisiae_PE-2/links/5d5edff0299bf1b97cff2252/Interaction-of-4-ethylphenol-pH-sucrose-and-ethanol-on-the-growth-and-fermentation-capacity-of-the-industrial-strain-of-Saccharomyces-cerevisiae-PE-2.pdf>Covre, Silva, Bastos, Antonini. Interaction of 4-ethylphenol, pH, sucrose and ethanol on the growth and fermentation capacity of the industrial strain of Saccharomyces cerevisiae PE-2. 2019.</a>
 	 * @see <a href="https://oatao.univ-toulouse.fr/1556/1/Serra_1556.pdf">Serra, Strehaiano, Taillandier. Influence of temperature and pH on Saccharomyces bayanus var. uvarum growth; impact of a wine yeast interspecifichy bridization on these parameters. 2005.</a>
+	 * @see <a href="https://www.scielo.br/pdf/bjm/v39n2/a24.pdf">Yalcin, Ozbas. Effects of pH and temperature on growth and glycerol production kinetics of two indigenous wine strains of Saccharomyces cerevisiae from Turkey. 2008.</a>
+	 * @see <a href="http://ache.org.rs/CICEQ/2010/No2/12_3141_2009.pdf">Shafaghat, Najafpour, Rezaei, Sharifzadeh. Optimal growth of Saccharomyces cerevisiae (PTCC 24860) on pretreated molasses for ethanol production: Application of response surface methodology. 2010.</a>
+	 * @see <a href="https://academic.oup.com/femsyr/article/15/2/fou005/534737">Peña, Sánchez, Álvarez, Calahorra, Ramírez. Effects of high medium pH on growth, metabolism and transport in Saccharomyces cerevisiae. 2015.</a>
+	 * @see <a href="https://bib.irb.hr/datoteka/389483.Arroyo-Lopez_et_al.pdf">Arroyo-López, Orlića, Querolb, Barrio. Effects of temperature, pH and sugar concentration on the growth parameters of Saccharomyces cerevisiae, S. kudriavzeviiand their interspecific hybrid. 2009.</a>
 	 *
-	 * pH
-	 * pH is important in dough-making because it affects chemical and biological reactions. Most notably, it affects the rate of amylase
-	 * enzyme performance (conversion of starch to sugar) and, as a result, the rate of fermentation. The optimum pH for starch conversion
-	 * and fermentation and, hence, for pizza dough, is about 5, or slightly acidic. This pH level is best achieved by using water with
-	 * pH 6.5 to 8, with pH 7 being the optimum.
+	 * Maximum specific growth rate rises until before 2.1 pH, decreases until 2.7 pH, then rises until 6 pH, then decreases again,
+	 * reaching 0 at 9 pH.
 	 *
-	 * http://ache.org.rs/CICEQ/2010/No2/12_3141_2009.pdf
-	 * https://www.scielo.br/pdf/bjm/v39n2/a24.pdf
-	 * https://core.ac.uk/download/pdf/12040042.pdf
-	 * https://www.researchgate.net/profile/Sandra-Antonini/publication/335275152_Interaction_of_4-ethylphenol_pH_sucrose_and_ethanol_on_the_growth_and_fermentation_capacity_of_the_industrial_strain_of_Saccharomyces_cerevisiae_PE-2/links/5d5edff0299bf1b97cff2252/Interaction-of-4-ethylphenol-pH-sucrose-and-ethanol-on-the-growth-and-fermentation-capacity-of-the-industrial-strain-of-Saccharomyces-cerevisiae-PE-2.pdf
-	 *
-	 * https://www.ncbi.nlm.nih.gov/pmc/articles/PMC91662/
-	 *
-	 * Maximum specific growth rate starts at 0 at 0 pH, then rises until before 2.1 pH, decreases until 2.7 pH, then rises until 6 pH, then decreases again, reaching 0 at 9 pH.
-	 *
-	 * @param yeast	yeast [% w/w]
 	 * @return	Correction factor.
 	 */
-	private double waterPHFactor(final double yeast, final double temperature){
-		//TODO
-		final double totalFraction = totalFraction();
+	private double phFactor(){
 		final double compositePH = (
-			waterPH * water
-			//flour
-			+ 6.2 * 1.
-			+ 5.5 * sugar
-			+ 3.3 * yeast) / totalFraction;
-		final double cph = (compositePH - 2.75) / (4.25 - 2.75);
-		final double t = (temperature - 18.) / (30. - 18.);
-		final double as = (0.025 + 0.013 * cph) * cph
-			+ 0.019 * t * cph;
-//		return Math.max(compositePH <= 5.6? compositePH / 5.6: 1. - (compositePH - 5.6) / 3.4, 0.);
+			//flour (usually between 6 and 6.8)
+			6.4
+			+ waterPH * water
+			//6.1-6.4 for butter
+			+ 6.25 * fat) / (1. + water + fat);
 
-		/**
-		 * base is pH 5.4±0.1, 20 mg/l glucose
-		 * @see io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast#getMaximumSpecificGrowthRate()
-		 */
-//		final double baseMu = getPHMu(temperature, 5.4, 20. / 1000.);
-
-//		return Math.max(getPHMu(temperature, compositePH, sugar / totalFraction) / baseMu, 0.);
-
-		return 1.;
-	}
-
-	private double getPHMu(final double temperature, final double ph, final double sugar){
-		final double t = (temperature - 18.) / (30. - 18.);
-		final double s = (sugar - 150.) / (250. - 150.);
-		final double p = (ph - 2.75) / (4.25 - 2.75);
-		return 0.22
-			+ (0.108 - 0.014 * t) * t
-			+ (0.025 + 0.013 * p) * p
-			+ (-0.040 + 0.032 * s) * s
-			+ 0.019 * t * p
-			+ 0.010 * t * s
-			- 0.001 * p * s;
+		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
+			return 0.;
+		final double tmp = (compositePH - yeastModel.getPHMin()) * (compositePH - yeastModel.getPHMax());
+		return tmp / (tmp - Math.pow(compositePH - yeastModel.getPHOpt(), 2.));
 	}
 
 	/**
@@ -987,9 +933,8 @@ public final class Dough{
 			flour = totalFlour - yeast * (1. - rawYeast);
 			sugar = totalFlour * sugarFactor;
 			final double fatCorrection = calculateFatCorrection(flour);
-			final double rawEgg = egg * (1. - eggShell);
-			fat = Math.max(totalFlour * this.fat * (1. - milkFat) - rawEgg * eggFat - fatCorrection, 0.) / rawFat;
-			water = Math.max((totalFlour * this.water - rawEgg * eggWater - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
+			fat = Math.max(totalFlour * (this.fat * (1. - milkFat) - eggFat) - fatCorrection, 0.) / rawFat;
+			water = Math.max((totalFlour * (this.water - eggWater) - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
 				/ (milkWater > 0.? milkWater: 1.), 0.);
 			final double saltCorrection = calculateSaltCorrection(flour);
 			salt = Math.max(totalFlour * this.salt - fat * fatSaltContent - saltCorrection, 0.);

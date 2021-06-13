@@ -46,8 +46,8 @@ public class SaccharomycesCerevisiaePE2Yeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getMaximumSpecificVolumeGrowthRate(){
-		return 0.315;
+	public final double getMaximumSpecificVolumeGrowthRate(){
+		return 0.502;
 	}
 
 }

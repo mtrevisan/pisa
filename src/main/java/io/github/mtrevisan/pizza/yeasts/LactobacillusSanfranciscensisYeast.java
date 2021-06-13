@@ -51,7 +51,7 @@ public class LactobacillusSanfranciscensisYeast extends YeastModelAbstract{
 	}
 
 	@Override
-	final double getMaximumSpecificVolumeGrowthRate(){
+	public final double getMaximumSpecificVolumeGrowthRate(){
 		return 0.71;
 	}
 

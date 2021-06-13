@@ -27,18 +27,33 @@ package io.github.mtrevisan.pizza.yeasts;
 
 public abstract class YeastModelAbstract{
 
-	//Temperature below which no growth occurs [°C]
+	//Temperature below which no growth occurs [°C].
 	public abstract double getTemperatureMin();
 
-	//Temperature at which the maximum specific growth rate equals its optimal value [°C]
+	//Temperature at which the maximum specific growth rate equals its optimal value [°C].
 	public abstract double getTemperatureOpt();
 
-	//Temperature above which no growth occurs [°C]
+	//Temperature above which no growth occurs [°C].
 	public abstract double getTemperatureMax();
+
+	//pH below which no growth occurs.
+	public double getPHMin(){
+		return 2.;
+	}
+
+	//pH at which the maximum specific growth rate equals its optimal value.
+	public double getPHOpt(){
+		return 7.;
+	}
+
+	//pH above which no growth occurs.
+	public double getPHMax(){
+		return 9.;
+	}
 
 	//Maximum specific volume growth rate [hrs^-1]
 	//https://assets.researchsquare.com/files/rs-182823/v1_stamped.pdf
-	abstract double getMaximumSpecificVolumeGrowthRate();
+	public abstract double getMaximumSpecificVolumeGrowthRate();
 
 
 	/**
