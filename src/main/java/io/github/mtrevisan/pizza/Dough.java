@@ -24,9 +24,11 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.services.SteffenInterpolator;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
@@ -91,7 +93,7 @@ public final class Dough{
 	static final double SALT_MAX = 2.04 * MOLECULAR_WEIGHT_SODIUM_CHLORIDE / 10.;
 
 	/**
-	 * @see #waterFactor()
+	 * @see #waterFactor(double, double)
 	 * @see #HYDRATION_MIN
 	 * @see #HYDRATION_MAX
 	 */
@@ -100,14 +102,14 @@ public final class Dough{
 	 * [% w/w]
 	 *
 	 * @see #WATER_COEFFICIENTS
-	 * @see #waterFactor()
+	 * @see #waterFactor(double, double)
 	 */
 	static final double HYDRATION_MIN = (7.65 - Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 	/**
 	 * [% w/w]
 	 *
 	 * @see #WATER_COEFFICIENTS
-	 * @see #waterFactor()
+	 * @see #waterFactor(double, double)
 	 */
 	static final double HYDRATION_MAX = (7.65 + Math.sqrt(Math.pow(7.65, 2.) - 4. * 6.25 * 1.292)) / (2. * 6.25);
 
@@ -509,15 +511,15 @@ public final class Dough{
 		if(water < HYDRATION_MIN || water > HYDRATION_MAX)
 			throw DoughException.create("Hydration [% w/w] must be between {} and {}%",
 				Helper.round(HYDRATION_MIN * 100., 1), Helper.round(HYDRATION_MAX * 100., 1));
-		if(fractionOverTotal(sugar) > SUGAR_MAX)
+		if(fractionOverTotal(sugar, yeast) > SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be less than {}%", Helper.round(SUGAR_MAX * 100., 1));
-		if(fractionOverTotal(salt) > SALT_MAX)
+		if(fractionOverTotal(salt, yeast) > SALT_MAX)
 			throw DoughException.create("Salt [% w/w] must be less than {}%", Helper.round(SALT_MAX * 100., 1));
 
 		//convert [% w/w] to [mol / l]
-		final double glucose = fractionOverTotal(sugar * 10.) / MOLECULAR_WEIGHT_GLUCOSE;
+		final double glucose = fractionOverTotal(sugar * 10., yeast) / MOLECULAR_WEIGHT_GLUCOSE;
 		//convert [% w/w] to [mol / l]
-		final double sodiumChloride = fractionOverTotal(salt * 10.) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
+		final double sodiumChloride = fractionOverTotal(salt * 10., yeast) / MOLECULAR_WEIGHT_SODIUM_CHLORIDE;
 		if(glucose <= 0.3 && sodiumChloride > Math.exp((1. - Math.log(Math.pow(1. + Math.exp(1.0497 * glucose), 1.3221)))
 				* (glucose / (0.0066 + 0.7096 * glucose))) || glucose > 0.3 && sodiumChloride > 1.9930 * (3. - glucose) / 2.7)
 			throw DoughException.create("Salt and sugar are too much, yeast will die");
@@ -666,7 +668,7 @@ public final class Dough{
 		///the following formula is for 2.51e7 CFU/ml yeast
 		final double yeastRatio = getYeastRatio(yeast, temperature, 2.51e7);
 		//transform [% w/w] to [g / l]
-		final double s = fractionOverTotal(salt) * 10. / yeastRatio;
+		final double s = fractionOverTotal(salt, yeast) * 10. / yeastRatio;
 		final double saltLag = Math.log(1. + Math.exp(0.494 * (s - 84.)));
 
 		//FIXME this formula is for 36±1 °C
@@ -707,7 +709,7 @@ public final class Dough{
 //		final double kSugar = sugarFactor(temperature);
 //		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast, temperature);
-//		final double kWater = waterFactor();
+		final double kWater = waterFactor(yeast, temperature);
 //		final double kWaterFixedResidue = waterFixedResidueFactor();
 //		final double kHydration = kWater * kWaterFixedResidue;
 		final double kPH = phFactor();
@@ -731,7 +733,7 @@ public final class Dough{
 	 */
 	private double sugarFactor(final double temperature){
 		//[g/l]
-		final double s = 1000. * getSugarRatio(sugar + (flour != null? flour.sugar * SugarType.GLUCOSE.factor: 0.), temperature);
+		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.sugar * SugarType.GLUCOSE.factor: 0.), temperature);
 		//TODO
 		//Monod equation
 		//T[°C]	Ki[g/l]
@@ -772,6 +774,7 @@ public final class Dough{
 	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
 	 * @param yeast   yeast [% w/w]
+	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
 	private double saltFactor(final double yeast, final double temperature){
@@ -779,7 +782,7 @@ public final class Dough{
 		if(salt > 0.){
 			///the following formula is for 2.51e7 CFU/ml yeast
 			final double yeastRatio = getYeastRatio(yeast, temperature, 2.51e7);
-			final double s = fractionOverTotal(salt) / yeastRatio;
+			final double s = fractionOverTotal(salt, yeast) / yeastRatio;
 			final double x = 11.7362 * s;
 			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
 			final double b = s / (87.5679 - 0.2725 * s);
@@ -789,12 +792,19 @@ public final class Dough{
 	}
 
 	/**
-	 * @see <a href="https://www.nature.com/articles/s41598-018-36786-2.pdf">Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018.</a>
 	 * @see <a href="http://fens.usv.ro/index.php/FENS/article/download/328/326">Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4.</a>
+	 * @see <a href="https://www.nature.com/articles/s41598-018-36786-2.pdf">Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018.</a>
 	 *
+	 * @param yeast   yeast [% w/w]
+	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-	private double waterFactor(){
+	private double waterFactor(final double yeast, final double temperature){
+		///the following formula is for 10^7.3 = 2e7 CFU/ml yeast and hydration of 57.1% is 100%
+//		final double yeastRatio = getYeastRatio(yeast, temperature, 2.e7);
+//
+//		return Math.max(0.5835 * Math.log(yeastRatio) + 0.9743, 0.);
+
 		//TODO
 		return 1.;
 
@@ -814,7 +824,7 @@ public final class Dough{
 		///the following formula is for 1e8 CFU/ml yeast
 		final double yeastRatio = getYeastRatio(yeast, temperature, 1.e8);
 
-		final double w = (yeastRatio > 0.? fractionOverTotal(water) / yeastRatio: 0.);
+		final double w = (yeastRatio > 0.? fractionOverTotal(water, yeastRatio) / yeastRatio: 0.);
 		return Math.max(1. - waterChlorineDioxide * w / WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
@@ -827,10 +837,10 @@ public final class Dough{
 			.withFat(fat)
 			.withSalt(salt)
 			.density(fatDensity, temperature, atmosphericPressure);
-		return fractionOverTotal(yeast * rawYeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
+		return fractionOverTotal(yeast * rawYeast, yeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
 	}
 
-	private double getSugarRatio(final double sugar, final double temperature){
+	private double getSugarRatio(final double yeast, final double sugar, final double temperature){
 		double sugarRatio = 0.;
 		if(sugar > 0.){
 			final double doughDensity = Recipe.create()
@@ -841,7 +851,7 @@ public final class Dough{
 				.withFat(fat)
 				.withSalt(salt)
 				.density(fatDensity, temperature, atmosphericPressure);
-			sugarRatio = fractionOverTotal(sugar) * (sugarType != null? sugarType.factor: SugarType.GLUCOSE.factor) * doughDensity;
+			sugarRatio = fractionOverTotal(sugar, yeast) * (sugarType != null? sugarType.factor: SugarType.GLUCOSE.factor) * doughDensity;
 		}
 		return sugarRatio;
 	}
@@ -913,18 +923,18 @@ public final class Dough{
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}
 
-	private double fractionOverTotal(final double value){
-		return value / totalFraction();
+	private double fractionOverTotal(final double value, final double yeast){
+		return value / totalFraction(yeast * rawYeast);
 	}
 
-	private double totalFraction(){
+	private double totalFraction(final double yeast){
 		return 1. + water + sugar + yeast + salt + fat;
 	}
 
 	private Recipe calculateIngredients(final double doughWeight){
 		double yeast, flour, water, sugar, fat, salt,
 			difference;
-		double totalFlour = fractionOverTotal(doughWeight);
+		double totalFlour = fractionOverTotal(doughWeight, 0.);
 		final double waterCorrection = calculateWaterCorrection();
 		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
 		final double sugarFactor = this.sugar / (sugarType.factor * rawSugar);
