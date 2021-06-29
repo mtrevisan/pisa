@@ -34,7 +34,7 @@ import io.github.mtrevisan.pizza.StretchAndFoldStage;
 import io.github.mtrevisan.pizza.SugarType;
 import io.github.mtrevisan.pizza.YeastException;
 import io.github.mtrevisan.pizza.YeastType;
-import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
+import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,7 @@ class FeteBiskotadeTest{
 
 	@Test
 	void feteBiskotade20210628() throws DoughException, YeastException{
-		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.addWater(41. / 300., 0.02, 0., 7.9, 237.)
 			.addMilk(41. / 300., 6.6, 0.87, 0.037)
 			//zucchero di canna
@@ -72,13 +72,13 @@ class FeteBiskotadeTest{
 			Duration.ofMinutes(15l), Duration.ZERO,
 			LocalTime.of(21, 0))
 			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
-		final Recipe recipe = dough.createRecipe(procedure, 439.9);
+		final Recipe recipe = dough.createRecipe(procedure, 441.1);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 0.1);
 		Assertions.assertEquals(80.2, recipe.getWater(), 0.1);
-		Assertions.assertEquals(15.8, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(15.7, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(40.33, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.49, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(1.74, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(3., recipe.getSalt(), 0.01);
 		Assertions.assertEquals(15.9, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
@@ -94,7 +94,7 @@ class FeteBiskotadeTest{
 
 	@Test
 	void futureFeteBiskotade202106xx() throws DoughException, YeastException{
-		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.addWater(41. / 300., 0.02, 0., 7.9, 237.)
 			.addMilk(41. / 300., 6.6, 0.87, 0.037)
 			//zucchero di canna
@@ -120,13 +120,13 @@ class FeteBiskotadeTest{
 			Duration.ofMinutes(15l), Duration.ZERO,
 			LocalTime.of(21, 0))
 			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
-		final Recipe recipe = dough.createRecipe(procedure, 433.2);
+		final Recipe recipe = dough.createRecipe(procedure, 434.5);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 0.1);
 		Assertions.assertEquals(81.8, recipe.getWater(), 0.1);
-		Assertions.assertEquals(16.3, recipe.getWaterTemperature(), 0.1);
-		Assertions.assertEquals(32.06, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(0.49, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(16.2, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(32.07, recipe.getSugar(), 0.01);
+		Assertions.assertEquals(1.74, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(3., recipe.getSalt(), 0.01);
 		Assertions.assertEquals(15.9, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
