@@ -29,7 +29,7 @@ import io.github.mtrevisan.pizza.bakingpans.BakingPanAbstract;
 
 public class BakingInstruments{
 
-	BakingPanAbstract[] bakingPans;
+	public BakingPanAbstract[] bakingPans;
 
 
 	public final BakingInstruments withBakingPans(final BakingPanAbstract... bakingPans) throws OvenException{
