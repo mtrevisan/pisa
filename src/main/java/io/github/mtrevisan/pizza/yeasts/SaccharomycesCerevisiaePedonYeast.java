@@ -33,7 +33,7 @@ public class SaccharomycesCerevisiaePedonYeast extends YeastModelAbstract{
 	@Override
 	public final double getTemperatureMin(){
 		//< -18 °C
-		return -18.;
+		return 0.;
 	}
 
 	@Override

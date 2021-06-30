@@ -72,13 +72,13 @@ class FeteBiskotadeTest{
 			Duration.ofMinutes(15l), Duration.ZERO,
 			LocalTime.of(21, 0))
 			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
-		final Recipe recipe = dough.createRecipe(procedure, 441.1);
+		final Recipe recipe = dough.createRecipe(procedure, 441.3);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 0.1);
 		Assertions.assertEquals(80.2, recipe.getWater(), 0.1);
 		Assertions.assertEquals(15.7, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(40.33, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(1.74, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(1.92, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(3., recipe.getSalt(), 0.01);
 		Assertions.assertEquals(15.9, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
@@ -120,13 +120,13 @@ class FeteBiskotadeTest{
 			Duration.ofMinutes(15l), Duration.ZERO,
 			LocalTime.of(21, 0))
 			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
-		final Recipe recipe = dough.createRecipe(procedure, 434.5);
+		final Recipe recipe = dough.createRecipe(procedure, 434.7);
 
 		Assertions.assertEquals(300., recipe.getFlour(), 0.1);
 		Assertions.assertEquals(81.8, recipe.getWater(), 0.1);
 		Assertions.assertEquals(16.2, recipe.getWaterTemperature(), 0.1);
 		Assertions.assertEquals(32.07, recipe.getSugar(), 0.01);
-		Assertions.assertEquals(1.74, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(1.92, recipe.getYeast(), 0.01);
 		Assertions.assertEquals(3., recipe.getSalt(), 0.01);
 		Assertions.assertEquals(15.9, recipe.getFat(), 0.01);
 		Assertions.assertEquals(LocalTime.of(12, 35), recipe.getDoughMakingInstant());
