@@ -39,35 +39,41 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<java.version>1.16</java.version>
-		<maven.compiler.source>16</maven.compiler.source>
-		<maven.compiler.target>16</maven.compiler.target>
+		<java.version>1.17</java.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 
 		<javadoc.html.version>-html5</javadoc.html.version>
 
 		<!-- Profiles & Build -->
-		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+<!--		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>-->
+<!--		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>-->
+<!--		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>-->
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
 		<maven-help-plugin.version>3.2.0</maven-help-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 
 		<!-- Apache -->
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
 		<apache.commons-math3.version>3.6.1</apache.commons-math3.version>
 
 		<!-- Logging -->
-		<slf4j.slf4j-api.version>1.7.30</slf4j.slf4j-api.version>
-		<logback.logback-classic.version>1.2.3</logback.logback-classic.version>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+		<slf4j.slf4j-api.version>1.7.32</slf4j.slf4j-api.version>
+		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+		<logback.logback-classic.version>1.2.6</logback.logback-classic.version>
 
 		<!-- JUnit -->
-		<junit.junit-jupiter-engine.version>5.7.1</junit.junit-jupiter-engine.version>
+		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+		<junit.junit-jupiter-engine.version>5.8.1</junit.junit-jupiter-engine.version>
 	</properties>
 
 	<build>
 		<plugins>
 			<!-- Compiler -->
-			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -81,7 +87,6 @@
 			</plugin>
 			<!-- Help -->
 			<!-- display active profile in compile phase -->
-			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-help-plugin</artifactId>
@@ -112,7 +117,6 @@
 				</executions>
 			</plugin>
 			<!-- Shade -->
-			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -158,7 +162,6 @@
 
 	<dependencies>
 		<!-- Apache -->
-		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
@@ -166,13 +169,11 @@
 		</dependency>
 
 		<!-- Logging -->
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.slf4j-api.version}</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -181,7 +182,6 @@
 		</dependency>
 
 		<!-- JUnit -->
-		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>

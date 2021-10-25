@@ -937,7 +937,7 @@ public final class Dough{
 		double totalFlour = fractionOverTotal(doughWeight, 0.);
 		final double waterCorrection = calculateWaterCorrection();
 		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
-		final double sugarFactor = this.sugar / (sugarType.factor * rawSugar);
+		final double sugarFactor = (sugarType != null? this.sugar / (sugarType.factor * rawSugar): 0.);
 		do{
 			yeast = totalFlour * yeastFactor;
 			flour = totalFlour - yeast * (1. - rawYeast);

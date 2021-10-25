@@ -32,8 +32,7 @@ public class SaccharomycesCerevisiaePedonYeast extends YeastModelAbstract{
 
 	@Override
 	public final double getTemperatureMin(){
-		//< -18 °C
-		return 0.;
+		return 5.;
 	}
 
 	@Override
@@ -51,7 +50,7 @@ public class SaccharomycesCerevisiaePedonYeast extends YeastModelAbstract{
 	public final double getMaximumSpecificVolumeGrowthRate(){
 		//base is pH 5.3, 22 mg/l glucose
 		//± 0.018 hrs^-1
-		return 0.368;
+		return 0.6;
 	}
 
 }
