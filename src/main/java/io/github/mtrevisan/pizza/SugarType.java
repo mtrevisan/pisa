@@ -36,7 +36,7 @@ public enum SugarType{
 	GLUCOSE(0.41 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.),
 	//maltose is a disaccharide, formed by glucose and glucose
 	MALTOSE(0.40 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
-	//sucrose is a disaccharide, formed by glucose and fructose
+	//sucrose is a disaccharide, formed by roughly 50 % glucose and 50% fructose (honey is 30% glucose and 21-43% fructose, with a ratio of 0.4-1.6+)
 	SUCROSE(0.38 / 0.41, 12.0107 * 12. + 1.00784 * 22. + 15.9994 * 11.),
 	//lactose is a disaccharide, formed by glucose and galactose
 	LACTOSE(0.28 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.);
