@@ -48,9 +48,7 @@ public class SaccharomycesCerevisiaePedonYeast extends YeastModelAbstract{
 
 	@Override
 	public final double getMaximumSpecificVolumeGrowthRate(){
-		//base is pH 5.3, 22 mg/l glucose
-		//± 0.018 hrs^-1
-		return 0.6;
+		return 0.438;
 	}
 
 }

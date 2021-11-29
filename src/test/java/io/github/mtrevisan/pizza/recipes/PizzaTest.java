@@ -40,6 +40,7 @@ import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
+import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -425,6 +426,72 @@ class PizzaTest{
 		Assertions.assertEquals(2.6, sauceOil * percent2, 0.1);
 		Assertions.assertEquals(249., sauceTomato, 1.);
 		Assertions.assertEquals(371., sauceMozzarella, 1.);
+		Assertions.assertEquals(0.79, sauceOregano, 0.01);
+	}
+
+	@Test
+	void pizza20211129() throws DoughException, YeastException, OvenException{
+		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
+			.addWater(0.65, 0.02, 0., 7.9, 237.)
+			.addSugar(0.004, SugarType.SUCROSE, 1., 0.)
+			.addSalt(0.016)
+			.addFat(0.021, 0.913, 0.9175, 0., 0.)
+			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withFlour(Flour.create(295., 1.3))
+			.withIngredientsTemperature(17.4)
+			.withDoughTemperature(27.)
+			.withAtmosphericPressure(995.9);
+		final LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofMinutes(5l * 60 + 30l))
+			.withAfterStageWork(Duration.ofMinutes(10l));
+		final LeaveningStage stage2 = LeaveningStage.create(35., Duration.ofHours(1l));
+		final StretchAndFoldStage safStage1 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage2 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final StretchAndFoldStage safStage3 = StretchAndFoldStage.create(Duration.ofMinutes(30l));
+		final Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 1.8,
+				0,
+				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
+				LocalTime.of(19, 40))
+			.withStretchAndFoldStages(new StretchAndFoldStage[]{safStage1, safStage2, safStage3});
+		final BakingInstruments bakingInstruments = new BakingInstruments()
+			.withBakingPans(
+				RectangularBakingPan.create(22., 30., BakingPanMaterial.ALUMINIUM, 0.02),
+				CircularBakingPan.create(24., BakingPanMaterial.ALUMINIUM, 0.02)
+			);
+		final double bakingPansTotalArea = bakingInstruments.getBakingPansTotalArea();
+		final double sauceOil = bakingPansTotalArea / 171.;
+		final double sauceTomato = bakingPansTotalArea / 4.47;
+		final double sauceMozzarella = bakingPansTotalArea / 2.85;
+		final double sauceOregano = bakingPansTotalArea / 1400.;
+		final double doughWeight = bakingPansTotalArea * 0.69;
+		final Recipe recipe = dough.createRecipe(procedure, doughWeight);
+
+		Assertions.assertEquals(453.3, recipe.getFlour(), 0.1);
+		Assertions.assertEquals(294.6, recipe.getWater(), 0.1);
+		Assertions.assertEquals(42.4, recipe.getWaterTemperature(), 0.1);
+		Assertions.assertEquals(1.81, recipe.getSugar(), 0.01);
+		Assertions.assertEquals(1.07, recipe.getYeast(), 0.01);
+		Assertions.assertEquals(7.26, recipe.getSalt(), 0.01);
+		Assertions.assertEquals(9.52, recipe.getFat(), 0.01);
+		Assertions.assertEquals(doughWeight, recipe.doughWeight(), 0.01);
+		Assertions.assertEquals(LocalTime.of(12, 30), recipe.getDoughMakingInstant());
+		Assertions.assertArrayEquals(new LocalTime[]{LocalTime.of(13, 15), LocalTime.of(13, 45),
+			LocalTime.of(14, 15)}, recipe.getStretchAndFoldStartInstants());
+		Assertions.assertArrayEquals(new LocalTime[][]{
+				new LocalTime[]{LocalTime.of(12, 45), LocalTime.of(18, 15)},
+				new LocalTime[]{LocalTime.of(18, 25), LocalTime.of(19, 25)}
+			},
+			recipe.getStageStartEndInstants());
+		Assertions.assertEquals(LocalTime.of(19, 25), recipe.getSeasoningInstant());
+		Assertions.assertEquals(740., dough.getMaxLeaveningDuration().toMinutes(), 0.1);
+
+		final double percent1 = bakingInstruments.bakingPans[0].area() / bakingPansTotalArea;
+		final double percent2 = bakingInstruments.bakingPans[1].area() / bakingPansTotalArea;
+		Assertions.assertEquals(455.4, doughWeight * percent1, 0.1);
+		Assertions.assertEquals(312.1, doughWeight * percent2, 0.1);
+		Assertions.assertEquals(3.9, sauceOil * percent1, 0.1);
+		Assertions.assertEquals(2.6, sauceOil * percent2, 0.1);
+		Assertions.assertEquals(249., sauceTomato, 1.);
+		Assertions.assertEquals(390., sauceMozzarella, 1.);
 		Assertions.assertEquals(0.79, sauceOregano, 0.01);
 	}
 
