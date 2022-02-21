@@ -86,7 +86,7 @@ public abstract class YeastModelAbstract{
 	 * @see <a href="https://storage.googleapis.com/plos-corpus-prod/10.1371/journal.pone.0178691/1/pone.0178691.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=wombat-sa%40plos-prod.iam.gserviceaccount.com%2F20210407%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20210407T105230Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=36c021ec5c4487f1b4891b2a52ecec7ba7623eecd8c491bfec1e3b3c72796d6b9b7da246efbee46d40c90b9fe6177fe93362d61aadd45557107f99b2900c7945027fc77e1c070df644fd69cc4a0b5cce94fad524239dedc3e350fc61c700b8d2e42562beaa0ce2e3420aaecf64bcc72b8fbc3ca4006470a244d138022d20d01fa30cb3cc709c5da219b75836a1d9e32ef8014e73c4b10be1d5d494db081285be533cdbc342d055efd13ff6b69c3194c3884601bf4bdb3a7a8a21aa798b8efd6e24078e494275dfd4c854ec3d2eb4e7d2bc26bd8267857d00566f21a23431937902f996aff428af6c83ecad7783be505dd29133c7c0f22d3307948d34306e3058">The use of Gompertz models in growth analyses, and new gompertz-model approach: An addition to the Unified-Richards family</a>
 	 *
 	 * @param time	Time [hrs].
-	 * @param lambda	Time during lag phase [hrs].
+	 * @param lambda	Lag phase duration [hrs].
 	 * @param alpha	Maximum relative volume expansion ratio.
 	 * @param temperature	Temperature [°C].
 	 * @param ingredientsFactor	Factor to account for other ingredients effects.

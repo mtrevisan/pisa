@@ -40,6 +40,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 
 
+//effect of ingredients!! https://www.maltosefalcons.com/blogs/brewing-techniques-tips/yeast-propagation-and-maintenance-principles-and-practices
 public final class Dough{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough.class);
@@ -832,10 +833,10 @@ public final class Dough{
 		final double doughDensity = Recipe.create()
 			.withFlour(1.)
 			.withWater(water)
-			.withYeast(yeast)
 			.withSugar(sugar)
-			.withFat(fat)
+			.withYeast(yeast)
 			.withSalt(salt)
+			.withFat(fat)
 			.density(fatDensity, temperature, atmosphericPressure);
 		return fractionOverTotal(yeast * rawYeast, yeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
 	}
