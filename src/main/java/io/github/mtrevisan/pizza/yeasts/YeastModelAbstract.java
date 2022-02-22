@@ -90,7 +90,7 @@ public abstract class YeastModelAbstract{
 	 * @param alpha	Maximum relative volume expansion ratio.
 	 * @param temperature	Temperature [°C].
 	 * @param ingredientsFactor	Factor to account for other ingredients effects.
-	 * @return	Volume expansion ratio (∆V / V).
+	 * @return	Volume expansion ratio (∆V / V) [%].
 	 */
 	public final double volumeExpansionRatio(final double time, final double lambda, final double alpha, final double temperature,
 			final double ingredientsFactor){

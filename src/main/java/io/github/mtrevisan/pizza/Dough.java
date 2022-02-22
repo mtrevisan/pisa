@@ -649,7 +649,7 @@ public final class Dough{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
 	 * @param yeast	Quantity of yeast [% w/w].
-	 * @return	The estimated lag [hrs].
+	 * @return	The maximum relative volume expansion ratio (∆V / V).
 	 */
 	private double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
