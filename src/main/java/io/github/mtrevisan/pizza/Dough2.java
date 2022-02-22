@@ -29,6 +29,7 @@ import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
 
@@ -124,7 +125,11 @@ public final class Dough2{
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
 		catch(final NoBracketingException nbe){
-			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio", nbe);
+			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio", nbe);
+		}
+		catch(final IllegalArgumentException iae){
+			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio due to the adverse environment in stage "
+				+ iae.getMessage());
 		}
 		catch(final TooManyEvaluationsException tmee){
 			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver",
@@ -134,7 +139,7 @@ public final class Dough2{
 
 	//https://www.mdpi.com/2076-2607/9/1/47/htm
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
-	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure){
+	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
 		//lag phase duration [hrs]
 		//TODO calculate lambda
 		final double lambda = 0.5;
@@ -144,11 +149,11 @@ public final class Dough2{
 
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
 		for(int i = 0; i < procedure.leaveningStages.length; i ++){
-			//TODO calculate factor
+			//TODO calculate ingredientsFactor (account for water and sugar at least)
 			ingredientsFactors[i] = 1.;
 
 			if(ingredientsFactors[i] == 0.)
-				return Double.POSITIVE_INFINITY;
+				throw new IllegalArgumentException(Integer.toString(i + 1));
 		}
 
 		//consider multiple leavening stages
