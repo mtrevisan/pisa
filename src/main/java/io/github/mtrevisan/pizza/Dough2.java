@@ -105,7 +105,7 @@ public final class Dough2{
 		Dough2 dough = Dough2.create(new SaccharomycesCerevisiaePedonYeast())
 			.withYeast(YeastType.FRESH, 1.);
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l));
-		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 3.8,
+		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 0.9,
 				0,
 				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 				LocalTime.of(20, 15));
@@ -137,18 +137,42 @@ public final class Dough2{
 
 	//https://www.mdpi.com/2076-2607/9/1/47/htm
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
+	//https://www.sciencedirect.com/science/article/pii/S2221169117309802
+	//https://ojs.library.ubc.ca/index.php/expedition/article/view/196129
+	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
 	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure){
 		final LeaveningStage currentStage = procedure.leaveningStages[0];
 		//maximum relative volume expansion ratio
-		final double alpha = 4.;
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		//lag phase duration [hrs]
 		final double lambda = 0.5;
 
-		//average CO2 production: 4 mL/cell
 		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(getHours(currentStage.duration),
 			lambda, alpha, currentStage.temperature, 1.);
 
-		return volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
+		final double difference = volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
+		//0.5% yeast = 10 v/v with 28% sugar at 35 °C
+		//1.67% yeast = 23.3 v/v with 28% sugar at 35 °C
+		//2.96% ADY in H₂O with 1.69% sugar
+		//	20 °C = 0 ml
+		//	27 °C = 423.1 ml
+		//	35 °C = 691.02 ml
+		//4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs: raise 220%
+		return difference;
+	}
+
+	/**
+	 * Maximum relative volume expansion ratio.
+	 *
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @param yeast	Quantity of yeast [% w/w].
+	 * @return	The estimated lag [hrs].
+	 */
+	private double maximumRelativeVolumeExpansionRatio(final double yeast){
+		//FIXME this formula is for 36±1 °C
+		//vertex must be at 1.1%
+		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
 	}
 
 	private static double getHours(final Duration duration){

@@ -27,6 +27,7 @@ package io.github.mtrevisan.pizza;
 
 //https://www.bakeinfo.co.nz/files/file/117/BIRT_Yeast_Info_Sheet.pdf
 //https://www.researchgate.net/publication/235699337_Microbiological_Quality_of_Active_Dry_and_Compressed_Baker's_Yeast_sold_in_Egypt
+//https://www.jessicagavin.com/baking-with-yeast/
 public enum YeastType{
 	/**
 	 * Compressed yeast is, in essence, cream yeast with most of the liquid removed. It is a soft solid, beige in color, and best known in
