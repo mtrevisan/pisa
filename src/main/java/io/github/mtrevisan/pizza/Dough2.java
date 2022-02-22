@@ -51,7 +51,7 @@ public final class Dough2{
 	private final YeastModelAbstract yeastModel;
 
 	/** Yeast quantity [% w/w]. */
-	double yeast;
+	private double yeast;
 	private YeastType yeastType;
 	/** Raw yeast content [% w/w]. */
 	private double rawYeast = 1.;
@@ -128,7 +128,7 @@ public final class Dough2{
 			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio", nbe);
 		}
 		catch(final IllegalArgumentException iae){
-			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio due to the adverse environment in stage "
+			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio due to the adverse environment in "
 				+ iae.getMessage());
 		}
 		catch(final TooManyEvaluationsException tmee){
@@ -149,11 +149,10 @@ public final class Dough2{
 
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
 		for(int i = 0; i < procedure.leaveningStages.length; i ++){
-			//TODO calculate ingredientsFactor (account for water and sugar at least)
-			ingredientsFactors[i] = 1.;
+			ingredientsFactors[i] = ingredientsFactor(yeast, procedure.leaveningStages[i].temperature);
 
 			if(ingredientsFactors[i] == 0.)
-				throw new IllegalArgumentException(Integer.toString(i + 1));
+				throw new IllegalArgumentException("stage " + (i + 1));
 		}
 
 		//consider multiple leavening stages
@@ -178,8 +177,7 @@ public final class Dough2{
 	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final double duration){
 		//maximum relative volume expansion ratio
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-		//TODO calculate ingredientsFactor (account for water and sugar at least)
-		final double ingredientsFactor = 1.;
+		final double ingredientsFactor = ingredientsFactor(yeast, temperature);
 
 		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
 
@@ -203,6 +201,47 @@ public final class Dough2{
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
+	}
+
+	/**
+	 * Modify specific growth ratio in order to account for sugar, fat, salt, water, and chlorine dioxide.
+	 * <p>
+	 * Yeast activity is impacted by:
+	 * <ul>
+	 *    <li>quantity percent of flour</li>
+	 *    <li>temperature</li>
+	 *    <li>hydration</li>
+	 *    <li>salt</li>
+	 *    <li>fat (*)</li>
+	 *    <li>sugar</li>
+	 *    <li>yeast age (*)</li>
+	 *    <li>dough ball size (*)</li>
+	 *    <li>gluten development (*)</li>
+	 *    <li>altitude (atmospheric pressure)</li>
+	 *    <li>water chemistry (level of chlorination especially)</li>
+	 *    <li>container material and thickness (conductivity if ambient and dough temperatures vary, along with heat dissipation from fermentation) (*)</li>
+	 *    <li>flour chemistry (enzyme activity, damaged starch, etc.) (*)</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * Yeast aging: https://onlinelibrary.wiley.com/doi/pdf/10.1002/bit.27210
+	 *
+	 * @param yeast	yeast [% w/w]
+	 * @param temperature	Temperature [°C].
+	 * @return	Factor to be applied to maximum specific growth rate.
+	 */
+	private double ingredientsFactor(final double yeast, final double temperature){
+		//TODO calculate ingredientsFactor (account for water and sugar at least)
+////		final double kSugar = sugarFactor(temperature);
+////		final double kFat = fatFactor();
+//		final double kSalt = saltFactor(yeast, temperature);
+//		final double kWater = waterFactor(yeast, temperature);
+////		final double kWaterFixedResidue = waterFixedResidueFactor();
+////		final double kHydration = kWater * kWaterFixedResidue;
+//		final double kPH = phFactor();
+//		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
+//		return /*kSugar * kFat * */kSalt * /*kHydration * */kPH * kAtmosphericPressure;
+		return 1.;
 	}
 
 	private static double toHours(final Duration duration){
