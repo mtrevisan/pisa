@@ -142,10 +142,12 @@ public final class Dough2{
 		//lag phase duration [hrs]
 		//TODO calculate lambda
 		final double lambda = 0.5;
+		//TODO calculate the factor
+		final double aliveYeast = 0.95 * yeast;
 
 		final double temperature = currentStage.temperature;
 		final double duration = toHours(currentStage.duration);
-		final double doughVolumeExpansionRatio = doughVolumeExpansionRatio(yeast, lambda, temperature, duration);
+		final double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, temperature, duration);
 
 		return doughVolumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
 	}
