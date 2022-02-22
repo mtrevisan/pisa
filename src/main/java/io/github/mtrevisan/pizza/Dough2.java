@@ -105,7 +105,7 @@ public final class Dough2{
 		Dough2 dough = Dough2.create(new SaccharomycesCerevisiaePedonYeast())
 			.withYeast(YeastType.FRESH, 1.);
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l));
-		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 0.9,
+		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2.,
 				0,
 				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 				LocalTime.of(20, 15));
@@ -137,9 +137,6 @@ public final class Dough2{
 
 	//https://www.mdpi.com/2076-2607/9/1/47/htm
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
-	//https://www.sciencedirect.com/science/article/pii/S2221169117309802
-	//https://ojs.library.ubc.ca/index.php/expedition/article/view/196129
-	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
 	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure){
 		final LeaveningStage currentStage = procedure.leaveningStages[0];
 		//lag phase duration [hrs]
@@ -148,26 +145,19 @@ public final class Dough2{
 
 		final double volumeExpansionRatio = volumeExpansionRatio(yeast, lambda, currentStage.temperature, toHours(currentStage.duration));
 
-		final double difference = volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
-		//0.5% yeast = 10 v/v with 28% sugar at 35 °C
-		//1.67% yeast = 23.3 v/v with 28% sugar at 35 °C
-		//2.96% ADY in H₂O with 1.69% sugar
-		//	20 °C = 0 ml
-		//	27 °C = 423.1 ml
-		//	35 °C = 691.02 ml
-		return difference;
+		return volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
 	}
 
 	private double volumeExpansionRatio(final double yeast, final double lambda, final double temperature, final double duration){
 		//maximum relative volume expansion ratio
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-		//TODO calculate ingredientsFactor
+		//TODO calculate ingredientsFactor (account for water and sugar at least)
 
 		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, 1.);
 
 		//correct for yeast quantity:
 		//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
-		//adjust k so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs: raise 220%
+		//adjust k so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs has a volume expansion ratio of 220%
 		//that is, k = 2.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
 		final double k = 25.2;
 		return k * volumeExpansionRatio * yeast;
