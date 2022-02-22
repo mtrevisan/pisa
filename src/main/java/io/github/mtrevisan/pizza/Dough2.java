@@ -143,20 +143,24 @@ public final class Dough2{
 		//TODO calculate lambda
 		final double lambda = 0.5;
 
-		final double volumeExpansionRatio = volumeExpansionRatio(yeast, lambda, currentStage.temperature, toHours(currentStage.duration));
+		final double temperature = currentStage.temperature;
+		final double duration = toHours(currentStage.duration);
+		final double doughVolumeExpansionRatio = doughVolumeExpansionRatio(yeast, lambda, temperature, duration);
 
-		return volumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
+		return doughVolumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
 	}
 
-	private double volumeExpansionRatio(final double yeast, final double lambda, final double temperature, final double duration){
+	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
+	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final double duration){
 		//maximum relative volume expansion ratio
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		//TODO calculate ingredientsFactor (account for water and sugar at least)
+		final double ingredientsFactor = 1.;
 
-		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, 1.);
+		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
 
 		//correct for yeast quantity:
-		//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
+		//FIXME calculate k
 		//adjust k so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs has a volume expansion ratio of 220%
 		//that is, k = 2.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
 		final double k = 25.2;
