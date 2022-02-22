@@ -100,9 +100,10 @@ public final class Dough2{
 	public static void main(String[] args) throws DoughException, YeastException{
 		Dough2 dough = Dough2.create(new SaccharomycesCerevisiaePedonYeast())
 			.withYeast(YeastType.FRESH, 1.);
-		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(6l));
-		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1}, 2.,
-				0,
+		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l));
+		LeaveningStage stage2 = LeaveningStage.create(20., Duration.ofHours(1l));
+		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
+				1,
 				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 				LocalTime.of(20, 15));
 		dough.calculateYeast(procedure);
@@ -134,16 +135,36 @@ public final class Dough2{
 	//https://www.mdpi.com/2076-2607/9/1/47/htm
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
 	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure){
-		final LeaveningStage currentStage = procedure.leaveningStages[0];
 		//lag phase duration [hrs]
 		//TODO calculate lambda
 		final double lambda = 0.5;
 		//TODO calculate the factor
 		final double aliveYeast = 0.95 * yeast;
 
-		final double temperature = currentStage.temperature;
-		final double duration = toHours(currentStage.duration);
-		final double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, temperature, duration);
+
+		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
+		for(int i = 0; i < procedure.leaveningStages.length; i ++){
+			//TODO calculate factor
+			ingredientsFactors[i] = 1.;
+
+			if(ingredientsFactors[i] == 0.)
+				return Double.POSITIVE_INFINITY;
+		}
+
+		//consider multiple leavening stages
+		LeaveningStage stage = procedure.leaveningStages[0];
+		Duration duration = stage.duration;
+		final double currentDuration = toHours(stage.duration);
+		double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, currentDuration);
+		for(int i = 1; i <= procedure.targetVolumeExpansionRatioAtLeaveningStage; i ++){
+			stage = procedure.leaveningStages[i];
+
+			final double previousExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, toHours(duration));
+			duration = duration.plus(stage.duration);
+			final double currentExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, toHours(duration));
+
+			doughVolumeExpansionRatio += currentExpansionRatio - previousExpansionRatio;
+		}
 
 		return doughVolumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
 	}
