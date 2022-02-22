@@ -160,14 +160,13 @@ public final class Dough2{
 		//consider multiple leavening stages
 		LeaveningStage stage = procedure.leaveningStages[0];
 		Duration duration = stage.duration;
-		final double currentDuration = toHours(stage.duration);
-		double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, currentDuration);
+		double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, duration);
 		for(int i = 1; i <= procedure.targetVolumeExpansionRatioAtLeaveningStage; i ++){
 			stage = procedure.leaveningStages[i];
 
-			final double previousExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, toHours(duration));
+			final double previousExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, duration);
 			duration = duration.plus(stage.duration);
-			final double currentExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, toHours(duration));
+			final double currentExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, duration);
 
 			doughVolumeExpansionRatio += currentExpansionRatio - previousExpansionRatio;
 		}
@@ -176,7 +175,7 @@ public final class Dough2{
 	}
 
 	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
-	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final double duration){
+	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final Duration duration){
 		//maximum relative volume expansion ratio
 		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
 		final double ingredientsFactor = ingredientsFactor(yeast, temperature);

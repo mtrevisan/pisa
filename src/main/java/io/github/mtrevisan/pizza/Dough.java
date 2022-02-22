@@ -616,17 +616,17 @@ public final class Dough{
 
 			//avoid modifying `lambda` if the temperature is the same
 			if(i > 0 && previousStage.temperature != currentStage.temperature){
-				final double previousVolume = yeastModel.volumeExpansionRatio(getHours(duration), lambda, alpha,
-					previousStage.temperature, ingredientsFactors[i]);
-				final double currentVolume = yeastModel.volumeExpansionRatio(getHours(duration), lambda, alpha,
-					currentStage.temperature, ingredientsFactors[i]);
+				final double previousVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, previousStage.temperature,
+					ingredientsFactors[i]);
+				final double currentVolume = yeastModel.volumeExpansionRatio(duration, lambda, alpha, currentStage.temperature,
+					ingredientsFactors[i]);
 
 				//account for stage volume decrease
 				volumeExpansionRatio += previousVolume - currentVolume;
 			}
 			else if(i == 0){
-				final double currentVolume = yeastModel.volumeExpansionRatio(getHours(duration.plus(currentStage.duration)),
-					lambda, alpha, currentStage.temperature, ingredientsFactors[i]);
+				final double currentVolume = yeastModel.volumeExpansionRatio(duration.plus(currentStage.duration), lambda, alpha,
+					currentStage.temperature, ingredientsFactors[i]);
 
 				volumeExpansionRatio += currentVolume;
 			}
