@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2019-2022 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,8 @@ package io.github.mtrevisan.pizza;
 public enum YeastType{
 	/**
 	 * Compressed yeast is, in essence, cream yeast with most of the liquid removed. It is a soft solid, beige in color, and best known in
-	 * the consumer form as small, foil-wrapped cubes of cake yeast. It is also available in a larger-block form for bulk usage. It is
-	 * highly perishable. It is still widely available for commercial use, and is somewhat more tolerant of low temperatures than other
-	 * forms of commercial yeast.
+	 * the consumer form as small, foil-wrapped cubes of cake yeast. It is highly perishable. It is still widely available for commercial
+	 * use, and is somewhat more tolerant of low temperatures than other forms of commercial yeast.
 	 */
 	FRESH(1., 0.7),
 	/**

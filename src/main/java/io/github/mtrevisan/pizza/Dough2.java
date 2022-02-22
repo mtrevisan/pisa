@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2022 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,6 @@ import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -41,14 +39,9 @@ import java.time.LocalTime;
 //effect of ingredients!! https://www.maltosefalcons.com/blogs/brewing-techniques-tips/yeast-propagation-and-maintenance-principles-and-practices
 public final class Dough2{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Dough2.class);
-
-
 	/** [% w/w] */
 	private static final double SOLVER_YEAST_MAX = 0.2;
 	private static final int SOLVER_EVALUATIONS_MAX = 100;
-
-	private static final double DOUGH_WEIGHT_PRECISION = 0.001;
 
 	//accuracy is ±0.001%
 	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01,
@@ -99,6 +92,9 @@ public final class Dough2{
 	 */
 	public void createRecipe(final Procedure procedure) throws YeastException{
 		calculateYeast(procedure);
+
+		//true yeast quantity
+		yeast /= rawYeast * yeastType.factor;
 	}
 
 	public static void main(String[] args) throws DoughException, YeastException{
@@ -118,7 +114,6 @@ public final class Dough2{
 	 *
 	 * @param procedure	Data for procedure.
 	 */
-	@SuppressWarnings("ThrowInsideCatchBlockWhichIgnoresCaughtException")
 	void calculateYeast(final Procedure procedure) throws YeastException{
 		//reset variable
 		yeast = 0.;
@@ -127,11 +122,12 @@ public final class Dough2{
 			final UnivariateFunction f = yeast -> volumeExpansionRatioDifference(yeast, procedure);
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
-		catch(final NoBracketingException e){
-			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio");
+		catch(final NoBracketingException nbe){
+			throw YeastException.create("No yeast quantity will ever be able to produce the given expansion ratio", nbe);
 		}
-		catch(final TooManyEvaluationsException e){
-			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver");
+		catch(final TooManyEvaluationsException tmee){
+			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver",
+				tmee);
 		}
 	}
 
