@@ -68,9 +68,12 @@ public final class Procedure{
 	private Procedure(final LeaveningStage[] leaveningStages, final double targetDoughVolumeExpansionRatio,
 			final int targetVolumeExpansionRatioAtLeaveningStage, final Duration doughMaking, final Duration seasoning,
 			final LocalTime timeToBake) throws DoughException{
+		if(targetDoughVolumeExpansionRatio < 1)
+			throw DoughException.create("Target volume expansion ratio must be greater than or equal to 0, was {}",
+				targetDoughVolumeExpansionRatio);
 		if(targetVolumeExpansionRatioAtLeaveningStage < 0 || targetVolumeExpansionRatioAtLeaveningStage >= leaveningStages.length)
-			throw DoughException.create("Target volume expansion ratio at leavening stage must be between 0 and {}",
-				(leaveningStages.length - 1));
+			throw DoughException.create("Target volume expansion ratio at leavening stage must be between 0 and {} inclusive, was {}",
+				(leaveningStages.length - 1), targetVolumeExpansionRatioAtLeaveningStage);
 		Objects.requireNonNull(doughMaking, "Time to make the dough not set");
 		Objects.requireNonNull(seasoning, "Time to season not set");
 		Objects.requireNonNull(timeToBake, "Time to bake not set");

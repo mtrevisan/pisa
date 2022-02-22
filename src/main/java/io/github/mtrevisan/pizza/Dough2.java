@@ -104,10 +104,12 @@ public final class Dough2{
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l));
 		LeaveningStage stage2 = LeaveningStage.create(20., Duration.ofHours(1l));
 		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
-				1,
-				Duration.ofMinutes(15l), Duration.ofMinutes(15l),
-				LocalTime.of(20, 15));
+			1,
+			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
+			LocalTime.of(20, 15));
 		dough.calculateYeast(procedure);
+
+		System.out.println("yeast = " + dough.yeast + "%");
 	}
 
 	/**
@@ -139,7 +141,7 @@ public final class Dough2{
 
 	//https://www.mdpi.com/2076-2607/9/1/47/htm
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
-	double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
+	private double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
 		//lag phase duration [hrs]
 		//TODO calculate lambda
 		final double lambda = 0.5;
@@ -184,9 +186,9 @@ public final class Dough2{
 		//correct for yeast quantity:
 		//FIXME calculate k
 		//adjust k so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs has a volume expansion ratio of 220%
-		//that is, k = 2.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
-		final double k = 25.2;
-		return k * volumeExpansionRatio * yeast;
+		//that is, k = 1.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
+		final double k = 13.7;
+		return 1. + k * volumeExpansionRatio * yeast;
 	}
 
 	/**
