@@ -882,6 +882,7 @@ public final class Dough{
 
 		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
 			return 0.;
+
 		final double tmp = (compositePH - yeastModel.getPHMin()) * (compositePH - yeastModel.getPHMax());
 		return tmp / (tmp - Math.pow(compositePH - yeastModel.getPHOpt(), 2.));
 	}
