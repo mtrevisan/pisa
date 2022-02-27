@@ -52,31 +52,18 @@ public final class Dough2{
 	private DoughCore core;
 
 
-	public static Dough2 create(final DoughCore core, final Procedure procedure) throws DoughException, YeastException{
-		return new Dough2(core, procedure);
+	public static Dough2 create(final DoughCore core) throws DoughException, YeastException{
+		return new Dough2(core);
 	}
 
 
-	private Dough2(final DoughCore core, final Procedure procedure) throws DoughException, YeastException{
+	private Dough2(final DoughCore core) throws DoughException, YeastException{
 		if(core == null)
 			throw DoughException.create("Core data must be provided");
 
 		this.core = core;
-
-		calculateYeast(procedure);
-
-		//true yeast quantity
-		core.yeast /= core.rawYeast * core.yeastType.factor;
 	}
 
-
-	/**
-	 * @param procedure	The recipe procedure.
-	 * @return	The recipe.
-	 */
-	public void createRecipe(final Procedure procedure) throws YeastException{
-		//TODO
-	}
 
 	public static void main(String[] args) throws DoughException, YeastException{
 		DoughCore core = DoughCore.create(new SaccharomycesCerevisiaePedonYeast())
@@ -93,7 +80,8 @@ public final class Dough2{
 			1,
 			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 			LocalTime.of(20, 15));
-		Dough2 dough = Dough2.create(core, procedure);
+		Dough2 dough = Dough2.create(core);
+		Recipe recipe = dough.createRecipe(procedure, 767.5486460606818);
 
 		System.out.println("yeast = " + Helper.round(core.yeast, 5) + "%");
 	}
@@ -188,6 +176,74 @@ public final class Dough2{
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
+	}
+
+
+	/**
+	 * @param procedure	The recipe procedure.
+	 * @param doughWeight	Desired dough weight [g].
+	 * @return	The recipe.
+	 */
+	public Recipe createRecipe(final Procedure procedure, final double doughWeight) throws YeastException{
+		if(procedure == null)
+			throw new IllegalArgumentException("Procedure must be valued");
+
+		calculateYeast(procedure);
+
+		//calculate ingredients:
+		final Recipe recipe = calculateIngredients(doughWeight);
+
+		//true yeast quantity
+//		core.yeast /= core.rawYeast * core.yeastType.factor;
+
+		//TODO
+
+		return recipe;
+	}
+
+	private Recipe calculateIngredients(final double doughWeight){
+		double yeast, flour, water, sugar, fat, salt,
+			difference;
+		double totalFlour = fractionOverTotal(doughWeight, 0.);
+		final double waterCorrection = calculateWaterCorrection();
+		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
+		final double sugarFactor = (sugarType != null? this.sugar / (sugarType.factor * rawSugar): 0.);
+		do{
+			yeast = totalFlour * yeastFactor;
+			flour = totalFlour - yeast * (1. - rawYeast);
+			sugar = totalFlour * sugarFactor;
+			final double fatCorrection = calculateFatCorrection(flour);
+			fat = Math.max(totalFlour * (this.fat * (1. - milkFat) - eggFat) - fatCorrection, 0.) / rawFat;
+			water = Math.max((totalFlour * (this.water - eggWater) - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
+				/ (milkWater > 0.? milkWater: 1.), 0.);
+			final double saltCorrection = calculateSaltCorrection(flour);
+			salt = Math.max(totalFlour * this.salt - fat * fatSaltContent - saltCorrection, 0.);
+
+			//refine approximation:
+			final double calculatedDough = flour + water + yeast + sugar + salt + fat;
+			difference = doughWeight - calculatedDough;
+			totalFlour += difference * 0.6;
+		}while(Math.abs(difference) > DOUGH_WEIGHT_PRECISION);
+
+		final Recipe recipe = Recipe.create()
+			.withFlour(flour)
+			.withWater(water)
+			.withYeast(yeast)
+			.withSugar(sugar)
+			.withFat(fat)
+			.withSalt(salt);
+
+		if(doughTemperature != null && ingredientsTemperature != null){
+			//calculate water temperature:
+			final double waterTemperature = (doughWeight * doughTemperature - (doughWeight - water) * ingredientsTemperature) / water;
+			if(waterTemperature >= yeastModel.getTemperatureMax())
+				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
+					Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
+
+			recipe.withWaterTemperature(waterTemperature);
+		}
+
+		return recipe;
 	}
 
 }
