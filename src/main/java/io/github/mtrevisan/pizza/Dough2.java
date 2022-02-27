@@ -52,16 +52,21 @@ public final class Dough2{
 	private DoughCore core;
 
 
-	public static Dough2 create(final DoughCore core) throws DoughException{
-		return new Dough2(core);
+	public static Dough2 create(final DoughCore core, final Procedure procedure) throws DoughException, YeastException{
+		return new Dough2(core, procedure);
 	}
 
 
-	private Dough2(final DoughCore core) throws DoughException{
+	private Dough2(final DoughCore core, final Procedure procedure) throws DoughException, YeastException{
 		if(core == null)
 			throw DoughException.create("Core data must be provided");
 
 		this.core = core;
+
+		calculateYeast(procedure);
+
+		//true yeast quantity
+		core.yeast /= core.rawYeast * core.yeastType.factor;
 	}
 
 
@@ -70,28 +75,25 @@ public final class Dough2{
 	 * @return	The recipe.
 	 */
 	public void createRecipe(final Procedure procedure) throws YeastException{
-		calculateYeast(procedure);
-
-		//true yeast quantity
-		core.yeast /= core.rawYeast * core.yeastType.factor;
+		//TODO
 	}
 
 	public static void main(String[] args) throws DoughException, YeastException{
 		DoughCore core = DoughCore.create(new SaccharomycesCerevisiaePedonYeast())
 			.withFlourParameters(Flour.create(230., 0.001, 0.0008, 1.3))
-			.addWater(0.6, 0.02, 0., 7.9, 237.)
-			.addSugar(0.015, SugarType.SUCROSE, 0.998, 0.0005)
-//			.addFat(0.014, 0.913, 0.9175, 0., 0.002)
-//			.addSalt(0.015)
-			.withYeastParameters(YeastType.FRESH, 1.);
-		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l));
+			.addWater(0.65, 0.02, 0., 7.9, 237.)
+			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
+			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
+			.addSalt(0.016)
+			.withYeastParameters(YeastType.INSTANT_DRY, 1.);
+		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l))
+			.withAfterStageWork(Duration.ofMinutes(10l));
 		LeaveningStage stage2 = LeaveningStage.create(20., Duration.ofHours(1l));
 		Procedure procedure = Procedure.create(new LeaveningStage[]{stage1, stage2}, 2.,
 			1,
 			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 			LocalTime.of(20, 15));
-		Dough2 dough = Dough2.create(core);
-		dough.calculateYeast(procedure);
+		Dough2 dough = Dough2.create(core, procedure);
 
 		System.out.println("yeast = " + Helper.round(core.yeast, 5) + "%");
 	}
@@ -102,7 +104,7 @@ public final class Dough2{
 	 *
 	 * @param procedure	Data for procedure.
 	 */
-	void calculateYeast(final Procedure procedure) throws YeastException{
+	private void calculateYeast(final Procedure procedure) throws YeastException{
 		//reset variable
 		core.yeast = 0.;
 

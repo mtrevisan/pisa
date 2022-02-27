@@ -564,12 +564,12 @@ class PizzaTest{
 	@Test
 	void pizza20220220() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
-			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.004, SugarType.SUCROSE, 1., 0.)
-			.addSalt(0.016)
-			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 1.3))
+			.addWater(0.65, 0.02, 0., 7.9, 237.)
+			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
+			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
+			.addSalt(0.016)
+			.withYeast(YeastType.INSTANT_DRY, 1.)
 			.withIngredientsTemperature(17.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.);
