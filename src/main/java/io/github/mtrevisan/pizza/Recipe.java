@@ -27,6 +27,7 @@ package io.github.mtrevisan.pizza;
 import io.github.mtrevisan.pizza.utils.Helper;
 
 import java.time.LocalTime;
+import java.util.StringJoiner;
 
 
 public final class Recipe{
@@ -37,14 +38,14 @@ public final class Recipe{
 	private double water;
 	/** Water temperature [°C]. */
 	private Double waterTemperature;
-	/** Yeast quantity [g]. */
-	private double yeast;
 	/** Sugar quantity [g]. */
 	private double sugar;
 	/** Fat quantity [g]. */
 	private double fat;
 	/** Salt quantity [g]. */
 	private double salt;
+	/** Yeast quantity [g]. */
+	private double yeast;
 
 	/** Time to start making the dough. */
 	private LocalTime doughMakingInstant;
@@ -124,23 +125,6 @@ public final class Recipe{
 	}
 
 	/**
-	 * @param yeast	Yeast quantity [g].
-	 * @return	The instance.
-	 */
-	public Recipe withYeast(final double yeast){
-		this.yeast = yeast;
-
-		return this;
-	}
-
-	/**
-	 * @return	Yeast quantity [g].
-	 */
-	public double getYeast(){
-		return yeast;
-	}
-
-	/**
 	 * @param sugar	Sugar quantity [g].
 	 * @return	The instance.
 	 */
@@ -189,6 +173,23 @@ public final class Recipe{
 	 */
 	public double getSalt(){
 		return salt;
+	}
+
+	/**
+	 * @param yeast	Yeast quantity [g].
+	 * @return	The instance.
+	 */
+	public Recipe withYeast(final double yeast){
+		this.yeast = yeast;
+
+		return this;
+	}
+
+	/**
+	 * @return	Yeast quantity [g].
+	 */
+	public double getYeast(){
+		return yeast;
 	}
 
 
@@ -302,24 +303,31 @@ public final class Recipe{
 
 	@Override
 	public String toString(){
-		final StringBuilder sb = new StringBuilder("[");
-		for(int i = 0; i < stageStartEndInstants.length; i ++){
-			sb.append(stageStartEndInstants[i][0]).append("-").append(stageStartEndInstants[i][1]);
+		final StringJoiner sj = new StringJoiner(", ");
+		sj.add("flour: " + Helper.round(flour, 1) + " g");
+		sj.add("water: " + Helper.round(water, 1) + " g"
+			+ (waterTemperature != null? " at " + Helper.round(waterTemperature, 1) + " °C": ""));
+		sj.add("yeast: " + Helper.round(yeast, 2) + " g");
+		sj.add("sugar: " + Helper.round(sugar, 2) + " g");
+		sj.add("fat: " + Helper.round(fat, 2) + " g");
+		sj.add("salt: " + Helper.round(salt, 2) + " g");
+		if(doughMakingInstant != null)
+			sj.add("dough making: " + doughMakingInstant);
+		final int stages = (stageStartEndInstants != null? stageStartEndInstants.length: 0);
+		if(stages > 0){
+			final StringBuilder sb = new StringBuilder("[");
+			for(int i = 0; i < stages; i ++){
+				sb.append(stageStartEndInstants[i][0]).append("-").append(stageStartEndInstants[i][1]);
 
-			if(i < stageStartEndInstants.length - 1)
-				sb.append(", ");
+				if(i < stageStartEndInstants.length - 1)
+					sb.append(", ");
+			}
+			sb.append("]");
+			sj.add("stages: " + sb);
 		}
-		sb.append("]");
-		return "flour: " + Helper.round(flour, 1) + " g"
-			+ ", water: " + Helper.round(water, 1) + " g"
-			+ (waterTemperature != null? " at " + Helper.round(waterTemperature, 1) + " °C": "")
-			+ ", yeast: " + Helper.round(yeast, 2) + " g"
-			+ ", sugar: " + Helper.round(sugar, 2) + " g"
-			+ ", fat: " + Helper.round(fat, 2) + " g"
-			+ ", salt: " + Helper.round(salt, 2) + " g"
-			+ ", dough making: " + doughMakingInstant
-			+ ", stages: " + sb
-			+ ", seasoning: " + seasoningInstant;
+		if(seasoningInstant != null)
+			sj.add("seasoning: " + seasoningInstant);
+		return sj.toString();
 	}
 
 }

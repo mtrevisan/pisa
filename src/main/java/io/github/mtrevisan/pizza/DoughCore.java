@@ -29,10 +29,20 @@ import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
+import org.apache.commons.math3.exception.NoBracketingException;
+import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
 
 
 //effect of ingredients!! https://www.maltosefalcons.com/blogs/brewing-techniques-tips/yeast-propagation-and-maintenance-principles-and-practices
 public final class DoughCore{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DoughCore.class);
+
 
 	/** [g/mol] */
 	private static final double MOLECULAR_WEIGHT_CARBON = 12.0107;
@@ -84,6 +94,15 @@ public final class DoughCore{
 	private static final double ATMOSPHERIC_PRESSURE_MAX = Math.pow(10_000., 2.) * Math.pow(1. / PRESSURE_FACTOR_K, (1. / PRESSURE_FACTOR_M));
 
 
+	/** [% w/w] */
+	private static final double SOLVER_YEAST_MAX = 0.2;
+	private static final int SOLVER_EVALUATIONS_MAX = 100;
+
+	//accuracy is ±0.001%
+	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01,
+		5);
+
+
 	private Flour flour;
 
 	/** Total water quantity w.r.t. flour [% w/w]. */
@@ -102,6 +121,18 @@ public final class DoughCore{
 	private double waterFixedResidue;
 	/** Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6]. */
 	private double waterCalciumCarbonate;
+
+	/** TODO Total water quantity w.r.t. flour in milk [% w/w]. */
+	private double milkWater;
+	/** TODO Total fat quantity w.r.t. flour in milk [% w/w]. */
+	private double milkFat;
+
+	/** TODO Egg content w.r.t. flour [% w/w]. */
+	private double egg;
+	/** TODO Total water quantity w.r.t. flour in egg [% w/w]. */
+	private double eggWater;
+	/** TODO Total fat quantity w.r.t. flour in egg [% w/w]. */
+	private double eggFat;
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
@@ -125,16 +156,24 @@ public final class DoughCore{
 	/** Total salt quantity w.r.t. flour [% w/w]. */
 	private double salt;
 
-	final YeastModelAbstract yeastModel;
+	private final YeastModelAbstract yeastModel;
 	/** Yeast quantity [% w/w]. */
-	double yeast;
-	YeastType yeastType;
+	private double yeast;
+	private YeastType yeastType;
 	/** Raw yeast content [% w/w]. */
-	double rawYeast = 1.;
+	private double rawYeast = 1.;
 
 
 	/** Atmospheric pressure [hPa]. */
 	private double atmosphericPressure = STANDARD_AMBIENT_PRESSURE;
+	/** Relative humidity of the air [% w/w]. */
+	private Double airRelativeHumidity;
+
+
+	/** Whether to correct for ingredients' content in fat/salt/water. */
+	private boolean correctForIngredients;
+	/** Whether to correct for humidity in the flour. */
+	private boolean correctForFlourHumidity;
 
 
 	public static DoughCore create(final YeastModelAbstract yeastModel) throws DoughException{
@@ -298,6 +337,29 @@ public final class DoughCore{
 		return this;
 	}
 
+	/**
+	 * @param airRelativeHumidity	Relative humidity of the air [% w/w].
+	 * @return	The instance.
+	 */
+	public DoughCore withAirRelativeHumidity(final double airRelativeHumidity){
+		this.airRelativeHumidity = airRelativeHumidity;
+
+		return this;
+	}
+
+
+	public DoughCore withCorrectForIngredients(){
+		correctForIngredients = true;
+
+		return this;
+	}
+
+	public DoughCore withCorrectForFlourHumidity(){
+		correctForFlourHumidity = true;
+
+		return this;
+	}
+
 
 	/**
 	 * Modify specific growth ratio in order to account for sugar, fat, salt, water, and chlorine dioxide.
@@ -377,6 +439,175 @@ public final class DoughCore{
 	private double atmosphericPressureFactor(final double atmosphericPressure){
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
+	}
+
+
+	/**
+	 * @param procedure	The recipe procedure.
+	 * @param doughWeight	Desired dough weight [g].
+	 * @param ingredientsTemperature	Temperature of ingredients [°C].
+	 * @param doughTemperature	Desired dough temperature [°C].
+	 * @return	The recipe.
+	 */
+	Recipe createRecipe(final Procedure procedure, final double doughWeight, final Double ingredientsTemperature,
+			final Double doughTemperature) throws YeastException{
+		if(procedure == null)
+			throw new IllegalArgumentException("Procedure must be valued");
+
+		calculateYeast(procedure);
+
+		final double totalFraction = totalFraction();
+		final double flour = doughWeight / totalFraction;
+		final double sugar = this.sugar * flour;
+		final double fatCorrection = fatAlreadyInIngredients(flour);
+		final double fat = ((this.fat * (1. - milkFat) - eggFat) * flour - fatCorrection) / rawFat;
+		if(fat < 0.)
+			LOGGER.warn("Fat is already present, excess quantity is {}", Helper.round(-fat, 2));
+		final double saltCorrection = saltAlreadyInIngredients(flour);
+		final double salt = this.salt * flour - fat * fatSaltContent - saltCorrection;
+		if(salt < 0.)
+			LOGGER.warn("Salt is already present, excess quantity is {}", Helper.round(-salt, 2));
+		final double yeast = this.yeast * flour;
+		final double waterCorrection = waterAlreadyInIngredients();
+		final double water = ((this.water - eggWater) * flour - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
+			/ (milkWater > 0.? milkWater: 1.);
+		if(water < 0.)
+			LOGGER.warn("Water is already present, excess quantity is {}", Helper.round(-water, 2));
+
+		final Recipe recipe = Recipe.create()
+			.withFlour(flour - yeast * (1. - rawYeast))
+			.withWater(Math.max(water, 0.))
+			.withSugar(sugar)
+			.withFat(Math.max(fat, 0.))
+			.withSalt(Math.max(salt, 0.))
+			.withYeast(yeast / (rawYeast * yeastType.factor));
+
+		if(doughTemperature != null && ingredientsTemperature != null){
+			//calculate water temperature:
+			final double waterTemperature = (doughWeight * doughTemperature - (doughWeight - water) * ingredientsTemperature) / water;
+			if(waterTemperature >= yeastModel.getTemperatureMax())
+				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
+					Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
+
+			recipe.withWaterTemperature(waterTemperature);
+		}
+
+		return recipe;
+	}
+
+	/**
+	 * Find the initial yeast able to obtain a given volume expansion ratio after a series of consecutive stages at a given duration at
+	 * temperature.
+	 *
+	 * @param procedure	Data for procedure.
+	 */
+	private void calculateYeast(final Procedure procedure) throws YeastException{
+		//reset variable
+		yeast = 0.;
+
+		try{
+			final UnivariateFunction f = yeast -> volumeExpansionRatioDifference(yeast, procedure);
+			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
+		}
+		catch(final NoBracketingException nbe){
+			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio", nbe);
+		}
+		catch(final IllegalArgumentException iae){
+			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio due to the adverse environment in "
+				+ iae.getMessage());
+		}
+		catch(final TooManyEvaluationsException tmee){
+			throw YeastException.create("Cannot calculate yeast quantity, try increasing maximum number of evaluations in the solver",
+				tmee);
+		}
+	}
+
+	//https://www.mdpi.com/2076-2607/9/1/47/htm
+	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
+	private double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
+		//lag phase duration [hrs]
+		//TODO calculate lambda
+		final double lambda = 0.5;
+		//TODO calculate the factor
+		final double aliveYeast = 0.95 * yeast;
+
+
+		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
+		for(int i = 0; i < procedure.leaveningStages.length; i ++){
+			ingredientsFactors[i] = ingredientsFactor(yeast, procedure.leaveningStages[i].temperature);
+
+			if(ingredientsFactors[i] == 0.)
+				throw new IllegalArgumentException("stage " + (i + 1));
+		}
+
+		//consider multiple leavening stages
+		LeaveningStage stage = procedure.leaveningStages[0];
+		Duration ongoingDuration = stage.duration;
+		double doughVolumeExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, ongoingDuration);
+		for(int i = 1; i <= procedure.targetVolumeExpansionRatioAtLeaveningStage; i ++){
+			stage = procedure.leaveningStages[i];
+
+			final double previousExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, ongoingDuration);
+			ongoingDuration = ongoingDuration.plus(stage.duration);
+			final double currentExpansionRatio = doughVolumeExpansionRatio(aliveYeast, lambda, stage.temperature, ongoingDuration);
+
+			doughVolumeExpansionRatio += currentExpansionRatio - previousExpansionRatio;
+		}
+
+		return doughVolumeExpansionRatio - procedure.targetDoughVolumeExpansionRatio;
+	}
+
+	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
+	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final Duration duration){
+		//maximum relative volume expansion ratio
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
+		final double ingredientsFactor = ingredientsFactor(yeast, temperature);
+
+		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
+
+		//correct for yeast quantity:
+		//FIXME calculate k
+		//k is so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs gives a volume expansion ratio of 220%
+		//that is, k = 1.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
+		final double k = 13.7;
+		return 1. + k * volumeExpansionRatio * yeast;
+	}
+
+	/**
+	 * Maximum relative volume expansion ratio.
+	 *
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
+	 *
+	 * @param yeast	Quantity of yeast [% w/w].
+	 * @return	The maximum relative volume expansion ratio (∆V / V).
+	 */
+	private double maximumRelativeVolumeExpansionRatio(final double yeast){
+		//FIXME this formula is for 36±1 °C
+		//vertex must be at 1.1%
+		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
+	}
+
+
+	private double fatAlreadyInIngredients(final double flour){
+		return (correctForIngredients? this.flour.fat * flour: 0.);
+	}
+
+	private double saltAlreadyInIngredients(final double flour){
+		return (correctForIngredients? this.flour.salt * flour + fat * fatSaltContent: 0.);
+	}
+
+	private double waterAlreadyInIngredients(){
+		double correction = 0.;
+		if(correctForIngredients)
+			correction += sugar * sugarWaterContent + fat * fatWaterContent;
+		if(correctForFlourHumidity)
+			//FIXME: 70.62% is to obtain a humidity of 13.5%
+			correction += Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
+		return correction;
+	}
+
+	private double totalFraction(){
+		return 1. + water + sugar + fat + salt + yeast;
 	}
 
 }
