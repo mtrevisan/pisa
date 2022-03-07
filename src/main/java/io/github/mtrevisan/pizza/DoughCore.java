@@ -580,8 +580,10 @@ public final class DoughCore{
 		//correct for yeast quantity:
 		//FIXME calculate k
 		//k is so that 4% yeast in flour with 1.5% sugar and 60% water at 27-30 °C for 1 hrs gives a volume expansion ratio of 220%
-		//that is, k = 1.2 / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
-		final double k = 13.7;
+		//that is, k = (220% - 1) / (yeastModel.volumeExpansionRatio(1., lambda, alpha, (27. + 30.) / 2., 1.) * 0.04)
+//		final double k = 13.7;
+		//170 is about 317%
+		final double k = 170.;
 		return 1. + k * volumeExpansionRatio * yeast;
 	}
 
