@@ -55,6 +55,7 @@ public final class DoughCore{
 	private static final double MOLECULAR_WEIGHT_GLUCOSE = MOLECULAR_WEIGHT_CARBON * 6. + MOLECULAR_WEIGHT_HYDROGEN * 12.
 		+ MOLECULAR_WEIGHT_OXYGEN * 6.;
 
+
 	/**
 	 * Maximum sugar quantity [% w/w].
 	 * <p>(should be 3.21 mol/l = 3.21 · MOLECULAR_WEIGHT_GLUCOSE / 10. [% w/w] = 57.82965228 (?))</p>
@@ -102,6 +103,8 @@ public final class DoughCore{
 	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01,
 		5);
 
+	private static final double DOUGH_WEIGHT_PRECISION = 0.01;
+
 
 	private Flour flour;
 
@@ -144,6 +147,7 @@ public final class DoughCore{
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fat;
+	private FatType fatType;
 	/** Raw fat content [% w/w]. */
 	private double rawFat = 1.;
 	/** Fat density [g / ml]. */
@@ -263,6 +267,7 @@ public final class DoughCore{
 
 	/**
 	 * @param fat	Fat quantity w.r.t. flour [% w/w].
+	 * @param fatType	Fat type.
 	 * @param density	Fat density [g / ml].
 	 * @param fatContent	Sucrose content [% w/w].
 	 * @param waterContent	Water content [% w/w].
@@ -270,7 +275,7 @@ public final class DoughCore{
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
 	 */
-	public DoughCore addFat(final double fat, final double fatContent, final double density, final double waterContent,
+	public DoughCore addFat(final double fat, final FatType fatType, final double fatContent, final double density, final double waterContent,
 			final double saltContent) throws DoughException{
 		final double factor = 1. / (this.fat + fat);
 		rawFat = (this.fat * rawFat + fat * fatContent) * factor;
@@ -279,6 +284,7 @@ public final class DoughCore{
 		fatSaltContent = (this.fat * fatSaltContent + fat * saltContent) * factor;
 
 		this.fat += fat * fatContent;
+		this.fatType = fatType;
 		addWater(fat * waterContent, 0., 0., PURE_WATER_PH, 0.);
 		addSalt(fat * saltContent);
 
@@ -457,34 +463,40 @@ public final class DoughCore{
 		calculateYeast(procedure);
 
 		final double totalFraction = totalFraction();
-		final double flour = doughWeight / totalFraction;
-		final double sugar = this.sugar * flour;
-		final double fatCorrection = fatAlreadyInIngredients(flour);
-		final double fat = ((this.fat * (1. - milkFat) - eggFat) * flour - fatCorrection) / rawFat;
+		double totalFlour = doughWeight / totalFraction;
+		double water, fat, salt;
+		double difference;
+		Recipe recipe;
+		do{
+			final double sugar = this.sugar * totalFlour;
+			fat = ((this.fat * (1. - milkFat) - eggFat) * totalFlour - fatAlreadyInIngredients(totalFlour)) / rawFat;
+			salt = this.salt * totalFlour - fat * fatSaltContent - saltAlreadyInIngredients(totalFlour);
+			final double yeast = this.yeast * totalFlour;
+			water = ((this.water - eggWater) * totalFlour - sugar * sugarWaterContent - fat * fatWaterContent - waterInFlour())
+				/ (milkWater > 0.? milkWater: 1.);
+
+			recipe = Recipe.create()
+				.withFlour(totalFlour - yeast * (1. - rawYeast))
+				.withWater(Math.max(water, 0.))
+				.withSugar(sugar)
+				.withFat(Math.max(fat, 0.))
+				.withSalt(Math.max(salt, 0.))
+				.withYeast(yeast / (rawYeast * yeastType.factor));
+
+			//refine approximation:
+			final double calculatedDough = recipe.doughWeight();
+			difference = doughWeight - calculatedDough;
+			totalFlour += difference * 0.6;
+		}while(Math.abs(difference) > DOUGH_WEIGHT_PRECISION);
 		if(fat < 0.)
 			LOGGER.warn("Fat is already present, excess quantity is {}", Helper.round(-fat, 2));
-		final double saltCorrection = saltAlreadyInIngredients(flour);
-		final double salt = this.salt * flour - fat * fatSaltContent - saltCorrection;
 		if(salt < 0.)
 			LOGGER.warn("Salt is already present, excess quantity is {}", Helper.round(-salt, 2));
-		final double yeast = this.yeast * flour;
-		final double waterCorrection = waterAlreadyInIngredients();
-		final double water = ((this.water - eggWater) * flour - sugar * sugarWaterContent - fat * fatWaterContent - waterCorrection)
-			/ (milkWater > 0.? milkWater: 1.);
 		if(water < 0.)
 			LOGGER.warn("Water is already present, excess quantity is {}", Helper.round(-water, 2));
 
-		final Recipe recipe = Recipe.create()
-			.withFlour(flour - yeast * (1. - rawYeast))
-			.withWater(Math.max(water, 0.))
-			.withSugar(sugar)
-			.withFat(Math.max(fat, 0.))
-			.withSalt(Math.max(salt, 0.))
-			.withYeast(yeast / (rawYeast * yeastType.factor));
-
 		if(doughTemperature != null && ingredientsTemperature != null){
-			//calculate water temperature:
-			final double waterTemperature = (doughWeight * doughTemperature - (doughWeight - water) * ingredientsTemperature) / water;
+			final double waterTemperature = recipe.calculateWaterTemperature(fatType, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
 					Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
@@ -596,7 +608,7 @@ public final class DoughCore{
 		return (correctForIngredients? this.flour.salt * flour + fat * fatSaltContent: 0.);
 	}
 
-	private double waterAlreadyInIngredients(){
+	private double waterInFlour(){
 		double correction = 0.;
 		if(correctForIngredients)
 			correction += sugar * sugarWaterContent + fat * fatWaterContent;

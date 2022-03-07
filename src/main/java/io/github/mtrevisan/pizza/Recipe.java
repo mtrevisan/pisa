@@ -32,6 +32,10 @@ import java.util.StringJoiner;
 
 public final class Recipe{
 
+	private static final double[] WATER_SPECIFIC_HEAT_COEFFICIENTS = {4.21992, -0.0034006, 0.000115615, -2.1669e-06, 2.48e-08, -1.53e-10, 3.93e-13};
+	private static final double[] SUGAR_SPECIFIC_HEAT_COEFFICIENTS = {1.12684, 0.0045292, 0.000006204};
+
+
 	/** Flour quantity [g]. */
 	private double flour;
 	/** Water quantity [g]. */
@@ -262,11 +266,44 @@ public final class Recipe{
 	}
 
 
+	public double calculateWaterTemperature(final FatType fatType, final Double ingredientsTemperature, final Double doughTemperature){
+		final double mcpFlour = flour * 1.80;
+		final double mcpWater = water * specificHeatWater(ingredientsTemperature);
+		final double mcpSugar = sugar * specificHeatSugar(ingredientsTemperature);
+		final double mcpFat = fat * fatType.specificHeat(ingredientsTemperature);
+		final double mcpSalt = salt * 0.88;
+		//cp of yeast is 0.26 ± 0.18 (https://www.sciencedirect.com/science/article/abs/pii/0006300257904213)
+		final double mcpYeast = yeast * 0.26;
+		final double k = mcpFlour + mcpSugar + mcpFat + mcpSalt  + mcpYeast;
+		return ((mcpWater + k) * doughTemperature - k * ingredientsTemperature) / mcpWater;
+	}
+
+	/**
+	 * Optimized for temperatures between 0.01 °C and 100 °C.
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return	Water (isobaric) specific heat [J / (g · K)].
+	 */
+	private double specificHeatWater(final double temperature){
+		return Helper.evaluatePolynomial(WATER_SPECIFIC_HEAT_COEFFICIENTS, temperature);
+	}
+
+	/**
+	 * Optimized for temperatures between 20 °C and 80 °C.
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return	Sugar specific heat [J / (g · K)].
+	 */
+	private double specificHeatSugar(final double temperature){
+		return Helper.evaluatePolynomial(SUGAR_SPECIFIC_HEAT_COEFFICIENTS, temperature);
+	}
+
+
 	/**
 	 * @return	The total dough weight [g].
 	 */
 	public double doughWeight(){
-		return flour + water + yeast + sugar + fat + salt;
+		return flour + water + sugar + fat + salt + yeast;
 	}
 
 	/**
@@ -307,10 +344,10 @@ public final class Recipe{
 		sj.add("flour: " + Helper.round(flour, 1) + " g");
 		sj.add("water: " + Helper.round(water, 1) + " g"
 			+ (waterTemperature != null? " at " + Helper.round(waterTemperature, 1) + " °C": ""));
-		sj.add("yeast: " + Helper.round(yeast, 2) + " g");
 		sj.add("sugar: " + Helper.round(sugar, 2) + " g");
 		sj.add("fat: " + Helper.round(fat, 2) + " g");
 		sj.add("salt: " + Helper.round(salt, 2) + " g");
+		sj.add("yeast: " + Helper.round(yeast, 2) + " g");
 		if(doughMakingInstant != null)
 			sj.add("dough making: " + doughMakingInstant);
 		final int stages = (stageStartEndInstants != null? stageStartEndInstants.length: 0);

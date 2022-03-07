@@ -38,7 +38,7 @@ public final class Helper{
 			Class.forName("org.slf4j.impl.StaticLoggerBinder");
 		}
 		catch(final LinkageError | ClassNotFoundException ignored){
-			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
+			System.out.println("[WARN] SLF4J: No logger is defined, no log will be printed!");
 		}
 	}
 
