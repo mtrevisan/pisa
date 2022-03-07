@@ -461,7 +461,7 @@ public final class DoughCore{
 	 * @param doughTemperature	Desired dough temperature [°C].
 	 * @return	The recipe.
 	 */
-	Recipe createRecipe(final Procedure procedure, final double doughWeight, final Double ingredientsTemperature,
+	public Recipe createRecipe(final Procedure procedure, final double doughWeight, final Double ingredientsTemperature,
 			final Double doughTemperature) throws YeastException{
 		if(procedure == null)
 			throw new IllegalArgumentException("Procedure must be valued");
@@ -524,9 +524,6 @@ public final class DoughCore{
 	 * @param procedure	Data for procedure.
 	 */
 	private void calculateYeast(final Procedure procedure) throws YeastException{
-		//reset variable
-		yeast = 0.;
-
 		try{
 			final UnivariateFunction f = yeast -> volumeExpansionRatioDifference(yeast, procedure);
 			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
