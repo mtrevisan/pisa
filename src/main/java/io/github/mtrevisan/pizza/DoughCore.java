@@ -495,11 +495,14 @@ public final class DoughCore{
 			totalFlour += difference * 0.6;
 		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
 		if(fat < 0.)
-			LOGGER.warn("Fat is already present, excess quantity is {}", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS));
+			LOGGER.warn("Fat is already present, excess quantity is {} ({}% w/w)", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-fat * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 		if(salt < 0.)
-			LOGGER.warn("Salt is already present, excess quantity is {}", Helper.round(-salt, WEIGHT_ACCURACY_DIGITS));
+			LOGGER.warn("Salt is already present, excess quantity is {} ({}% w/w)", Helper.round(-salt, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-salt * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 		if(water < 0.)
-			LOGGER.warn("Water is already present, excess quantity is {}", Helper.round(-water, WEIGHT_ACCURACY_DIGITS));
+			LOGGER.warn("Water is already present, excess quantity is {} ({}% w/w)", Helper.round(-water, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
 			final double waterTemperature = recipe.calculateWaterTemperature(fatType, ingredientsTemperature, doughTemperature);
