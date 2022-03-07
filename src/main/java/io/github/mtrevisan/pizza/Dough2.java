@@ -65,7 +65,7 @@ public final class Dough2{
 			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 			LocalTime.of(20, 15));
 		Dough2 dough = Dough2.create(core);
-		Recipe recipe = dough.createRecipe(procedure, 767.5486460606818, 18., 27.);
+		Recipe recipe = dough.createRecipe(procedure, 767.55, 18., 27.);
 
 //		System.out.println("yeast = " + Helper.round(recipe.getYeast(), 5) + "%");
 		System.out.println(recipe);
