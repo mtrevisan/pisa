@@ -103,7 +103,12 @@ public final class DoughCore{
 	private final BaseUnivariateSolver<UnivariateFunction> solverYeast = new BracketingNthOrderBrentSolver(0.000_01,
 		5);
 
-	private static final double DOUGH_WEIGHT_PRECISION = 0.01;
+	private static final double DOUGH_WEIGHT_ACCURACY = 0.01;
+
+	static final int VOLUME_PERCENT_ACCURACY_DIGITS = 2;
+	static final int WEIGHT_ACCURACY_DIGITS = 2;
+	static final int HEAVY_WEIGHT_ACCURACY_DIGITS = 1;
+	static final int TEMPERATURE_ACCURACY_DIGITS = 1;
 
 
 	private Flour flour;
@@ -253,7 +258,8 @@ public final class DoughCore{
 	public DoughCore addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
 			throws DoughException{
 		if(sugar < 0. || sugar >= SUGAR_MAX)
-			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w", Helper.round(SUGAR_MAX, 2));
+			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
+				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		this.sugar += sugarType.factor * sugar * sugarContent;
 		addWater(sugar * waterContent, 0., 0., PURE_WATER_PH, 0.);
@@ -487,19 +493,20 @@ public final class DoughCore{
 			final double calculatedDough = recipe.doughWeight();
 			difference = doughWeight - calculatedDough;
 			totalFlour += difference * 0.6;
-		}while(Math.abs(difference) > DOUGH_WEIGHT_PRECISION);
+		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
 		if(fat < 0.)
-			LOGGER.warn("Fat is already present, excess quantity is {}", Helper.round(-fat, 2));
+			LOGGER.warn("Fat is already present, excess quantity is {}", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS));
 		if(salt < 0.)
-			LOGGER.warn("Salt is already present, excess quantity is {}", Helper.round(-salt, 2));
+			LOGGER.warn("Salt is already present, excess quantity is {}", Helper.round(-salt, WEIGHT_ACCURACY_DIGITS));
 		if(water < 0.)
-			LOGGER.warn("Water is already present, excess quantity is {}", Helper.round(-water, 2));
+			LOGGER.warn("Water is already present, excess quantity is {}", Helper.round(-water, WEIGHT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
 			final double waterTemperature = recipe.calculateWaterTemperature(fatType, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
-				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C), be aware of thermal shock!",
-					Helper.round(waterTemperature, 1), Helper.round(yeastModel.getTemperatureMax(), 1));
+				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
+					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),
+					Helper.round(yeastModel.getTemperatureMax(), TEMPERATURE_ACCURACY_DIGITS));
 
 			recipe.withWaterTemperature(waterTemperature);
 		}

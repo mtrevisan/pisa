@@ -341,13 +341,13 @@ public final class Recipe{
 	@Override
 	public String toString(){
 		final StringJoiner sj = new StringJoiner(", ");
-		sj.add("flour: " + Helper.round(flour, 1) + " g");
-		sj.add("water: " + Helper.round(water, 1) + " g"
+		sj.add("flour: " + Helper.round(flour, DoughCore.HEAVY_WEIGHT_ACCURACY_DIGITS) + " g");
+		sj.add("water: " + Helper.round(water, DoughCore.HEAVY_WEIGHT_ACCURACY_DIGITS) + " g"
 			+ (waterTemperature != null? " at " + Helper.round(waterTemperature, 1) + " °C": ""));
-		sj.add("sugar: " + Helper.round(sugar, 2) + " g");
-		sj.add("fat: " + Helper.round(fat, 2) + " g");
-		sj.add("salt: " + Helper.round(salt, 2) + " g");
-		sj.add("yeast: " + Helper.round(yeast, 2) + " g");
+		sj.add("sugar: " + Helper.round(sugar, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
+		sj.add("fat: " + Helper.round(fat, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
+		sj.add("salt: " + Helper.round(salt, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
+		sj.add("yeast: " + Helper.round(yeast, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
 		if(doughMakingInstant != null)
 			sj.add("dough making: " + doughMakingInstant);
 		final int stages = (stageStartEndInstants != null? stageStartEndInstants.length: 0);
