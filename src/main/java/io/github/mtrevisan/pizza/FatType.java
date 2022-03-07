@@ -26,14 +26,23 @@ package io.github.mtrevisan.pizza;
 
 
 /**
- * @see <a href="https://www.tandfonline.com/doi/full/10.1080/10942910701586273">Viscosity and Specific Heat of Vegetable Oils as a Function of Temperature: 35°C to 180°C</a>
+ * @see <a href="https://www.tandfonline.com/doi/full/10.1080/10942910701586273">Fasina, Colley. Viscosity and specific heat of vegetable oils as a function of temperature: 35°C to 180 °C. 2008.</a>
  */
 public enum FatType{
-	OLIVE(1.715, 2.025),
-	PEANUT(3.677, 2.449),
-	SAFFLOWER(2.832, 2.181),
-	SESAME(3.043, 2.446),
-	SUNFLOWER(3.477, 2.566);
+	ALMOND_OIL(3314., 2.143),
+	CANOLA_OIL(3003., 2.086),
+	CORN_OIL(3162., 1.963),
+	GRAPESEED_OIL(2920., 2.037),
+	HAZELNUT_OIL(2492., 1.807),
+	OLIVE_OIL(1715., 2.025),
+	PEANUT_OIL(3677., 2.449),
+	SAFFLOWER_OIL(2832., 2.181),
+	SESAME_OIL(3043., 2.446),
+	SOYBEAN_OIL(2792., 1.956),
+	SUNFLOWER_OIL(3477., 2.566),
+	WALNUT_OIL(2835., 2.165),
+
+	BUTTER(0., 2.72);
 
 
 	//coefficients for the linear interpolation of specific heat

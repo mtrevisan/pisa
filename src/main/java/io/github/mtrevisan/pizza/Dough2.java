@@ -54,7 +54,7 @@ public final class Dough2{
 			.withFlourParameters(Flour.create(230., 0.001, 0.0008, 1.3))
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
-			.addFat(0.021, FatType.OLIVE, 0.913, 0.9175, 0., 0.002)
+			.addFat(0.021, FatType.OLIVE_OIL, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
 			.withYeastParameters(YeastType.INSTANT_DRY, 1.);
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l))
@@ -65,14 +65,15 @@ public final class Dough2{
 			Duration.ofMinutes(15l), Duration.ofMinutes(15l),
 			LocalTime.of(20, 15));
 		Dough2 dough = Dough2.create(core);
-		Recipe recipe = dough.createRecipe(procedure, 767.5486460606818);
+		Recipe recipe = dough.createRecipe(procedure, 767.5486460606818, 18., 27.);
 
 //		System.out.println("yeast = " + Helper.round(recipe.getYeast(), 5) + "%");
 		System.out.println(recipe);
 	}
 
-	private Recipe createRecipe(final Procedure procedure, final double doughWeight) throws YeastException{
-		return core.createRecipe(procedure, doughWeight, 18., 27.);
+	private Recipe createRecipe(final Procedure procedure, final double doughWeight, final Double ingredientsTemperature,
+			final Double doughTemperature) throws YeastException{
+		return core.createRecipe(procedure, doughWeight, ingredientsTemperature, doughTemperature);
 	}
 
 }
