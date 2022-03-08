@@ -56,7 +56,9 @@ public final class Dough2{
 			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, FatType.OLIVE_OIL, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
-			.withYeastParameters(YeastType.INSTANT_DRY, 1.);
+			.withYeastParameters(YeastType.INSTANT_DRY, 1.)
+			.withAtmosphericPressure(1015.6)
+			.withAirRelativeHumidity(0.55);
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l))
 			.withAfterStageWork(Duration.ofMinutes(10l));
 		LeaveningStage stage2 = LeaveningStage.create(20., Duration.ofHours(1l));

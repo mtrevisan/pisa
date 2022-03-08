@@ -482,7 +482,7 @@ public final class DoughCore{
 			recipe = Recipe.create()
 				.withFlour(totalFlour - yeast * (1. - rawYeast))
 				.withWater(Math.max(water, 0.))
-				.withSugar(sugar)
+				.withSugar(sugar / (rawSugar * sugarType.factor))
 				.withFat(Math.max(fat, 0.))
 				.withSalt(Math.max(salt, 0.))
 				.withYeast(yeast / (rawYeast * yeastType.factor));
