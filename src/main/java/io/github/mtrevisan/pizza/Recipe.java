@@ -34,6 +34,7 @@ public final class Recipe{
 
 	private static final double[] WATER_SPECIFIC_HEAT_COEFFICIENTS = {4.21992, -0.0034006, 0.000115615, -2.1669e-06, 2.48e-08, -1.53e-10, 3.93e-13};
 	private static final double[] SUGAR_SPECIFIC_HEAT_COEFFICIENTS = {1.12684, 0.0045292, 0.000006204};
+	private static final double[] SALT_SPECIFIC_HEAT_COEFFICIENTS = {0.84244, 0.0005947, -0.000001566};
 
 
 	/** Flour quantity [g]. */
@@ -271,7 +272,7 @@ public final class Recipe{
 		final double mcpWater = water * specificHeatWater(ingredientsTemperature);
 		final double mcpSugar = sugar * specificHeatSugar(ingredientsTemperature);
 		final double mcpFat = fat * fatType.specificHeat(ingredientsTemperature);
-		final double mcpSalt = salt * 0.88;
+		final double mcpSalt = salt * specificHeatSalt(ingredientsTemperature);
 		//cp of yeast is 0.26 ± 0.18 (https://www.sciencedirect.com/science/article/abs/pii/0006300257904213)
 		final double mcpYeast = yeast * 0.26;
 		final double k = mcpFlour + mcpSugar + mcpFat + mcpSalt  + mcpYeast;
@@ -296,6 +297,18 @@ public final class Recipe{
 	 */
 	private double specificHeatSugar(final double temperature){
 		return Helper.evaluatePolynomial(SUGAR_SPECIFIC_HEAT_COEFFICIENTS, temperature);
+	}
+
+	/**
+	 * Optimized for temperatures between -5.65 °C and 109.25 °C.
+	 *
+	 * @param temperature	Temperature [°C].
+	 * @return	Sugar specific heat [J / (g · K)].
+	 *
+	 * @see <a href="https://srd.nist.gov/JPCRD/jpcrd432.pdf">Archer. Thermodynamic properties of the NaCl + H2O system. 1991.</>
+	 */
+	private double specificHeatSalt(final double temperature){
+		return Helper.evaluatePolynomial(SALT_SPECIFIC_HEAT_COEFFICIENTS, temperature);
 	}
 
 

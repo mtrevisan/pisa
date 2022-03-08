@@ -433,7 +433,7 @@ public final class DoughCore{
 		//usually between 6 and 6.8
 		final double flourPH = 6.4;
 		//6.1-6.4 for butter
-		final double fatPH = 6.25;
+		final double fatPH = (fatType == FatType.BUTTER? 6.25: 0.);
 		final double compositePH = (flourPH + waterPH * water + fatPH * fat) / (1. + water + fat);
 
 		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
@@ -469,11 +469,15 @@ public final class DoughCore{
 		calculateYeast(procedure);
 
 		final double totalFraction = totalFraction();
+		//NOTE: too complex to extract a formula for each ingredient, it's easier to proceed by approximation
 		double totalFlour = doughWeight / totalFraction;
 		double water, fat, salt;
-		double difference;
+		double difference = 0.;
 		Recipe recipe;
 		do{
+			//refine approximation
+			totalFlour += difference * 0.6;
+
 			final double sugar = this.sugar * totalFlour;
 			fat = ((this.fat * (1. - milkFat) - eggFat) * totalFlour - fatAlreadyInIngredients(totalFlour)) / rawFat;
 			salt = this.salt * totalFlour - fat * fatSaltContent - saltAlreadyInIngredients(totalFlour);
@@ -489,10 +493,7 @@ public final class DoughCore{
 				.withSalt(Math.max(salt, 0.))
 				.withYeast(yeast / (rawYeast * yeastType.factor));
 
-			//refine approximation:
-			final double calculatedDough = recipe.doughWeight();
-			difference = doughWeight - calculatedDough;
-			totalFlour += difference * 0.6;
+			difference = doughWeight - recipe.doughWeight();
 		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
 		if(fat < 0.)
 			LOGGER.warn("Fat is already present, excess quantity is {} ({}% w/w)", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS),
