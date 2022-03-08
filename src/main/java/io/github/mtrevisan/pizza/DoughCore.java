@@ -105,7 +105,7 @@ public final class DoughCore{
 	static final int TEMPERATURE_ACCURACY_DIGITS = 1;
 
 
-	private Flour flour;
+	private Flour flourType;
 
 	/** Total water quantity w.r.t. flour [% w/w]. */
 	private double water;
@@ -200,7 +200,7 @@ public final class DoughCore{
 		if(flour == null)
 			throw DoughException.create("Missing flour");
 
-		this.flour = flour;
+		this.flourType = flour;
 
 		return this;
 	}
@@ -500,7 +500,7 @@ public final class DoughCore{
 				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
-			final double waterTemperature = recipe.calculateWaterTemperature(flour, fatType, ingredientsTemperature, doughTemperature);
+			final double waterTemperature = recipe.calculateWaterTemperature(flourType, fatType, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
 					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),
@@ -592,10 +592,10 @@ public final class DoughCore{
 	/**
 	 * Maximum relative volume expansion ratio.
 	 *
-	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
-	 *
 	 * @param yeast	Quantity of yeast [% w/w].
 	 * @return	The maximum relative volume expansion ratio (∆V / V).
+	 *
+	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 */
 	private double maximumRelativeVolumeExpansionRatio(final double yeast){
 		//FIXME this formula is for 36±1 °C
@@ -605,11 +605,11 @@ public final class DoughCore{
 
 
 	private double fatAlreadyInIngredients(final double flour){
-		return (correctForIngredients? this.flour.fat * flour: 0.);
+		return (correctForIngredients? this.flourType.fat * flour: 0.);
 	}
 
 	private double saltAlreadyInIngredients(final double flour){
-		return (correctForIngredients? this.flour.salt * flour + fat * fatSaltContent: 0.);
+		return (correctForIngredients? this.flourType.salt * flour + fat * fatSaltContent: 0.);
 	}
 
 	private double waterInFlour(){

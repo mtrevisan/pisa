@@ -269,7 +269,6 @@ public final class Recipe{
 
 	public double calculateWaterTemperature(final Flour flourType, final FatType fatType, final Double ingredientsTemperature,
 			final Double doughTemperature){
-		//FIXME add the humidity of the flour
 		final double mcpFlour = flour * flourType.estimateSpecificHeat(water / flour, ingredientsTemperature);
 		final double mcpWater = water * specificHeatWater(ingredientsTemperature);
 		final double mcpSugar = sugar * specificHeatSugar(ingredientsTemperature);
@@ -320,6 +319,7 @@ public final class Recipe{
 	public double doughWeight(){
 		return flour + water + sugar + fat + salt + yeast;
 	}
+
 
 	/**
 	 * @see <a href="https://www.academia.edu/2421508/Characterisation_of_bread_doughs_with_different_densities_salt_contents_and_water_levels_using_microwave_power_transmission_measurements">Campbell. Characterisation of bread doughs with different densities, salt contents and water levels using microwave power transmission measurements. 2005.</a>
