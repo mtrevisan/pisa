@@ -64,12 +64,6 @@ public final class DoughCore{
 	 */
 	private static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10.;
 
-	/**
-	 * TODO
-	 * [% w/w]
-	 */
-	private static final double FAT_MAX = 1.;
-
 	/** [mg/l] */
 	private static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
 	/** [mg/l] */
@@ -294,8 +288,8 @@ public final class DoughCore{
 		addWater(fat * waterContent, 0., 0., PURE_WATER_PH, 0.);
 		addSalt(fat * saltContent);
 
-		if(fat < 0. || this.fat > FAT_MAX)
-			throw DoughException.create("Fat [% w/w] must be between 0 and {}%", Helper.round(FAT_MAX * 100., 1));
+		if(fat < 0.)
+			throw DoughException.create("Fat [% w/w] must be greater than or equals to 0%");
 
 		return this;
 	}
