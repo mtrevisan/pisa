@@ -500,7 +500,7 @@ public final class DoughCore{
 				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
-			final double waterTemperature = recipe.calculateWaterTemperature(fatType, ingredientsTemperature, doughTemperature);
+			final double waterTemperature = recipe.calculateWaterTemperature(flour, fatType, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
 					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),

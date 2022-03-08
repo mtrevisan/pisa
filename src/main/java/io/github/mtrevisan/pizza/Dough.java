@@ -734,7 +734,8 @@ public final class Dough{
 	 */
 	private double sugarFactor(final double temperature){
 		//[g/l]
-		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.sugar * SugarType.GLUCOSE.factor: 0.), temperature);
+		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.carbohydrate * SugarType.GLUCOSE.factor: 0.),
+			temperature);
 		//TODO
 		//Monod equation
 		//T[°C]	Ki[g/l]

@@ -57,7 +57,7 @@ class FeteBiskotadeTest{
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(29.5)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1007.9);
@@ -105,7 +105,7 @@ class FeteBiskotadeTest{
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(29.5)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1007.9);

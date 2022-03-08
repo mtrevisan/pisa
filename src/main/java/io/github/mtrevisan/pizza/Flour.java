@@ -29,54 +29,95 @@ public final class Flour{
 
 	/** W. */
 	final double strength;
-	/** Salt content [% w/w]. */
-	final double salt;
+	/** Protein content [% w/w]. */
+	final double protein;
 	/** Fat content [% w/w]. */
 	final double fat;
-	/** Sugar (glucose) content [% w/w]. */
-	final double sugar;
+	/** Carbohydrate content [% w/w]. */
+	final double carbohydrate;
+	/** Fiber content [% w/w]. */
+	final double fiber;
+	/** Ash content [% w/w]. */
+	final double ash;
 
+	/** Salt content [% w/w]. */
+	final double salt;
 
-	public static Flour create(){
-		return new Flour(0., 0., 0., 0.);
-	}
-
-	/**
-	 * @param strength	Salt content [% w/w].
-	 * @param sugar	sugar content [% w/w].
-	 * @return	The instance.
-	 * @throws DoughException	If there are errors in the parameters' values.
-	 */
-	public static Flour create(final double strength, final double sugar) throws DoughException{
-		return create(strength, 0., 0., sugar);
-	}
 
 	/**
 	 * @param strength	Strength.
-	 * @param salt	Salt content [% w/w].
+	 * @param protein	Protein content [% w/w].
 	 * @param fat	Fat content [% w/w].
-	 * @param sugar	sugar content [% w/w].
+	 * @param carbohydrate	Sugar content [% w/w].
+	 * @param fiber	Fiber content [% w/w].
+	 * @param ash	Ash content [% w/w].
+	 * @param salt	Salt content [% w/w].
 	 * @return	The instance.
 	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
-	public static Flour create(final double strength, final double salt, final double fat, final double sugar) throws DoughException{
+	public static Flour create(final double strength, final double protein, final double fat, final double carbohydrate, final double fiber,
+			final double ash, final double salt) throws DoughException{
 		if(strength <= 0.)
-			throw DoughException.create("Strength mush be positive");
-		if(salt < 0.)
-			throw DoughException.create("Salt content must be non-negative");
+			throw DoughException.create("Strength must be positive");
+		if(protein < 0.)
+			throw DoughException.create("Protein must be positive");
 		if(fat < 0.)
 			throw DoughException.create("Fat content must be non-negative");
-		if(sugar < 0.)
-			throw DoughException.create("Sugar content must be non-negative");
+		if(carbohydrate < 0.)
+			throw DoughException.create("Carbohydrate content must be non-negative");
+		if(fiber < 0.)
+			throw DoughException.create("Fiber content must be non-negative");
+		if(ash < 0.)
+			throw DoughException.create("Ash content must be non-negative");
+		if(salt < 0.)
+			throw DoughException.create("Salt content must be non-negative");
 
-		return new Flour(strength, salt, fat, sugar);
+		return new Flour(strength, protein, fat, carbohydrate, fiber, ash, salt);
 	}
 
-	private Flour(final double strength, final double salt, final double fat, final double sugar){
+	private Flour(final double strength, final double protein, final double fat, final double carbohydrate, final double fiber,
+			final double ash, final double salt){
 		this.strength = strength;
-		this.salt = salt;
+		this.protein = protein;
 		this.fat = fat;
-		this.sugar = sugar;
+		this.carbohydrate = carbohydrate;
+		this.fiber = fiber;
+		this.ash = ash;
+		this.salt = salt;
+	}
+
+	//https://www.ksonfoodtech.com/files/L2.pdf
+	public double estimateSpecificHeat(final double water, double temperature){
+		temperature = celsiusToFahrenheit(temperature);
+		if(temperature < -40. || temperature > 300.)
+			throw new IllegalArgumentException("Temperature out of range [" + fahrenheitToCelsius(-40.) + ", "
+				+ fahrenheitToCelsius(300.) + "]");
+
+		double cp = 0;
+		//protein
+		cp += (0.47442 + (0.00016661 - 0.000000096784 * temperature) * temperature) * protein;
+		//fat
+		cp += (0.46730 + (0.00021815 - 0.00000035391 * temperature) * temperature) * fat;
+		//carbohydrate
+		cp += (0.36114 + (0.00028843 - 0.00000043788 * temperature) * temperature) * carbohydrate;
+		//fiber
+		cp += (0.43276 + (0.00026485 - 0.00000034285 * temperature) * temperature) * fiber;
+		//ash
+		cp += (0.25266 + (0.00026810 - 0.00000027141 * temperature) * temperature) * ash;
+		//water
+		if(temperature < 32.)
+			cp += (1.0725 + (-0.0053992 + 0.000073361 * temperature) * temperature) * water;
+		else
+			cp += (0.99827 + (-0.000037879 + 0.00000040347 * temperature) * temperature) * water;
+		return cp;
+	}
+
+	private double celsiusToFahrenheit(final double temperature){
+		return temperature * 1.8 + 32.;
+	}
+
+	private double fahrenheitToCelsius(final double temperature){
+		return (temperature - 32.) / 1.8;
 	}
 
 	/**

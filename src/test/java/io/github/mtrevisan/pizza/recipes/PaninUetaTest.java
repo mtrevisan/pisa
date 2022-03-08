@@ -55,7 +55,7 @@ class PaninUetaTest{
 			.addSalt(0.0049)
 			.addFat(0.098, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(20.3)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -101,7 +101,7 @@ class PaninUetaTest{
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(21.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -150,7 +150,7 @@ class PaninUetaTest{
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(21.7)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1016.1);
@@ -197,7 +197,7 @@ class PaninUetaTest{
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(22.7)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.);
@@ -245,7 +245,7 @@ class PaninUetaTest{
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(28.6)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1005.1);
@@ -296,7 +296,7 @@ class PaninUetaTest{
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(28.6)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1005.1);

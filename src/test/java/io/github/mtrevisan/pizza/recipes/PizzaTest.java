@@ -58,7 +58,7 @@ class PizzaTest{
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(260., 1.3))
+			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(20.6)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1004.1);
@@ -112,7 +112,7 @@ class PizzaTest{
 			.addSalt(0.015)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(20.3)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1015.6);
@@ -172,7 +172,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(21.2)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1004.5);
@@ -236,7 +236,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(24.5)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.2);
@@ -303,7 +303,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(18.8)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.2);
@@ -370,7 +370,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(17.1)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.8);
@@ -437,7 +437,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(17.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(995.9);
@@ -503,7 +503,7 @@ class PizzaTest{
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(18.)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1016.6);
@@ -564,7 +564,7 @@ class PizzaTest{
 	@Test
 	void pizza20220220() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
@@ -631,7 +631,7 @@ class PizzaTest{
 	@Test
 	void pizza20220306() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
-			.withFlour(Flour.create(295., 1.3))
+			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)

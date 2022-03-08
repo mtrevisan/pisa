@@ -43,7 +43,7 @@ public enum BakingPanMaterial{
 	CORDIERITE_STONE(800. - 850., 0.95, 2000. - 2300.);
 
 
-	/** [J / (kg * K)] */
+	/** [J / (kg · K)] */
 	public final double specificHeat;
 	//https://www.cpp.edu/~lllee/TK3111heat.pdf pag 19
 	//https://en.wikipedia.org/wiki/List_of_thermal_conductivities
@@ -63,7 +63,7 @@ public enum BakingPanMaterial{
 	/**
 	 *
 	 * @param temperature	Temperature [°C].
-	 * @return The thermal conductivity [W / (m * K)].
+	 * @return The thermal conductivity [W / (m · K)].
 	 */
 	public double thermalConductivity(final double temperature){
 		return switch(this){

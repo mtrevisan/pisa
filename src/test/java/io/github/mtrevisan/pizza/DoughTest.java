@@ -189,7 +189,7 @@ class DoughTest{
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.002)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
-			.withFlour(Flour.create(230., 0.001, 0.0008, 1.3))
+			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
 			.withIngredientsTemperature(16.9)
 			.withCorrectForIngredients()
 			.withAtmosphericPressure(1007.1);
