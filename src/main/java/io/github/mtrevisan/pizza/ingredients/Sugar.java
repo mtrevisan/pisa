@@ -22,7 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.pizza;
+package io.github.mtrevisan.pizza.ingredients;
+
+import io.github.mtrevisan.pizza.DoughException;
 
 import java.util.Objects;
 
@@ -47,8 +49,8 @@ public final class Sugar{
 
 
 		/** Equivalent quantity in glucose to obtain the same maximum volume expansion ratio. */
-		final double factor;
-		final double molecularWeight;
+		public final double factor;
+		public final double molecularWeight;
 
 
 		SugarType(final double factor, final double molecularWeight){
@@ -59,11 +61,11 @@ public final class Sugar{
 	}
 
 
-	final SugarType type;
+	public final SugarType type;
 	/** Raw carbohydrate content [% w/w]. */
-	final double carbohydrate;
+	public final double carbohydrate;
 	/** Water content [% w/w]. */
-	final double water;
+	public final double water;
 
 
 	/**
@@ -71,7 +73,7 @@ public final class Sugar{
 	 * @param carbohydrate	Carbohydrate content [% w/w].
 	 * @param water	Water content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException	If there are errors in the parameters' values.
+	 * @throws DoughException   If there are errors in the parameters' values.
 	 */
 	public static Sugar create(final SugarType type, final double carbohydrate, final double water) throws DoughException{
 		Objects.requireNonNull(type, "Type must be non null");

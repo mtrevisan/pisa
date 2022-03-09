@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.services.SteffenInterpolator;
+import io.github.mtrevisan.pizza.ingredients.Flour;
+import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
 import org.apache.commons.math3.exception.NoBracketingException;

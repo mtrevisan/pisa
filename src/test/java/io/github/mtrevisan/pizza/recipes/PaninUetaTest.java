@@ -26,12 +26,12 @@ package io.github.mtrevisan.pizza.recipes;
 
 import io.github.mtrevisan.pizza.Dough;
 import io.github.mtrevisan.pizza.DoughException;
-import io.github.mtrevisan.pizza.Flour;
+import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.LeaveningStage;
 import io.github.mtrevisan.pizza.Procedure;
 import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
-import io.github.mtrevisan.pizza.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
 import io.github.mtrevisan.pizza.YeastType;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;

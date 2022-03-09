@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.ingredients.Fat;
+import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.utils.Helper;
 
 import java.time.LocalTime;
@@ -268,7 +270,7 @@ public final class Recipe{
 
 
 	public double calculateWaterTemperature(final Flour flourType, final Fat.FatType fatType, final Double ingredientsTemperature,
-			final Double doughTemperature){
+														 final Double doughTemperature){
 		final double mcpFlour = flour * flourType.estimateSpecificHeat(water / flour, ingredientsTemperature);
 		final double mcpWater = water * specificHeatWater(ingredientsTemperature);
 		final double mcpSugar = sugar * specificHeatSugar(ingredientsTemperature);

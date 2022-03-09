@@ -22,8 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.pizza;
+package io.github.mtrevisan.pizza.ingredients;
 
+import io.github.mtrevisan.pizza.DoughException;
 import io.github.mtrevisan.pizza.utils.Helper;
 
 import java.util.Objects;
@@ -66,13 +67,13 @@ public final class Fat{
 	}
 
 
-	final FatType type;
+	public final FatType type;
 	/** Raw fat content [% w/w]. */
-	final double fat;
+	public final double fat;
 	/** Salt content [% w/w]. */
-	final double salt;
+	public final double salt;
 	/** Water content [% w/w]. */
-	final double water;
+	public final double water;
 
 	/** Fat density [g / ml]. */
 	final double density;
@@ -83,7 +84,7 @@ public final class Fat{
 	 * @param fat	Fat content [% w/w].
 	 * @param water	Water content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException	If there are errors in the parameters' values.
+	 * @throws DoughException   If there are errors in the parameters' values.
 	 */
 	public static Fat create(final FatType type, final double fat, final double salt, final double water, final double density)
 			throws DoughException{

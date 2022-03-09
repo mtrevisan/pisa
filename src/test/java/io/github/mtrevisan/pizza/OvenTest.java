@@ -27,6 +27,8 @@ package io.github.mtrevisan.pizza;
 import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
+import io.github.mtrevisan.pizza.ingredients.Flour;
+import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

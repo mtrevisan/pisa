@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.ingredients.Fat;
+import io.github.mtrevisan.pizza.ingredients.Flour;
+import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
