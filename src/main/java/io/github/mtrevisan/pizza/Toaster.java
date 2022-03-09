@@ -230,10 +230,10 @@ public class Toaster{
 	//cds.cern.ch/record/732229/files/0404117.pdf?version=2
 	private double calculateAirThermalExpansion(final double temperature, final double relativeHumidity){
 		//[cal / (g · K)]
-		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, temperature + Water.ABSOLUTE_ZERO);
+		final double specificHeatAir = Helper.evaluatePolynomial(AIR_SPECIFIC_HEAT_COEFFICIENTS, temperature + WaterHelper.ABSOLUTE_ZERO);
 		//[cal / (g · K)]
 		final double specificHeatWaterVapor = Helper.evaluatePolynomial(WATER_VAPOR_SPECIFIC_HEAT_COEFFICIENTS,
-			temperature + Water.ABSOLUTE_ZERO);
+			temperature + WaterHelper.ABSOLUTE_ZERO);
 		//[J / (kg · K)]
 		return calculateWaterSpecificHeat(temperature)
 			* (specificHeatAir + relativeHumidity * (WATER_AIR_MOLAR_MASS_RATIO * specificHeatWaterVapor - specificHeatAir))
@@ -249,9 +249,9 @@ public class Toaster{
 	}
 
 	private double calculateAirDensity(final double temperature, final double pressure, final double relativeHumidity){
-		final double densityDryAir = pressure * 100. / (R_DRY_AIR * (temperature + Water.ABSOLUTE_ZERO));
+		final double densityDryAir = pressure * 100. / (R_DRY_AIR * (temperature + WaterHelper.ABSOLUTE_ZERO));
 		final double vaporPressureWater = 6.1078 / Math.pow(Helper.evaluatePolynomial(WATER_VAPOR_PRESSURE_COEFFICIENTS, temperature), 8.);
-		final double densityMoist = relativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (temperature + Water.ABSOLUTE_ZERO));
+		final double densityMoist = relativeHumidity * vaporPressureWater / (R_WATER_VAPOR * (temperature + WaterHelper.ABSOLUTE_ZERO));
 		return densityDryAir + densityMoist;
 	}
 
@@ -264,14 +264,14 @@ public class Toaster{
 	 */
 	private double calculateKinematicViscosity(final double temperature, final double pressure, final double density){
 		//Sutherland equation
-		final double temp = temperature + Water.ABSOLUTE_ZERO;
+		final double temp = temperature + WaterHelper.ABSOLUTE_ZERO;
 		final double dynamicViscosity0 = 1.458e-6 * temp * Math.sqrt(temp) / (temp + 110.4);
 		final double dynamicViscosityP = Helper.evaluatePolynomial(AIR_VISCOSITY_PRESSURE_COEFFICIENTS, pressure);
 		return (dynamicViscosity0 + dynamicViscosityP) / density;
 	}
 
 	private double calculateAirThermalConductivity(final double temperature){
-		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + Water.ABSOLUTE_ZERO);
+		return Helper.evaluatePolynomial(AIR_CONDUCTIVITY_COEFFICIENTS, temperature + WaterHelper.ABSOLUTE_ZERO);
 	}
 
 	private double calculateThermalConductivity(final double temperature, final double protein, final double fat, final double carbohydrate,
@@ -297,7 +297,7 @@ public class Toaster{
 	 * @return	The air specific heat [J / (kg · K)].
 	 */
 	private double calculateAirSpecificHeat(final double temperature){
-		return 1002.5 + 275.e-6 * Math.pow(temperature + Water.ABSOLUTE_ZERO - 200., 2.);
+		return 1002.5 + 275.e-6 * Math.pow(temperature + WaterHelper.ABSOLUTE_ZERO - 200., 2.);
 	}
 
 	private double calculateThermalDiffusivity(final double thermalConductivity, final double specificHeat, final double density){

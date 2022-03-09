@@ -28,6 +28,7 @@ import io.github.mtrevisan.pizza.ingredients.Atmosphere;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Water;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
 
@@ -57,7 +58,7 @@ public final class Dough2{
 	public static void main(String[] args) throws DoughException, YeastException{
 		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1.))
 			.withFlourParameters(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
-			.addWater(0.65, 0.02, 0., 7.9, 237.)
+			.addWater(0.65, Water.create(0.02, 0., 237., 7.9))
 			.addSugar(0.004, Sugar.create(Sugar.SugarType.SUCROSE, 0.998, 0.0005))
 			.addFat(0.021, Fat.create(Fat.FatType.OLIVE_OIL, 0.913, 0.002, 0., 0.9175))
 			.addSalt(0.016)

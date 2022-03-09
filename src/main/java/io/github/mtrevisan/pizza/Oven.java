@@ -175,7 +175,7 @@ public final class Oven{
 		//apply inverse Charles-Gay Lussac
 		//FIXME the factor accounts for water content and gases produced by levain
 		//https://www.campdenbri.co.uk/blogs/bread-dough-rise-causes.php
-		return 0.4048 * bakingRatio * (dough.ingredientsTemperature + Water.ABSOLUTE_ZERO) - Water.ABSOLUTE_ZERO;
+		return 0.4048 * bakingRatio * (dough.ingredientsTemperature + WaterHelper.ABSOLUTE_ZERO) - WaterHelper.ABSOLUTE_ZERO;
 	}
 
 	/**

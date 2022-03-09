@@ -30,6 +30,7 @@ import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Milk;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Water;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -74,7 +75,6 @@ public final class DoughCore{
 	private static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
 	/** [mg/l] */
 	private static final double WATER_FIXED_RESIDUE_MAX = 1500.;
-	private static final double PURE_WATER_PH = 5.4;
 
 	/**
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
@@ -113,26 +113,13 @@ public final class DoughCore{
 
 	/** Total water quantity w.r.t. flour [% w/w]. */
 	private double waterQuantity;
-	/** Chlorine dioxide in water [mg/l]. */
-	private double waterChlorineDioxide;
-	/**
-	 * pH of water.
-	 * <p>
-	 * Hard water is more alkaline than soft water, and can decrease the activity of yeast.
-	 * Water that is slightly acid (pH a little below 7) is preferred for bread baking.
-	 * </p>
-	 */
-	private double waterPH = PURE_WATER_PH;
-	/** Fixed residue in water [mg/l]. */
-	private double waterFixedResidue;
-	/** Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°I · 7] = [°dH · 5.6]. */
-	private double waterCalciumCarbonate;
+	private Water water;
 
-	/** TODO Total water quantity w.r.t. flour in milk [% w/w]. */
+	//TODO
 	private double milkWeight;
 	private Milk milk;
 
-	/** TODO Egg content w.r.t. flour [% w/w]. */
+	//TODO
 	private double eggWeight;
 	private Egg egg;
 
@@ -165,7 +152,7 @@ public final class DoughCore{
 
 	private DoughCore(final Yeast yeast) throws DoughException{
 		if(yeast == null)
-			throw DoughException.create("Yeast must be provided");
+			throw DoughException.create("Missing yeast data");
 
 		this.yeast = yeast;
 	}
@@ -177,7 +164,7 @@ public final class DoughCore{
 	 */
 	public DoughCore withFlourParameters(final Flour flour) throws DoughException{
 		if(flour == null)
-			throw DoughException.create("Missing flour");
+			throw DoughException.create("Missing flour data");
 
 		this.flour = flour;
 
@@ -187,34 +174,24 @@ public final class DoughCore{
 
 	/**
 	 * @param waterQuantity	Water quantity w.r.t. flour [% w/w].
-	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
-	 * @param pH	pH of water.
-	 * @param fixedResidue	Fixed residue in water [mg/l].
+	 * @param water	Water data.
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
 	 */
-	public DoughCore addWater(final double waterQuantity, final double chlorineDioxide, final double calciumCarbonate, final double pH,
-			final double fixedResidue) throws DoughException{
+	public DoughCore addWater(final double waterQuantity, final Water water) throws DoughException{
 		if(waterQuantity < 0.)
 			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
-		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
+		if(water == null)
+			throw DoughException.create("Missing water data");
+		if(water.chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and {} mg/l",
 				Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2));
-		if(calciumCarbonate < 0.)
-			throw DoughException.create("Calcium carbonate in water must be non-negative");
-		if(pH < 0. || pH > 14.)
-			throw DoughException.create("pH of water must be between 0 and 14");
-		if(fixedResidue < 0. || fixedResidue >= WATER_FIXED_RESIDUE_MAX)
+		if(water.fixedResidue >= WATER_FIXED_RESIDUE_MAX)
 			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and {} mg/l",
 				Helper.round(WATER_FIXED_RESIDUE_MAX, 2));
 
-		if(this.waterQuantity + waterQuantity > 0.){
-			waterChlorineDioxide = (this.waterQuantity * waterChlorineDioxide + waterQuantity * chlorineDioxide) / (this.waterQuantity + waterQuantity);
-			waterCalciumCarbonate = (this.waterQuantity * waterCalciumCarbonate + waterQuantity * calciumCarbonate) / (this.waterQuantity + waterQuantity);
-			waterPH = (this.waterQuantity * waterPH + waterQuantity * pH) / (this.waterQuantity + waterQuantity);
-			waterFixedResidue = (this.waterQuantity * waterFixedResidue + waterQuantity * fixedResidue) / (this.waterQuantity + waterQuantity);
-		}
 		this.waterQuantity += waterQuantity;
+		this.water = water;
 
 		return this;
 	}
@@ -230,11 +207,13 @@ public final class DoughCore{
 		if(sugarQuantity < 0. || sugarQuantity >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
+		if(sugar == null)
+			throw DoughException.create("Missing sugar data");
 		if(this.sugar != null)
 			throw DoughException.create("Sugar was already set");
 
 		this.sugarQuantity += sugar.type.factor * sugarQuantity * sugar.carbohydrate;
-		addWater(sugarQuantity * sugar.water, 0., 0., PURE_WATER_PH, 0.);
+		addWater(sugarQuantity * sugar.water, Water.createPure());
 		this.sugar = sugar;
 
 		return this;
@@ -250,11 +229,13 @@ public final class DoughCore{
 	public DoughCore addFat(final double fatQuantity, final Fat fat) throws DoughException{
 		if(fatQuantity < 0.)
 			throw DoughException.create("Fat [% w/w] must be greater than or equals to 0%");
+		if(fat == null)
+			throw DoughException.create("Missing fat data");
 		if(this.fat != null)
 			throw DoughException.create("Fat was already set");
 
 		this.fatQuantity += fatQuantity * fat.fat;
-		addWater(fatQuantity * fat.water, 0., 0., PURE_WATER_PH, 0.);
+		addWater(fatQuantity * fat.water, Water.createPure());
 		addSalt(fatQuantity * fat.salt);
 		this.fat = fat;
 
@@ -286,6 +267,8 @@ public final class DoughCore{
 		if(atmosphere.pressure < 0. || atmosphere.pressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
 				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
+		if(atmosphere == null)
+			throw DoughException.create("Missing atmosphere data");
 
 		this.atmosphere = atmosphere;
 
@@ -362,7 +345,8 @@ public final class DoughCore{
 		final double fatFactor = (fat.type == Fat.FatType.BUTTER? 1.: 0.);
 		//6.1-6.4 for butter
 		final double fatPH = 6.25;
-		final double compositePH = (flourPH + waterPH * waterQuantity + fatFactor * fatPH * fatQuantity) / (1. + waterQuantity + fatFactor * fatQuantity);
+		final double compositePH = (flourPH + water.pH * waterQuantity + fatFactor * fatPH * fatQuantity)
+			/ (1. + waterQuantity + fatFactor * fatQuantity);
 
 		if(compositePH < yeast.model.getPHMin() || compositePH > yeast.model.getPHMax())
 			return 0.;
