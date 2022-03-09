@@ -108,7 +108,7 @@ public final class DoughCore{
 	private Flour flour;
 
 	/** Total water quantity w.r.t. flour [% w/w]. */
-	private double water;
+	private double waterQuantity;
 	/** Chlorine dioxide in water [mg/l]. */
 	private double waterChlorineDioxide;
 	/**
@@ -137,15 +137,15 @@ public final class DoughCore{
 	private double eggFat;
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
-	private double sugarWeight;
+	private double sugarQuantity;
 	private Sugar sugar;
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
-	private double fatWeight;
+	private double fatQuantity;
 	private Fat fat;
 
 	/** Total salt quantity w.r.t. flour [% w/w]. */
-	private double salt;
+	private double saltQuantity;
 
 	private final YeastModelAbstract yeastModel;
 	/** Yeast quantity [% w/w]. */
@@ -195,16 +195,16 @@ public final class DoughCore{
 
 
 	/**
-	 * @param water	Water quantity w.r.t. flour [% w/w].
+	 * @param waterQuantity	Water quantity w.r.t. flour [% w/w].
 	 * @param chlorineDioxide	Chlorine dioxide in water [mg/l].
 	 * @param pH	pH of water.
 	 * @param fixedResidue	Fixed residue in water [mg/l].
 	 * @return	This instance.
 	 * @throws DoughException	If water is too low, or chlorine dioxide is too low or too high, or fixed residue is too low or too high.
 	 */
-	public DoughCore addWater(final double water, final double chlorineDioxide, final double calciumCarbonate, final double pH,
+	public DoughCore addWater(final double waterQuantity, final double chlorineDioxide, final double calciumCarbonate, final double pH,
 			final double fixedResidue) throws DoughException{
-		if(water < 0.)
+		if(waterQuantity < 0.)
 			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
 		if(chlorineDioxide < 0. || chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
 			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and {} mg/l",
@@ -217,33 +217,33 @@ public final class DoughCore{
 			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and {} mg/l",
 				Helper.round(WATER_FIXED_RESIDUE_MAX, 2));
 
-		if(this.water + water > 0.){
-			waterChlorineDioxide = (this.water * waterChlorineDioxide + water * chlorineDioxide) / (this.water + water);
-			waterCalciumCarbonate = (this.water * waterCalciumCarbonate + water * calciumCarbonate) / (this.water + water);
-			waterPH = (this.water * waterPH + water * pH) / (this.water + water);
-			waterFixedResidue = (this.water * waterFixedResidue + water * fixedResidue) / (this.water + water);
+		if(this.waterQuantity + waterQuantity > 0.){
+			waterChlorineDioxide = (this.waterQuantity * waterChlorineDioxide + waterQuantity * chlorineDioxide) / (this.waterQuantity + waterQuantity);
+			waterCalciumCarbonate = (this.waterQuantity * waterCalciumCarbonate + waterQuantity * calciumCarbonate) / (this.waterQuantity + waterQuantity);
+			waterPH = (this.waterQuantity * waterPH + waterQuantity * pH) / (this.waterQuantity + waterQuantity);
+			waterFixedResidue = (this.waterQuantity * waterFixedResidue + waterQuantity * fixedResidue) / (this.waterQuantity + waterQuantity);
 		}
-		this.water += water;
+		this.waterQuantity += waterQuantity;
 
 		return this;
 	}
 
 
 	/**
-	 * @param sugarWeight	Sugar quantity w.r.t. flour [% w/w].
+	 * @param sugarQuantity	Sugar quantity w.r.t. flour [% w/w].
 	 * @param sugar	Sugar data.
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public DoughCore addSugar(final double sugarWeight, final Sugar sugar) throws DoughException{
-		if(sugarWeight < 0. || sugarWeight >= SUGAR_MAX)
+	public DoughCore addSugar(final double sugarQuantity, final Sugar sugar) throws DoughException{
+		if(sugarQuantity < 0. || sugarQuantity >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
 		if(this.sugar != null)
 			throw DoughException.create("Sugar was already set");
 
-		this.sugarWeight += sugar.type.factor * sugarWeight * sugar.carbohydrate;
-		addWater(sugarWeight * sugar.water, 0., 0., PURE_WATER_PH, 0.);
+		this.sugarQuantity += sugar.type.factor * sugarQuantity * sugar.carbohydrate;
+		addWater(sugarQuantity * sugar.water, 0., 0., PURE_WATER_PH, 0.);
 		this.sugar = sugar;
 
 		return this;
@@ -251,20 +251,20 @@ public final class DoughCore{
 
 
 	/**
-	 * @param fatWeight	Fat quantity w.r.t. flour [% w/w].
+	 * @param fatQuantity	Fat quantity w.r.t. flour [% w/w].
 	 * @param fat	Fat data.
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
 	 */
-	public DoughCore addFat(final double fatWeight, final Fat fat) throws DoughException{
-		if(fatWeight < 0.)
+	public DoughCore addFat(final double fatQuantity, final Fat fat) throws DoughException{
+		if(fatQuantity < 0.)
 			throw DoughException.create("Fat [% w/w] must be greater than or equals to 0%");
 		if(this.fat != null)
 			throw DoughException.create("Fat was already set");
 
-		this.fatWeight += fatWeight * fat.fat;
-		addWater(fatWeight * fat.water, 0., 0., PURE_WATER_PH, 0.);
-		addSalt(fatWeight * fat.salt);
+		this.fatQuantity += fatQuantity * fat.fat;
+		addWater(fatQuantity * fat.water, 0., 0., PURE_WATER_PH, 0.);
+		addSalt(fatQuantity * fat.salt);
 		this.fat = fat;
 
 		return this;
@@ -272,15 +272,15 @@ public final class DoughCore{
 
 
 	/**
-	 * @param salt	Salt quantity w.r.t. flour [% w/w].
+	 * @param saltQuantity	Salt quantity w.r.t. flour [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If salt is too low or too high.
 	 */
-	public DoughCore addSalt(final double salt) throws DoughException{
-		if(salt < 0.)
+	public DoughCore addSalt(final double saltQuantity) throws DoughException{
+		if(saltQuantity < 0.)
 			throw DoughException.create("Salt [% w/w] must be positive");
 
-		this.salt += salt;
+		this.saltQuantity += saltQuantity;
 
 		return this;
 	}
@@ -405,7 +405,7 @@ public final class DoughCore{
 		final double fatFactor = (fat.type == Fat.FatType.BUTTER? 1.: 0.);
 		//6.1-6.4 for butter
 		final double fatPH = 6.25;
-		final double compositePH = (flourPH + waterPH * water + fatFactor * fatPH * fatWeight) / (1. + water + fatFactor * fatWeight);
+		final double compositePH = (flourPH + waterPH * waterQuantity + fatFactor * fatPH * fatQuantity) / (1. + waterQuantity + fatFactor * fatQuantity);
 
 		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
 			return 0.;
@@ -449,12 +449,12 @@ public final class DoughCore{
 			//refine approximation
 			flourWeight += difference * 0.6;
 
-			fatWeight = (flourWeight * (this.fatWeight * (1. - milkFat) - eggFat)
+			fatWeight = (flourWeight * (this.fatQuantity * (1. - milkFat) - eggFat)
 				- (correctForIngredients? flourWeight * flour.fat: 0.)) / fat.fat;
-			saltWeight = flourWeight * this.salt - fatWeight * this.fat.salt
+			saltWeight = flourWeight * this.saltQuantity - fatWeight * this.fat.salt
 				- (correctForIngredients? flourWeight * flour.salt + fatWeight * fat.salt: 0.);
-			final double sugarWeight = flourWeight * this.sugarWeight;
-			waterWeight = (flourWeight * (this.water - eggWater)
+			final double sugarWeight = flourWeight * this.sugarQuantity;
+			waterWeight = (flourWeight * (this.waterQuantity - eggWater)
 				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
 				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(airRelativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
@@ -586,7 +586,7 @@ public final class DoughCore{
 
 
 	private double totalFraction(){
-		return 1. + water + sugarWeight + fatWeight + salt + yeast;
+		return 1. + waterQuantity + sugarQuantity + fatQuantity + saltQuantity + yeast;
 	}
 
 }
