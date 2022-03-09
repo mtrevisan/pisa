@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.ingredients.Atmosphere;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
@@ -60,8 +61,7 @@ public final class Dough2{
 			.addFat(0.021, Fat.create(Fat.FatType.OLIVE_OIL, 0.913, 0.002, 0., 0.9175))
 			.addSalt(0.016)
 			.withYeastParameters(YeastType.INSTANT_DRY, 1.)
-			.withAtmosphericPressure(1015.6)
-			.withAirRelativeHumidity(0.55);
+			.withAtmosphere(Atmosphere.create(1015.6, 0.55));
 		LeaveningStage stage1 = LeaveningStage.create(35., Duration.ofHours(5l))
 			.withAfterStageWork(Duration.ofMinutes(10l));
 		LeaveningStage stage2 = LeaveningStage.create(20., Duration.ofHours(1l));

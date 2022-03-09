@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.pizza;
 
+import io.github.mtrevisan.pizza.ingredients.Atmosphere;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
@@ -73,8 +74,6 @@ public final class DoughCore{
 	private static final double WATER_FIXED_RESIDUE_MAX = 1500.;
 	private static final double PURE_WATER_PH = 5.4;
 
-	/** Standard ambient pressure [hPa]. */
-	private static final double STANDARD_AMBIENT_PRESSURE = 1013.25;
 	/**
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
@@ -157,11 +156,7 @@ public final class DoughCore{
 	/** Raw yeast content [% w/w]. */
 	private double rawYeast = 1.;
 
-
-	/** Atmospheric pressure [hPa]. */
-	private double atmosphericPressure = STANDARD_AMBIENT_PRESSURE;
-	/** Relative humidity of the air [% w/w]. */
-	private Double airRelativeHumidity;
+	private Atmosphere atmosphere;
 
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
@@ -308,26 +303,16 @@ public final class DoughCore{
 
 
 	/**
-	 * @param atmosphericPressure	Atmospheric pressure [hPa].
+	 * @param atmosphere	Atmosphere data.
 	 * @return	This instance.
 	 * @throws DoughException	If pressure is negative or above maximum.
 	 */
-	public DoughCore withAtmosphericPressure(final double atmosphericPressure) throws DoughException{
-		if(atmosphericPressure < 0. || atmosphericPressure >= ATMOSPHERIC_PRESSURE_MAX)
+	public DoughCore withAtmosphere(final Atmosphere atmosphere) throws DoughException{
+		if(atmosphere.pressure < 0. || atmosphere.pressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
 				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
 
-		this.atmosphericPressure = atmosphericPressure;
-
-		return this;
-	}
-
-	/**
-	 * @param airRelativeHumidity	Relative humidity of the air [% w/w].
-	 * @return	The instance.
-	 */
-	public DoughCore withAirRelativeHumidity(final double airRelativeHumidity){
-		this.airRelativeHumidity = airRelativeHumidity;
+		this.atmosphere = atmosphere;
 
 		return this;
 	}
@@ -383,7 +368,7 @@ public final class DoughCore{
 ////		final double kWaterFixedResidue = waterFixedResidueFactor();
 ////		final double kHydration = kWater * kWaterFixedResidue;
 		final double kPH = phFactor();
-		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphericPressure);
+		final double kAtmosphericPressure = atmosphericPressureFactor(atmosphere.pressure);
 		return /*kSugar * kFat * kSalt * kHydration **/ kPH * kAtmosphericPressure;
 	}
 
@@ -459,7 +444,7 @@ public final class DoughCore{
 			final double sugarWeight = flourWeight * this.sugarQuantity;
 			waterWeight = (flourWeight * (this.waterQuantity - eggWater)
 				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
-				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(airRelativeHumidity): 0.))
+				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
 			final double yeast = flourWeight * this.yeast;
 
