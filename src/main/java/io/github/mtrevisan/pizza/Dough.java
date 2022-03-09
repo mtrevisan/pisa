@@ -173,7 +173,7 @@ public final class Dough{
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
-	private SugarType sugarType;
+	private Sugar.SugarType sugarType;
 	/** Raw sugar content [% w/w]. */
 	private double rawSugar = 1.;
 	/** Water content in sugar [% w/w]. */
@@ -265,7 +265,7 @@ public final class Dough{
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public Dough addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
+	public Dough addSugar(final double sugar, final Sugar.SugarType sugarType, final double sugarContent, final double waterContent)
 			throws DoughException{
 		if(sugar < 0.)
 			throw DoughException.create("Sugar [% w/w] must be positive");
@@ -734,7 +734,7 @@ public final class Dough{
 	 */
 	private double sugarFactor(final double temperature){
 		//[g/l]
-		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.carbohydrate * SugarType.GLUCOSE.factor: 0.),
+		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.carbohydrate * Sugar.SugarType.GLUCOSE.factor: 0.),
 			temperature);
 		//TODO
 		//Monod equation
@@ -853,7 +853,7 @@ public final class Dough{
 				.withFat(fat)
 				.withSalt(salt)
 				.density(fatDensity, temperature, atmosphericPressure);
-			sugarRatio = fractionOverTotal(sugar, yeast) * (sugarType != null? sugarType.factor: SugarType.GLUCOSE.factor) * doughDensity;
+			sugarRatio = fractionOverTotal(sugar, yeast) * (sugarType != null? sugarType.factor: Sugar.SugarType.GLUCOSE.factor) * doughDensity;
 		}
 		return sugarRatio;
 	}

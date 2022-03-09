@@ -105,7 +105,7 @@ public final class DoughCore{
 	static final int TEMPERATURE_ACCURACY_DIGITS = 1;
 
 
-	private Flour flourType;
+	private Flour flour;
 
 	/** Total water quantity w.r.t. flour [% w/w]. */
 	private double water;
@@ -137,12 +137,8 @@ public final class DoughCore{
 	private double eggFat;
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
-	private double sugar;
-	private SugarType sugarType;
-	/** Raw sugar content [% w/w]. */
-	private double rawSugar = 1.;
-	/** Water content in sugar [% w/w]. */
-	private double sugarWaterContent;
+	private double sugarWeight;
+	private Sugar sugar;
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fat;
@@ -200,7 +196,7 @@ public final class DoughCore{
 		if(flour == null)
 			throw DoughException.create("Missing flour");
 
-		this.flourType = flour;
+		this.flour = flour;
 
 		return this;
 	}
@@ -241,25 +237,17 @@ public final class DoughCore{
 	}
 
 
-	/**
-	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
-	 * @param sugarType	Sugar type.
-	 * @param sugarContent	Sucrose content [% w/w].
-	 * @param waterContent	Water content [% w/w].
-	 * @return	This instance.
-	 * @throws DoughException	If sugar is too low or too high.
-	 */
-	public DoughCore addSugar(final double sugar, final SugarType sugarType, final double sugarContent, final double waterContent)
-			throws DoughException{
-		if(sugar < 0. || sugar >= SUGAR_MAX)
+	public DoughCore addSugar(final double sugarWeight, final Sugar sugar) throws DoughException{
+		if(sugarWeight < 0. || sugarWeight >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
 
-		this.sugar += sugarType.factor * sugar * sugarContent;
-		addWater(sugar * waterContent, 0., 0., PURE_WATER_PH, 0.);
-		this.sugarType = sugarType;
-		rawSugar = sugarContent;
-		sugarWaterContent = waterContent;
+		this.sugarWeight += sugar.type.factor * sugarWeight * sugar.carbohydrate;
+		addWater(sugarWeight * sugar.water, 0., 0., PURE_WATER_PH, 0.);
+		if(this.sugar == null)
+			this.sugar = sugar;
+		else
+			throw DoughException.create("Sugar was already set");
 
 		return this;
 	}
@@ -474,12 +462,12 @@ public final class DoughCore{
 			totalFlour += difference * 0.6;
 
 			fat = (totalFlour * (this.fat * (1. - milkFat) - eggFat)
-				- (correctForIngredients? totalFlour * flourType.fat: 0.)) / rawFat;
+				- (correctForIngredients? totalFlour * flour.fat: 0.)) / rawFat;
 			salt = totalFlour * this.salt - fat * fatSaltContent
-				- (correctForIngredients? totalFlour * flourType.salt + fat * fatSaltContent: 0.);
-			final double sugar = totalFlour * this.sugar;
+				- (correctForIngredients? totalFlour * flour.salt + fat * fatSaltContent: 0.);
+			final double sugarWeight = totalFlour * this.sugarWeight;
 			water = (totalFlour * (this.water - eggWater)
-				- (correctForIngredients? sugar * sugarWaterContent + fat * fatWaterContent: 0.)
+				- (correctForIngredients? sugarWeight * sugar.water + fat * fatWaterContent: 0.)
 				- (correctForFlourHumidity? totalFlour * Flour.estimatedHumidity(airRelativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
 			final double yeast = totalFlour * this.yeast;
@@ -487,7 +475,7 @@ public final class DoughCore{
 			recipe = Recipe.create()
 				.withFlour(totalFlour)
 				.withWater(Math.max(water, 0.))
-				.withSugar(sugar / (rawSugar * sugarType.factor))
+				.withSugar(sugarWeight / (sugar.carbohydrate * sugar.type.factor))
 				.withFat(Math.max(fat, 0.))
 				.withSalt(Math.max(salt, 0.))
 				.withYeast(yeast / (rawYeast * yeastType.factor));
@@ -505,7 +493,7 @@ public final class DoughCore{
 				Helper.round(-salt * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
-			final double waterTemperature = recipe.calculateWaterTemperature(flourType, fatType, ingredientsTemperature, doughTemperature);
+			final double waterTemperature = recipe.calculateWaterTemperature(flour, fatType, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
 					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),
@@ -610,7 +598,7 @@ public final class DoughCore{
 
 
 	private double totalFraction(){
-		return 1. + water + sugar + fat + salt + yeast;
+		return 1. + water + sugarWeight + fat + salt + yeast;
 	}
 
 }

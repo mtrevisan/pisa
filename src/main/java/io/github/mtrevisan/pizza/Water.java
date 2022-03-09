@@ -53,7 +53,7 @@ public final class Water{
 	 * @param pressure	Pressure [hPa].
 	 * @return	The boiling temperature of salted and sweetened water [°C].
 	 */
-	public static double boilingTemperature(final double salt, final double sugar, final SugarType sugarType, final double pressure){
+	public static double boilingTemperature(final double salt, final double sugar, final Sugar.SugarType sugarType, final double pressure){
 		final double temperature = Helper.evaluatePolynomial(BOILING_TEMPERATURE_COEFFICIENTS, pressure);
 
 		//boiling point elevation ΔTb = kb ⋅ m ⋅ i [K], for water, kb = 0.515 K/(mol/kg), and i is the number of particles formed when

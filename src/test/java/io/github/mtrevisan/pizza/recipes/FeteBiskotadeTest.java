@@ -31,7 +31,7 @@ import io.github.mtrevisan.pizza.LeaveningStage;
 import io.github.mtrevisan.pizza.Procedure;
 import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
-import io.github.mtrevisan.pizza.SugarType;
+import io.github.mtrevisan.pizza.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
 import io.github.mtrevisan.pizza.YeastType;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
@@ -50,9 +50,9 @@ class FeteBiskotadeTest{
 			.addWater(41. / 300., 0.02, 0., 7.9, 237.)
 			.addMilk(41. / 300., 6.6, 0.87, 0.037)
 			//zucchero di canna
-			.addSugar(0.1, SugarType.SUCROSE, 0.97, 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 0.97, 0.)
 			//mièl
-			.addSugar(4. / 300., SugarType.SUCROSE, 0.801, 0.1919)
+			.addSugar(4. / 300., Sugar.SugarType.SUCROSE, 0.801, 0.1919)
 			.addSalt(0.01)
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)
@@ -98,9 +98,9 @@ class FeteBiskotadeTest{
 			.addWater(41. / 300., 0.02, 0., 7.9, 237.)
 			.addMilk(41. / 300., 6.6, 0.87, 0.037)
 			//zucchero di canna
-			.addSugar(0.08, SugarType.SUCROSE, 0.97, 0.)
+			.addSugar(0.08, Sugar.SugarType.SUCROSE, 0.97, 0.)
 			//mièl
-			.addSugar(3. / 300., SugarType.SUCROSE, 0.801, 0.1919)
+			.addSugar(3. / 300., Sugar.SugarType.SUCROSE, 0.801, 0.1919)
 			.addSalt(0.01)
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)

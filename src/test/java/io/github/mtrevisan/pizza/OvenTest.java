@@ -41,7 +41,7 @@ class OvenTest{
 	void forcedTopAndBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -95,7 +95,7 @@ class OvenTest{
 	void naturalBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -147,7 +147,7 @@ class OvenTest{
 	void forcedBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -199,7 +199,7 @@ class OvenTest{
 	void naturalTop() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)

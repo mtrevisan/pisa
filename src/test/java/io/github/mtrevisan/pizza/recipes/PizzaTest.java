@@ -33,7 +33,7 @@ import io.github.mtrevisan.pizza.OvenException;
 import io.github.mtrevisan.pizza.Procedure;
 import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
-import io.github.mtrevisan.pizza.SugarType;
+import io.github.mtrevisan.pizza.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
 import io.github.mtrevisan.pizza.YeastType;
 import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
@@ -54,7 +54,7 @@ class PizzaTest{
 	void pizza20210502() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -107,7 +107,7 @@ class PizzaTest{
 			//45% water, 20% milk
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
 			//calls for 0%...
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			//calls for 2%...
 			.addSalt(0.015)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
@@ -168,7 +168,7 @@ class PizzaTest{
 	void pizza20210516() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -232,7 +232,7 @@ class PizzaTest{
 	void pizza20211004() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -299,7 +299,7 @@ class PizzaTest{
 	void pizza20211025() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -366,7 +366,7 @@ class PizzaTest{
 	void pizza20211108() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -433,7 +433,7 @@ class PizzaTest{
 	void pizza20211129() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.004, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.004, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -499,7 +499,7 @@ class PizzaTest{
 	void pizza20211223() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.004, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.004, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -566,7 +566,7 @@ class PizzaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
+			.addSugar(0.004, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -633,7 +633,7 @@ class PizzaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaePedonYeast())
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.004, SugarType.SUCROSE, 0.998, 0.0005)
+			.addSugar(0.004, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
 			.withYeast(YeastType.INSTANT_DRY, 1.)

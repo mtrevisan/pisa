@@ -31,7 +31,7 @@ import io.github.mtrevisan.pizza.LeaveningStage;
 import io.github.mtrevisan.pizza.Procedure;
 import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
-import io.github.mtrevisan.pizza.SugarType;
+import io.github.mtrevisan.pizza.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
 import io.github.mtrevisan.pizza.YeastType;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
@@ -51,7 +51,7 @@ class PaninUetaTest{
 			.addWater(0.5 - waterInEgg, 0.02, 0., 7.9, 237.)
 			//water in 58 g of egg (74% water content)
 			.addWater(waterInEgg, 0., 0., 7.9, 0.)
-			.addSugar(0.098, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.098, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.0049)
 			.addFat(0.098, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -97,7 +97,7 @@ class PaninUetaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.5 - waterInEgg, 0.02, 0., 7.9, 237.)
 			.addWater(waterInEgg, 0., 0., 7.25, 0.)
-			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -146,7 +146,7 @@ class PaninUetaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.5 - waterInEgg, 0., 0., 6.65, 0.)
 			.addWater(waterInEgg, 0., 0., 7.25, 0.)
-			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
 			.addFat(0.16, 0.81, 0.9175, 0., 0.)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -193,7 +193,7 @@ class PaninUetaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addMilk(0.25, 6.6, 0.87, 0.037)
 			.addEgg(60. / 300., 6., 0.125, 0.7615, 0.11)
-			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -241,7 +241,7 @@ class PaninUetaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addMilk(0.19, 6.6, 0.87, 0.037)
 			.addEgg(63. / flourWeight, 6., 0.125, 0.7615, 0.11)
-			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
@@ -292,7 +292,7 @@ class PaninUetaTest{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addMilk(0.2, 6.6, 0.87, 0.037)
 			.addEgg(63. / flourWeight, 6., 0.125, 0.7615, 0.11)
-			.addSugar(0.1, SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.1, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.005)
 			.addFat(0.13, 0.815, 0.9175, 0.16, 0.025)
 			.withYeast(YeastType.INSTANT_DRY, 1.)
