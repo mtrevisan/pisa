@@ -474,9 +474,9 @@ public final class DoughCore{
 			totalFlour += difference * 0.6;
 
 			fat = (totalFlour * (this.fat * (1. - milkFat) - eggFat)
-				- (correctForIngredients? totalFlour * this.flourType.fat: 0.)) / rawFat;
+				- (correctForIngredients? totalFlour * flourType.fat: 0.)) / rawFat;
 			salt = totalFlour * this.salt - fat * fatSaltContent
-				- (correctForIngredients? totalFlour * this.flourType.salt + fat * fatSaltContent: 0.);
+				- (correctForIngredients? totalFlour * flourType.salt + fat * fatSaltContent: 0.);
 			final double sugar = totalFlour * this.sugar;
 			water = (totalFlour * (this.water - eggWater)
 				- (correctForIngredients? sugar * sugarWaterContent + fat * fatWaterContent: 0.)
@@ -494,15 +494,15 @@ public final class DoughCore{
 
 			difference = doughWeight - recipe.doughWeight();
 		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
+		if(water < 0.)
+			LOGGER.warn("Water is already present, excess quantity is {} ({}% w/w)", Helper.round(-water, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 		if(fat < 0.)
 			LOGGER.warn("Fat is already present, excess quantity is {} ({}% w/w)", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS),
 				Helper.round(-fat * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 		if(salt < 0.)
 			LOGGER.warn("Salt is already present, excess quantity is {} ({}% w/w)", Helper.round(-salt, WEIGHT_ACCURACY_DIGITS),
 				Helper.round(-salt * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
-		if(water < 0.)
-			LOGGER.warn("Water is already present, excess quantity is {} ({}% w/w)", Helper.round(-water, WEIGHT_ACCURACY_DIGITS),
-				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
 			final double waterTemperature = recipe.calculateWaterTemperature(flourType, fatType, ingredientsTemperature, doughTemperature);
