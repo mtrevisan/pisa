@@ -25,8 +25,10 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.ingredients.Atmosphere;
+import io.github.mtrevisan.pizza.ingredients.Egg;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
+import io.github.mtrevisan.pizza.ingredients.Milk;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
@@ -127,16 +129,12 @@ public final class DoughCore{
 	private double waterCalciumCarbonate;
 
 	/** TODO Total water quantity w.r.t. flour in milk [% w/w]. */
-	private double milkWater;
-	/** TODO Total fat quantity w.r.t. flour in milk [% w/w]. */
-	private double milkFat;
+	private double milkWeight;
+	private Milk milk;
 
 	/** TODO Egg content w.r.t. flour [% w/w]. */
-	private double egg;
-	/** TODO Total water quantity w.r.t. flour in egg [% w/w]. */
-	private double eggWater;
-	/** TODO Total fat quantity w.r.t. flour in egg [% w/w]. */
-	private double eggFat;
+	private double eggWeight;
+	private Egg egg;
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugarQuantity;
@@ -408,20 +406,21 @@ public final class DoughCore{
 			//refine approximation
 			flourWeight += difference * 0.6;
 
-			fatWeight = (flourWeight * (this.fatQuantity * (1. - milkFat) - eggFat)
+			fatWeight = (flourWeight * this.fatQuantity
 				- (correctForIngredients? flourWeight * flour.fat: 0.)) / fat.fat;
 			saltWeight = flourWeight * this.saltQuantity - fatWeight * this.fat.salt
 				- (correctForIngredients? flourWeight * flour.salt + fatWeight * fat.salt: 0.);
 			final double sugarWeight = flourWeight * this.sugarQuantity;
-			waterWeight = (flourWeight * (this.waterQuantity - eggWater)
+			waterWeight = flourWeight * this.waterQuantity
 				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
-				- (flour.correctForHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.))
-				/ (milkWater > 0.? milkWater: 1.);
+				- (flour.correctForHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.);
 			final double yeastWeight = flourWeight * this.yeastQuantity;
 
 			recipe = Recipe.create()
 				.withFlour(flourWeight)
 				.withWater(Math.max(waterWeight, 0.))
+				//FIXME
+//				.withWaterAsMilk(Math.max(waterWeight / milk.water, 0.))
 				.withSugar(sugarWeight / (sugar.carbohydrate * sugar.type.factor))
 				.withFat(Math.max(fatWeight, 0.))
 				.withSalt(Math.max(saltWeight, 0.))
