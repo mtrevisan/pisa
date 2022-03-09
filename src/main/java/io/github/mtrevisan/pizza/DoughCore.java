@@ -158,8 +158,6 @@ public final class DoughCore{
 
 	/** Whether to correct for ingredients' content in fat/salt/water. */
 	private boolean correctForIngredients;
-	/** Whether to correct for humidity in the flour. */
-	private boolean correctForFlourHumidity;
 
 
 	public static DoughCore create(final Yeast yeast) throws DoughException{
@@ -303,12 +301,6 @@ public final class DoughCore{
 		return this;
 	}
 
-	public DoughCore withCorrectForFlourHumidity(){
-		correctForFlourHumidity = true;
-
-		return this;
-	}
-
 
 	/**
 	 * Modify specific growth ratio in order to account for sugar, fat, salt, water, and chlorine dioxide.
@@ -423,7 +415,7 @@ public final class DoughCore{
 			final double sugarWeight = flourWeight * this.sugarQuantity;
 			waterWeight = (flourWeight * (this.waterQuantity - eggWater)
 				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
-				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.))
+				- (flour.correctForHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
 			final double yeastWeight = flourWeight * this.yeastQuantity;
 

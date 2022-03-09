@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.pizza.ingredients;
 
-
 import io.github.mtrevisan.pizza.DoughException;
 
 
@@ -45,6 +44,9 @@ public final class Flour{
 
 	/** Salt content [% w/w]. */
 	public final double salt;
+
+	/** Whether to correct for humidity. */
+	public boolean correctForHumidity;
 
 
 	/**
@@ -78,6 +80,7 @@ public final class Flour{
 		return new Flour(strength, protein, fat, carbohydrate, fiber, ash, salt);
 	}
 
+
 	private Flour(final double strength, final double protein, final double fat, final double carbohydrate, final double fiber,
 			final double ash, final double salt){
 		this.strength = strength;
@@ -87,6 +90,13 @@ public final class Flour{
 		this.fiber = fiber;
 		this.ash = ash;
 		this.salt = salt;
+	}
+
+
+	public Flour withCorrectForHumidity(){
+		correctForHumidity = true;
+
+		return this;
 	}
 
 	//https://www.ksonfoodtech.com/files/L2.pdf
