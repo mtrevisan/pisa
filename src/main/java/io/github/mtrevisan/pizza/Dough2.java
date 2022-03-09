@@ -57,7 +57,7 @@ public final class Dough2{
 
 	public static void main(String[] args) throws DoughException, YeastException{
 		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1.))
-			.withFlourParameters(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
+			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
 			.addWater(0.65, Water.create(0.02, 0., 237., 7.9))
 			.addSugar(0.004, Sugar.create(Sugar.SugarType.SUCROSE, 0.998, 0.0005))
 			.addFat(0.021, Fat.create(Fat.FatType.OLIVE_OIL, 0.913, 0.002, 0., 0.9175))

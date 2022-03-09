@@ -162,7 +162,7 @@ public final class DoughCore{
 	 * @param flour	Flour data.
 	 * @return	The instance.
 	 */
-	public DoughCore withFlourParameters(final Flour flour) throws DoughException{
+	public DoughCore withFlour(final Flour flour) throws DoughException{
 		if(flour == null)
 			throw DoughException.create("Missing flour data");
 
