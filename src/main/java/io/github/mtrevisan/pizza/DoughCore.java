@@ -426,9 +426,10 @@ public final class DoughCore{
 	private double phFactor(){
 		//usually between 6 and 6.8
 		final double flourPH = 6.4;
+		final double fatFactor = (fatType == FatType.BUTTER? 1.: 0.);
 		//6.1-6.4 for butter
-		final double fatPH = (fatType == FatType.BUTTER? 6.25: 0.);
-		final double compositePH = (flourPH + waterPH * water + fatPH * fat) / (1. + water + fat);
+		final double fatPH = 6.25;
+		final double compositePH = (flourPH + waterPH * water + fatFactor * fatPH * fat) / (1. + water + fatFactor * fat);
 
 		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
 			return 0.;
@@ -472,15 +473,19 @@ public final class DoughCore{
 			//refine approximation
 			totalFlour += difference * 0.6;
 
-			final double sugar = this.sugar * totalFlour;
-			fat = ((this.fat * (1. - milkFat) - eggFat) * totalFlour - fatAlreadyInIngredients(totalFlour)) / rawFat;
-			salt = this.salt * totalFlour - fat * fatSaltContent - saltAlreadyInIngredients(totalFlour);
-			final double yeast = this.yeast * totalFlour;
-			water = ((this.water - eggWater) * totalFlour - sugar * sugarWaterContent - fat * fatWaterContent - waterInFlour())
+			fat = (totalFlour * (this.fat * (1. - milkFat) - eggFat)
+				- (correctForIngredients? totalFlour * this.flourType.fat: 0.)) / rawFat;
+			salt = totalFlour * this.salt - fat * fatSaltContent
+				- (correctForIngredients? totalFlour * this.flourType.salt + fat * fatSaltContent: 0.);
+			final double sugar = totalFlour * this.sugar;
+			water = (totalFlour * (this.water - eggWater)
+				- (correctForIngredients? sugar * sugarWaterContent + fat * fatWaterContent: 0.)
+				- (correctForFlourHumidity? totalFlour * Flour.estimatedHumidity(airRelativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
+			final double yeast = totalFlour * this.yeast;
 
 			recipe = Recipe.create()
-				.withFlour(totalFlour - yeast * (1. - rawYeast))
+				.withFlour(totalFlour)
 				.withWater(Math.max(water, 0.))
 				.withSugar(sugar / (rawSugar * sugarType.factor))
 				.withFat(Math.max(fat, 0.))
@@ -603,24 +608,6 @@ public final class DoughCore{
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
 	}
 
-
-	private double fatAlreadyInIngredients(final double flour){
-		return (correctForIngredients? this.flourType.fat * flour: 0.);
-	}
-
-	private double saltAlreadyInIngredients(final double flour){
-		return (correctForIngredients? this.flourType.salt * flour + fat * fatSaltContent: 0.);
-	}
-
-	private double waterInFlour(){
-		double correction = 0.;
-		if(correctForIngredients)
-			correction += sugar * sugarWaterContent + fat * fatWaterContent;
-		if(correctForFlourHumidity)
-			//FIXME: 70.62% is to obtain a humidity of 13.5%
-			correction += Flour.estimatedHumidity(airRelativeHumidity) - Flour.estimatedHumidity(0.7062);
-		return correction;
-	}
 
 	private double totalFraction(){
 		return 1. + water + sugar + fat + salt + yeast;
