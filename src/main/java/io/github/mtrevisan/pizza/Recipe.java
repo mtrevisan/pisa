@@ -267,7 +267,7 @@ public final class Recipe{
 	}
 
 
-	public double calculateWaterTemperature(final Flour flourType, final FatType fatType, final Double ingredientsTemperature,
+	public double calculateWaterTemperature(final Flour flourType, final Fat.FatType fatType, final Double ingredientsTemperature,
 			final Double doughTemperature){
 		final double mcpFlour = flour * flourType.estimateSpecificHeat(water / flour, ingredientsTemperature);
 		final double mcpWater = water * specificHeatWater(ingredientsTemperature);

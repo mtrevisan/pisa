@@ -141,16 +141,8 @@ public final class DoughCore{
 	private Sugar sugar;
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
-	private double fat;
-	private FatType fatType;
-	/** Raw fat content [% w/w]. */
-	private double rawFat = 1.;
-	/** Fat density [g / ml]. */
-	private double fatDensity;
-	/** Water content in fat [% w/w]. */
-	private double fatWaterContent;
-	/** Salt content in fat [% w/w]. */
-	private double fatSaltContent;
+	private double fatWeight;
+	private Fat fat;
 
 	/** Total salt quantity w.r.t. flour [% w/w]. */
 	private double salt;
@@ -237,47 +229,43 @@ public final class DoughCore{
 	}
 
 
+	/**
+	 * @param sugarWeight	Sugar quantity w.r.t. flour [% w/w].
+	 * @param sugar	Sugar data.
+	 * @return	This instance.
+	 * @throws DoughException	If sugar is too low or too high.
+	 */
 	public DoughCore addSugar(final double sugarWeight, final Sugar sugar) throws DoughException{
 		if(sugarWeight < 0. || sugarWeight >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
+		if(this.sugar != null)
+			throw DoughException.create("Sugar was already set");
 
 		this.sugarWeight += sugar.type.factor * sugarWeight * sugar.carbohydrate;
 		addWater(sugarWeight * sugar.water, 0., 0., PURE_WATER_PH, 0.);
-		if(this.sugar == null)
-			this.sugar = sugar;
-		else
-			throw DoughException.create("Sugar was already set");
+		this.sugar = sugar;
 
 		return this;
 	}
 
 
 	/**
-	 * @param fat	Fat quantity w.r.t. flour [% w/w].
-	 * @param fatType	Fat type.
-	 * @param density	Fat density [g / ml].
-	 * @param fatContent	Sucrose content [% w/w].
-	 * @param waterContent	Water content [% w/w].
-	 * @param saltContent	Salt content [% w/w].
+	 * @param fatWeight	Fat quantity w.r.t. flour [% w/w].
+	 * @param fat	Fat data.
 	 * @return	This instance.
 	 * @throws DoughException	If fat is too low or too high.
 	 */
-	public DoughCore addFat(final double fat, final FatType fatType, final double fatContent, final double density, final double waterContent,
-			final double saltContent) throws DoughException{
-		final double factor = 1. / (this.fat + fat);
-		rawFat = (this.fat * rawFat + fat * fatContent) * factor;
-		fatDensity = (this.fat * fatDensity + fat * density) * factor;
-		fatWaterContent = (this.fat * fatWaterContent + fat * waterContent) * factor;
-		fatSaltContent = (this.fat * fatSaltContent + fat * saltContent) * factor;
-
-		this.fat += fat * fatContent;
-		this.fatType = fatType;
-		addWater(fat * waterContent, 0., 0., PURE_WATER_PH, 0.);
-		addSalt(fat * saltContent);
-
-		if(fat < 0.)
+	public DoughCore addFat(final double fatWeight, final Fat fat) throws DoughException{
+		if(fatWeight < 0.)
 			throw DoughException.create("Fat [% w/w] must be greater than or equals to 0%");
+		if(this.fat != null)
+			throw DoughException.create("Fat was already set");
+
+		this.fatWeight += fatWeight * fat.fat;
+		addWater(fatWeight * fat.water, 0., 0., PURE_WATER_PH, 0.);
+		addSalt(fatWeight * fat.salt);
+		this.fat = fat;
 
 		return this;
 	}
@@ -414,10 +402,10 @@ public final class DoughCore{
 	private double phFactor(){
 		//usually between 6 and 6.8
 		final double flourPH = 6.4;
-		final double fatFactor = (fatType == FatType.BUTTER? 1.: 0.);
+		final double fatFactor = (fat.type == Fat.FatType.BUTTER? 1.: 0.);
 		//6.1-6.4 for butter
 		final double fatPH = 6.25;
-		final double compositePH = (flourPH + waterPH * water + fatFactor * fatPH * fat) / (1. + water + fatFactor * fat);
+		final double compositePH = (flourPH + waterPH * water + fatFactor * fatPH * fatWeight) / (1. + water + fatFactor * fatWeight);
 
 		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
 			return 0.;
@@ -453,47 +441,47 @@ public final class DoughCore{
 
 		final double totalFraction = totalFraction();
 		//NOTE: too complex to extract a formula for each ingredient, it's easier to proceed by approximation
-		double totalFlour = doughWeight / totalFraction;
-		double water, fat, salt;
+		double flourWeight = doughWeight / totalFraction;
+		double waterWeight, fatWeight, saltWeight;
 		double difference = 0.;
 		Recipe recipe;
 		do{
 			//refine approximation
-			totalFlour += difference * 0.6;
+			flourWeight += difference * 0.6;
 
-			fat = (totalFlour * (this.fat * (1. - milkFat) - eggFat)
-				- (correctForIngredients? totalFlour * flour.fat: 0.)) / rawFat;
-			salt = totalFlour * this.salt - fat * fatSaltContent
-				- (correctForIngredients? totalFlour * flour.salt + fat * fatSaltContent: 0.);
-			final double sugarWeight = totalFlour * this.sugarWeight;
-			water = (totalFlour * (this.water - eggWater)
-				- (correctForIngredients? sugarWeight * sugar.water + fat * fatWaterContent: 0.)
-				- (correctForFlourHumidity? totalFlour * Flour.estimatedHumidity(airRelativeHumidity): 0.))
+			fatWeight = (flourWeight * (this.fatWeight * (1. - milkFat) - eggFat)
+				- (correctForIngredients? flourWeight * flour.fat: 0.)) / fat.fat;
+			saltWeight = flourWeight * this.salt - fatWeight * this.fat.salt
+				- (correctForIngredients? flourWeight * flour.salt + fatWeight * fat.salt: 0.);
+			final double sugarWeight = flourWeight * this.sugarWeight;
+			waterWeight = (flourWeight * (this.water - eggWater)
+				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
+				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(airRelativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
-			final double yeast = totalFlour * this.yeast;
+			final double yeast = flourWeight * this.yeast;
 
 			recipe = Recipe.create()
-				.withFlour(totalFlour)
-				.withWater(Math.max(water, 0.))
+				.withFlour(flourWeight)
+				.withWater(Math.max(waterWeight, 0.))
 				.withSugar(sugarWeight / (sugar.carbohydrate * sugar.type.factor))
-				.withFat(Math.max(fat, 0.))
-				.withSalt(Math.max(salt, 0.))
+				.withFat(Math.max(fatWeight, 0.))
+				.withSalt(Math.max(saltWeight, 0.))
 				.withYeast(yeast / (rawYeast * yeastType.factor));
 
 			difference = doughWeight - recipe.doughWeight();
 		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
-		if(water < 0.)
-			LOGGER.warn("Water is already present, excess quantity is {} ({}% w/w)", Helper.round(-water, WEIGHT_ACCURACY_DIGITS),
-				Helper.round(-water * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
-		if(fat < 0.)
-			LOGGER.warn("Fat is already present, excess quantity is {} ({}% w/w)", Helper.round(-fat, WEIGHT_ACCURACY_DIGITS),
-				Helper.round(-fat * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
-		if(salt < 0.)
-			LOGGER.warn("Salt is already present, excess quantity is {} ({}% w/w)", Helper.round(-salt, WEIGHT_ACCURACY_DIGITS),
-				Helper.round(-salt * 100. / totalFlour, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
+		if(waterWeight < 0.)
+			LOGGER.warn("Water is already present, excess quantity is {} ({}% w/w)", Helper.round(-waterWeight, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-waterWeight * 100. / flourWeight, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
+		if(fatWeight < 0.)
+			LOGGER.warn("Fat is already present, excess quantity is {} ({}% w/w)", Helper.round(-fatWeight, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-fatWeight * 100. / flourWeight, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
+		if(saltWeight < 0.)
+			LOGGER.warn("Salt is already present, excess quantity is {} ({}% w/w)", Helper.round(-saltWeight, WEIGHT_ACCURACY_DIGITS),
+				Helper.round(-saltWeight * 100. / flourWeight, DoughCore.VOLUME_PERCENT_ACCURACY_DIGITS));
 
 		if(doughTemperature != null && ingredientsTemperature != null){
-			final double waterTemperature = recipe.calculateWaterTemperature(flour, fatType, ingredientsTemperature, doughTemperature);
+			final double waterTemperature = recipe.calculateWaterTemperature(flour, fat.type, ingredientsTemperature, doughTemperature);
 			if(waterTemperature >= yeastModel.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
 					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),
@@ -598,7 +586,7 @@ public final class DoughCore{
 
 
 	private double totalFraction(){
-		return 1. + water + sugarWeight + fat + salt + yeast;
+		return 1. + water + sugarWeight + fatWeight + salt + yeast;
 	}
 
 }
