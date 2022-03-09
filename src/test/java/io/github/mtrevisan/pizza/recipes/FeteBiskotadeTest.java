@@ -33,7 +33,7 @@ import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
-import io.github.mtrevisan.pizza.YeastType;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class FeteBiskotadeTest{
 			.addSalt(0.01)
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(29.5)
 			.withDoughTemperature(27.)
@@ -104,7 +104,7 @@ class FeteBiskotadeTest{
 			.addSalt(0.01)
 			//olio di semi di girasole
 			.addFat(0.05, 0.92, 0.923, 0.08, 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(29.5)
 			.withDoughTemperature(27.)

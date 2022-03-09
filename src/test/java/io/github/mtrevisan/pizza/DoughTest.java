@@ -29,6 +29,7 @@ import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.junit.jupiter.api.Assertions;
@@ -190,7 +191,7 @@ class DoughTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.002)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
 			.withIngredientsTemperature(16.9)
 			.withCorrectForIngredients()

@@ -35,10 +35,10 @@ import io.github.mtrevisan.pizza.Recipe;
 import io.github.mtrevisan.pizza.StretchAndFoldStage;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
 import io.github.mtrevisan.pizza.YeastException;
-import io.github.mtrevisan.pizza.YeastType;
 import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaePedonYeast;
 import org.junit.jupiter.api.Assertions;
@@ -57,7 +57,7 @@ class PizzaTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(20.6)
 			.withDoughTemperature(27.)
@@ -111,7 +111,7 @@ class PizzaTest{
 			//calls for 2%...
 			.addSalt(0.015)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(20.3)
 			.withDoughTemperature(27.)
@@ -171,7 +171,7 @@ class PizzaTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(21.2)
 			.withDoughTemperature(27.)
@@ -235,7 +235,7 @@ class PizzaTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(24.5)
 			.withDoughTemperature(27.)
@@ -302,7 +302,7 @@ class PizzaTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(18.8)
 			.withDoughTemperature(27.)
@@ -369,7 +369,7 @@ class PizzaTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(17.1)
 			.withDoughTemperature(27.)
@@ -436,7 +436,7 @@ class PizzaTest{
 			.addSugar(0.004, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(17.4)
 			.withDoughTemperature(27.)
@@ -502,7 +502,7 @@ class PizzaTest{
 			.addSugar(0.004, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(295., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(18.)
 			.withDoughTemperature(27.)
@@ -569,7 +569,7 @@ class PizzaTest{
 			.addSugar(0.004, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withIngredientsTemperature(17.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.);
@@ -636,7 +636,7 @@ class PizzaTest{
 			.addSugar(0.004, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
 			.addFat(0.021, 0.913, 0.9175, 0., 0.002)
 			.addSalt(0.016)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withIngredientsTemperature(17.4)
 			.withDoughTemperature(27.)
 			.withAtmosphericPressure(1014.);

@@ -29,6 +29,7 @@ import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class OvenTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
@@ -100,7 +101,7 @@ class OvenTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
@@ -152,7 +153,7 @@ class OvenTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)
@@ -204,7 +205,7 @@ class OvenTest{
 			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
-			.withYeast(YeastType.INSTANT_DRY, 1.)
+			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
 			.withFlour(Flour.create(260., 0., 0., 1.3, 0., 0., 0.))
 			.withIngredientsTemperature(16.7)
 			.withDoughTemperature(27.)

@@ -26,6 +26,7 @@ package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -217,7 +218,7 @@ public final class Dough{
 
 	/** Yeast quantity [% w/w]. */
 	double yeast;
-	private YeastType yeastType;
+	private Yeast.YeastType yeastType;
 	/** Raw yeast content [% w/w]. */
 	private double rawYeast = 1.;
 
@@ -413,7 +414,7 @@ public final class Dough{
 	 * @param rawYeast	Raw yeast content [% w/w].
 	 * @return	The instance.
 	 */
-	public Dough withYeast(final YeastType yeastType, final double rawYeast) throws DoughException{
+	public Dough withYeast(final Yeast.YeastType yeastType, final double rawYeast) throws DoughException{
 		if(yeastType == null)
 			throw DoughException.create("Missing yeast type");
 		if(rawYeast <= 0. || rawYeast > 1.)
@@ -839,7 +840,7 @@ public final class Dough{
 			.withSalt(salt)
 			.withFat(fat)
 			.density(fatDensity, temperature, atmosphericPressure);
-		return fractionOverTotal(yeast * rawYeast, yeast) * doughDensity * (YeastType.FY_CELL_COUNT / baseDensity);
+		return fractionOverTotal(yeast * rawYeast, yeast) * doughDensity * (Yeast.YeastType.FY_CELL_COUNT / baseDensity);
 	}
 
 	private double getSugarRatio(final double yeast, final double sugar, final double temperature){

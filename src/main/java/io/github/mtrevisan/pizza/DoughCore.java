@@ -28,8 +28,8 @@ import io.github.mtrevisan.pizza.ingredients.Atmosphere;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
 import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
-import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.solvers.BaseUnivariateSolver;
 import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
@@ -149,12 +149,9 @@ public final class DoughCore{
 	/** Total salt quantity w.r.t. flour [% w/w]. */
 	private double saltQuantity;
 
-	private final YeastModelAbstract yeastModel;
 	/** Yeast quantity [% w/w]. */
-	private double yeast;
-	private YeastType yeastType;
-	/** Raw yeast content [% w/w]. */
-	private double rawYeast = 1.;
+	private double yeastQuantity;
+	private final Yeast yeast;
 
 	private Atmosphere atmosphere;
 
@@ -165,16 +162,16 @@ public final class DoughCore{
 	private boolean correctForFlourHumidity;
 
 
-	public static DoughCore create(final YeastModelAbstract yeastModel) throws DoughException{
-		return new DoughCore(yeastModel);
+	public static DoughCore create(final Yeast yeast) throws DoughException{
+		return new DoughCore(yeast);
 	}
 
 
-	private DoughCore(final YeastModelAbstract yeastModel) throws DoughException{
-		if(yeastModel == null)
-			throw DoughException.create("A yeast model must be provided");
+	private DoughCore(final Yeast yeast) throws DoughException{
+		if(yeast == null)
+			throw DoughException.create("Yeast must be provided");
 
-		this.yeastModel = yeastModel;
+		this.yeast = yeast;
 	}
 
 
@@ -285,24 +282,6 @@ public final class DoughCore{
 
 
 	/**
-	 * @param yeastType	Yeast type.
-	 * @param rawYeast	Raw yeast content [% w/w].
-	 * @return	The instance.
-	 */
-	public DoughCore withYeastParameters(final YeastType yeastType, final double rawYeast) throws DoughException{
-		if(yeastType == null)
-			throw DoughException.create("Missing yeast type");
-		if(rawYeast <= 0. || rawYeast > 1.)
-			throw DoughException.create("Raw yeast quantity must be between 0 and 1");
-
-		this.yeastType = yeastType;
-		this.rawYeast = rawYeast;
-
-		return this;
-	}
-
-
-	/**
 	 * @param atmosphere	Atmosphere data.
 	 * @return	This instance.
 	 * @throws DoughException	If pressure is negative or above maximum.
@@ -395,11 +374,11 @@ public final class DoughCore{
 		final double fatPH = 6.25;
 		final double compositePH = (flourPH + waterPH * waterQuantity + fatFactor * fatPH * fatQuantity) / (1. + waterQuantity + fatFactor * fatQuantity);
 
-		if(compositePH < yeastModel.getPHMin() || compositePH > yeastModel.getPHMax())
+		if(compositePH < yeast.model.getPHMin() || compositePH > yeast.model.getPHMax())
 			return 0.;
 
-		final double tmp = (compositePH - yeastModel.getPHMin()) * (compositePH - yeastModel.getPHMax());
-		return tmp / (tmp - Math.pow(compositePH - yeastModel.getPHOpt(), 2.));
+		final double tmp = (compositePH - yeast.model.getPHMin()) * (compositePH - yeast.model.getPHMax());
+		return tmp / (tmp - Math.pow(compositePH - yeast.model.getPHOpt(), 2.));
 	}
 
 	/**
@@ -446,7 +425,7 @@ public final class DoughCore{
 				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
 				- (correctForFlourHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.))
 				/ (milkWater > 0.? milkWater: 1.);
-			final double yeast = flourWeight * this.yeast;
+			final double yeastWeight = flourWeight * this.yeastQuantity;
 
 			recipe = Recipe.create()
 				.withFlour(flourWeight)
@@ -454,7 +433,7 @@ public final class DoughCore{
 				.withSugar(sugarWeight / (sugar.carbohydrate * sugar.type.factor))
 				.withFat(Math.max(fatWeight, 0.))
 				.withSalt(Math.max(saltWeight, 0.))
-				.withYeast(yeast / (rawYeast * yeastType.factor));
+				.withYeast(yeastWeight / (yeast.yeast * yeast.type.factor));
 
 			difference = doughWeight - recipe.doughWeight();
 		}while(Math.abs(difference) > DOUGH_WEIGHT_ACCURACY);
@@ -470,10 +449,10 @@ public final class DoughCore{
 
 		if(doughTemperature != null && ingredientsTemperature != null){
 			final double waterTemperature = recipe.calculateWaterTemperature(flour, fat.type, ingredientsTemperature, doughTemperature);
-			if(waterTemperature >= yeastModel.getTemperatureMax())
+			if(waterTemperature >= yeast.model.getTemperatureMax())
 				LOGGER.warn("Water temperature ({} °C) is greater that maximum temperature sustainable by the yeast ({} °C): be aware of thermal shock!",
 					Helper.round(waterTemperature, TEMPERATURE_ACCURACY_DIGITS),
-					Helper.round(yeastModel.getTemperatureMax(), TEMPERATURE_ACCURACY_DIGITS));
+					Helper.round(yeast.model.getTemperatureMax(), TEMPERATURE_ACCURACY_DIGITS));
 
 			recipe.withWaterTemperature(waterTemperature);
 		}
@@ -490,7 +469,7 @@ public final class DoughCore{
 	private void calculateYeast(final Procedure procedure) throws YeastException{
 		try{
 			final UnivariateFunction f = yeast -> volumeExpansionRatioDifference(yeast, procedure);
-			yeast = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
+			yeastQuantity = solverYeast.solve(SOLVER_EVALUATIONS_MAX, f, 0., SOLVER_YEAST_MAX);
 		}
 		catch(final NoBracketingException nbe){
 			throw YeastException.create("No amount of yeast will ever be able to produce the given expansion ratio", nbe);
@@ -541,12 +520,12 @@ public final class DoughCore{
 	}
 
 	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
-	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final Duration duration){
+	private double doughVolumeExpansionRatio(final double yeastWeight, final double lambda, final double temperature, final Duration duration){
 		//maximum relative volume expansion ratio
-		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
-		final double ingredientsFactor = ingredientsFactor(yeast, temperature);
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeastWeight);
+		final double ingredientsFactor = ingredientsFactor(yeastWeight, temperature);
 
-		final double volumeExpansionRatio = yeastModel.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
+		final double volumeExpansionRatio = yeast.model.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
 
 		//correct for yeast quantity:
 		//FIXME calculate k
@@ -555,7 +534,7 @@ public final class DoughCore{
 //		final double k = 13.7;
 		//170 is about 317%
 		final double k = 170.;
-		return 1. + k * volumeExpansionRatio * yeast;
+		return 1. + k * volumeExpansionRatio * yeastWeight;
 	}
 
 	/**
@@ -574,7 +553,7 @@ public final class DoughCore{
 
 
 	private double totalFraction(){
-		return 1. + waterQuantity + sugarQuantity + fatQuantity + saltQuantity + yeast;
+		return 1. + waterQuantity + sugarQuantity + fatQuantity + saltQuantity + yeastQuantity;
 	}
 
 }
