@@ -57,8 +57,6 @@ public final class DoughCore{
 	private static final double SUGAR_MAX = 3.21 * MOLECULAR_WEIGHT_GLUCOSE / 10.;
 
 	/** [mg/l] */
-	private static final double WATER_CHLORINE_DIOXIDE_MAX = 1. / 0.0931;
-	/** [mg/l] */
 	private static final double WATER_FIXED_RESIDUE_MAX = 1500.;
 
 
@@ -136,11 +134,10 @@ public final class DoughCore{
 			throw DoughException.create("Hydration [% w/w] cannot be less than zero");
 		if(water == null)
 			throw DoughException.create("Missing water data");
-		if(water.chlorineDioxide >= WATER_CHLORINE_DIOXIDE_MAX)
-			throw DoughException.create("Chlorine dioxide [mg/l] in water must be between 0 and {} mg/l",
-				Helper.round(WATER_CHLORINE_DIOXIDE_MAX, 2));
+		if(water.chlorineDioxide < 0.)
+			throw DoughException.create("Chlorine dioxide must be non-negative");
 		if(water.fixedResidue >= WATER_FIXED_RESIDUE_MAX)
-			throw DoughException.create("Fixed residue [mg/l] of water must be between 0 and {} mg/l",
+			throw DoughException.create("Fixed residue must be between 0 and {} mg/l",
 				Helper.round(WATER_FIXED_RESIDUE_MAX, 2));
 
 		this.waterQuantity += waterQuantity;
@@ -166,7 +163,7 @@ public final class DoughCore{
 			throw DoughException.create("Sugar was already set");
 
 		this.carbohydrateQuantity += carbohydrate.type.factor * sugarQuantity * carbohydrate.carbohydrate;
-		addWater(sugarQuantity * carbohydrate.water, Water.createPure());
+		this.waterQuantity += sugarQuantity * carbohydrate.water;
 		this.carbohydrate = carbohydrate;
 
 		return this;
@@ -188,8 +185,8 @@ public final class DoughCore{
 			throw DoughException.create("Fat was already set");
 
 		this.fatQuantity += fatQuantity * fat.fat;
-		addWater(fatQuantity * fat.water, Water.createPure());
-		addSalt(fatQuantity * fat.salt);
+		this.waterQuantity += fatQuantity * fat.water;
+		this.saltQuantity += fatQuantity * fat.salt;
 		this.fat = fat;
 
 		return this;

@@ -148,12 +148,31 @@ public final class Dough2{
 //		final double kCarbohydrate = carbohydrateFactor(yeast, temperature);
 ////		final double kFat = fatFactor();
 //		final double kSalt = saltFactor(yeast, temperature);
-//		final double kWater = waterFactor(yeast, temperature);
+		final double kWater = waterChlorineDioxideFactor(yeast);
 ////		final double kWaterFixedResidue = waterFixedResidueFactor();
 ////		final double kHydration = kWater * kWaterFixedResidue;
 		final double kPH = phFactor();
 		final double kAtmosphericPressure = atmosphericPressureFactor(core.atmosphere.pressure);
-		return /*kCarbohydrate * kFat * kSalt * kHydration **/ kPH * kAtmosphericPressure;
+		return /*kCarbohydrate * kFat * kSalt **/ kWater * kPH * kAtmosphericPressure;
+	}
+
+	/**
+	 * @see <a href="https://annalsmicrobiology.biomedcentral.com/track/pdf/10.1007/s13213-012-0494-8.pdf">Zhu, Chen, Yu. Fungicidal mechanism of chlorine dioxide on Saccharomyces cerevisiae. 2013.</a>
+	 * @see <a href="https://academic.oup.com/mutage/article/19/2/157/1076450">Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.</a>
+	 *
+	 * @param yeast   yeast [% w/w]
+	 * @return	Correction factor.
+	 */
+	private double waterChlorineDioxideFactor(final double yeast){
+		///the following formula is for 1e8 CFU/ml yeast
+		final double factor = yeast * core.yeast.yeast * Yeast.YeastType.FY_CELL_COUNT / 1.e8;
+		final double chlorineDioxide = core.water.chlorineDioxide * factor;
+		return Helper.evaluatePolynomial(Water.CHLORINE_DIOXIDE_COEFFICIENTS, chlorineDioxide);
+
+//		final double yeastRatio = getYeastRatio(yeast, temperature, 1.e8);
+//
+//		final double w = (yeastRatio > 0.? fractionOverTotal(core.water, yeastRatio) / yeastRatio: 0.);
+//		return Math.max(1. - core.water.chlorineDioxide * w / DoughCore.WATER_CHLORINE_DIOXIDE_MAX, 0.);
 	}
 
 	/**
@@ -327,10 +346,10 @@ public final class Dough2{
 	}
 
 	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
-	private double doughVolumeExpansionRatio(final double yeastWeight, final double lambda, final double temperature, final Duration duration){
+	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final Duration duration){
 		//maximum relative volume expansion ratio
-		final double alpha = maximumRelativeVolumeExpansionRatio(yeastWeight);
-		final double ingredientsFactor = ingredientsFactor(yeastWeight, temperature);
+		final double alpha = maximumRelativeVolumeExpansionRatio(yeast);
+		final double ingredientsFactor = ingredientsFactor(yeast, temperature);
 
 		final double volumeExpansionRatio = core.yeast.model.volumeExpansionRatio(duration, lambda, alpha, temperature, ingredientsFactor);
 
@@ -341,7 +360,7 @@ public final class Dough2{
 		//		final double k = 13.7;
 		//170 is about 317%
 		final double k = 170.;
-		return 1. + k * volumeExpansionRatio * yeastWeight;
+		return 1. + k * volumeExpansionRatio * yeast;
 	}
 
 	/**

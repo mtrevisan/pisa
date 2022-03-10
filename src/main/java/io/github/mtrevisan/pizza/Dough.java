@@ -68,6 +68,8 @@ public final class Dough{
 		+ MOLECULAR_WEIGHT_OXYGEN * 6.;
 	/** [g/mol] */
 	static final double MOLECULAR_WEIGHT_SODIUM_CHLORIDE = MOLECULAR_WEIGHT_SODIUM + MOLECULAR_WEIGHT_CHLORINE;
+	/** [g/mol] */
+	static final double MOLECULAR_WEIGHT_CHLORINE_DIOXIDE = MOLECULAR_WEIGHT_CHLORINE + MOLECULAR_WEIGHT_OXYGEN * 2.;
 
 
 	/**
@@ -817,8 +819,7 @@ public final class Dough{
 	}
 
 	/**
-	 * https://academic.oup.com/mutage/article/19/2/157/1076450
-	 * Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.
+	 * @see <a href="https://academic.oup.com/mutage/article/19/2/157/1076450">Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.</a>
 	 *
 	 * @param yeast   yeast [% w/w]
 	 * @return	Correction factor.
@@ -909,6 +910,8 @@ public final class Dough{
 	 *
 	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
 	 * https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf
+	 *
+	 * https://mytapscore.com/blogs/tips-for-taps/why-is-water-quality-important-in-baking
 	 *
 	 * @return	Correction factor.
 	 */
