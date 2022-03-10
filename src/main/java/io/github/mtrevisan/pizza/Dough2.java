@@ -152,17 +152,17 @@ public final class Dough2{
 //		final double kSalt = saltFactor(yeast, temperature);
 		final double kWater = waterChlorineDioxideFactor(yeast);
 ////		final double kWaterFixedResidue = waterFixedResidueFactor();
-////		final double kHydration = kWater * kWaterFixedResidue;
+		final double kHydration = kWater/* * kWaterFixedResidue*/;
 		final double kPH = doughPHFactor();
-		final double kAtmosphericPressure = atmosphericPressureFactor(core.atmosphere.pressure);
-		return /*kCarbohydrate * kFat * kSalt **/ kWater * kPH * kAtmosphericPressure;
+		final double kAtmospherePressure = atmospherePressureFactor(core.atmosphere.pressure);
+		return /*kCarbohydrate * kFat * kSalt **/ kHydration * kPH * kAtmospherePressure;
 	}
 
 	/**
 	 * @see <a href="https://annalsmicrobiology.biomedcentral.com/track/pdf/10.1007/s13213-012-0494-8.pdf">Zhu, Chen, Yu. Fungicidal mechanism of chlorine dioxide on Saccharomyces cerevisiae. 2013.</a>
 	 * @see <a href="https://academic.oup.com/mutage/article/19/2/157/1076450">Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.</a>
 	 *
-	 * @param yeast   yeast [% w/w]
+	 * @param yeast   yeast [% w/w].
 	 * @return	Correction factor.
 	 */
 	private double waterChlorineDioxideFactor(final double yeast){
@@ -208,7 +208,7 @@ public final class Dough2{
 	 *
 	 * @return	Correction factor.
 	 */
-	private double atmosphericPressureFactor(final double atmosphericPressure){
+	private double atmospherePressureFactor(final double atmosphericPressure){
 		return (atmosphericPressure < ATMOSPHERIC_PRESSURE_MAX?
 			1. - PRESSURE_FACTOR_K * Math.pow(atmosphericPressure / Math.pow(10_000., 2.), PRESSURE_FACTOR_M): 0.);
 	}

@@ -609,7 +609,7 @@ public class A243491{
 	 * http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf
 	 *
 	 * @param temperature   temperature [°C].
-	 * @return	Cp [J / (kg · K)]
+	 * @return	Cp [J / (kg · K)].
 	 */
 	private double specificHeat(final double temperature, final double[][] params, final int index){
 		final double protein = 2.0082 + (0.0012089 - 1.3129e-6 * temperature) * temperature;
