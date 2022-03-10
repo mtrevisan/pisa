@@ -29,8 +29,6 @@ import io.github.mtrevisan.pizza.DoughException;
 
 public final class Water{
 
-	public static final double[] CHLORINE_DIOXIDE_COEFFICIENTS = new double[]{1., -0.17, 0.00762};
-
 	private static final double PURE_WATER_PH = 5.4;
 
 	/** Chlorine dioxide in water [mg/l]. */

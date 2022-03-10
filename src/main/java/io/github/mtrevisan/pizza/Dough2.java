@@ -51,6 +51,8 @@ public final class Dough2{
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough2.class);
 
 
+	private static final double[] CHLORINE_DIOXIDE_COEFFICIENTS = new double[]{1., -0.17, 0.00762};
+
 	/**
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
 	 */
@@ -165,14 +167,9 @@ public final class Dough2{
 	 */
 	private double waterChlorineDioxideFactor(final double yeast){
 		///the following formula is for 1e8 CFU/ml yeast
-		final double factor = yeast * core.yeast.yeast * Yeast.YeastType.FY_CELL_COUNT / 1.e8;
+		final double factor = yeast * Yeast.YeastType.FY_CELL_COUNT / 1.e8;
 		final double chlorineDioxide = core.water.chlorineDioxide * factor;
-		return Helper.evaluatePolynomial(Water.CHLORINE_DIOXIDE_COEFFICIENTS, chlorineDioxide);
-
-//		final double yeastRatio = getYeastRatio(yeast, temperature, 1.e8);
-//
-//		final double w = (yeastRatio > 0.? fractionOverTotal(core.water, yeastRatio) / yeastRatio: 0.);
-//		return Math.max(1. - core.water.chlorineDioxide * w / DoughCore.WATER_CHLORINE_DIOXIDE_MAX, 0.);
+		return Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, chlorineDioxide);
 	}
 
 	/**
