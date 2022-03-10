@@ -167,7 +167,7 @@ public final class Dough2{
 	 */
 	private double waterChlorineDioxideFactor(final double yeast){
 		///the following formula is for 1e8 CFU/ml yeast
-		final double factor = yeast * Yeast.YeastType.FY_CELL_COUNT / 1.e8;
+		final double factor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 1.e8) / core.totalFraction();
 		final double equivalentChlorineDioxide = core.water.chlorineDioxide * factor;
 		return Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, equivalentChlorineDioxide);
 	}
