@@ -156,7 +156,7 @@ public final class DoughCore{
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public DoughCore addSugar(final double sugarQuantity, final Carbohydrate carbohydrate) throws DoughException{
+	public DoughCore addCarbohydrate(final double sugarQuantity, final Carbohydrate carbohydrate) throws DoughException{
 		if(sugarQuantity < 0. || sugarQuantity >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));

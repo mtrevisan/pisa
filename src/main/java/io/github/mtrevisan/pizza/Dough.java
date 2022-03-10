@@ -835,7 +835,7 @@ public final class Dough{
 		final double doughDensity = Recipe.create()
 			.withFlour(1.)
 			.withWater(water)
-			.withSugar(sugar)
+			.withCarbohydrate(sugar)
 			.withYeast(yeast)
 			.withSalt(salt)
 			.withFat(fat)
@@ -850,7 +850,7 @@ public final class Dough{
 				.withFlour(1.)
 				.withWater(water)
 				.withYeast(yeast)
-				.withSugar(sugar)
+				.withCarbohydrate(sugar)
 				.withFat(fat)
 				.withSalt(salt)
 				.density(fatDensity, temperature, atmosphericPressure);
@@ -963,7 +963,7 @@ public final class Dough{
 			.withFlour(flour)
 			.withWater(water)
 			.withYeast(yeast)
-			.withSugar(sugar)
+			.withCarbohydrate(sugar)
 			.withFat(fat)
 			.withSalt(salt);
 

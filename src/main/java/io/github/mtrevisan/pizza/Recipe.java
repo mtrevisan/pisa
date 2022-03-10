@@ -135,7 +135,7 @@ public final class Recipe{
 	 * @param sugar	Sugar quantity [g].
 	 * @return	The instance.
 	 */
-	public Recipe withSugar(final double sugar){
+	public Recipe withCarbohydrate(final double sugar){
 		this.sugar = sugar;
 
 		return this;

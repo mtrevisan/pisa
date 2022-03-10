@@ -96,7 +96,7 @@ public final class Dough2{
 		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1.))
 			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
 			.addWater(0.65, Water.create(0.02, 0., 237., 7.9))
-			.addSugar(0.004, Carbohydrate.create(Carbohydrate.CarbohydrateType.SUCROSE, 0.998, 0.0005))
+			.addCarbohydrate(0.004, Carbohydrate.create(Carbohydrate.CarbohydrateType.SUCROSE, 0.998, 0.0005))
 			.addFat(0.021, Fat.create(Fat.FatType.OLIVE_OIL, 0.913, 0.002, 0., 0.9175))
 			.addSalt(0.016)
 			.withAtmosphere(Atmosphere.create(1015.6, 0.55));
@@ -116,7 +116,7 @@ public final class Dough2{
 
 
 	/**
-	 * Modify specific growth ratio in order to account for sugar, fat, salt, water, and chlorine dioxide.
+	 * Modify specific growth ratio in order to account for carbohydrate, fat, salt, water, and chlorine dioxide.
 	 * <p>
 	 * Yeast activity is impacted by:
 	 * <ul>
@@ -124,11 +124,11 @@ public final class Dough2{
 	 *    <li>temperature</li>
 	 *    <li>hydration</li>
 	 *    <li>salt</li>
-	 *    <li>fat (*)</li>
-	 *    <li>sugar</li>
-	 *    <li>yeast age (*)</li>
-	 *    <li>dough ball size (*)</li>
-	 *    <li>gluten development (*)</li>
+	 *    <li>fat</li>
+	 *    <li>carbohydrate</li>
+	 *    <li>yeast age</li>
+	 *    <li>dough ball size</li>
+	 *    <li>gluten development</li>
 	 *    <li>altitude (atmospheric pressure)</li>
 	 *    <li>water chemistry (level of chlorination especially)</li>
 	 *    <li>container material and thickness (conductivity if ambient and dough temperatures vary, along with heat dissipation from fermentation) (*)</li>
@@ -144,8 +144,8 @@ public final class Dough2{
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	double ingredientsFactor(final double yeast, final double temperature){
-		//TODO calculate ingredientsFactor (account for water and sugar at least)
-//		final double kSugar = sugarFactor(yeast, temperature);
+		//TODO calculate ingredientsFactor (account for water and carbohydrate at least)
+//		final double kCarbohydrate = carbohydrateFactor(yeast, temperature);
 ////		final double kFat = fatFactor();
 //		final double kSalt = saltFactor(yeast, temperature);
 //		final double kWater = waterFactor(yeast, temperature);
@@ -153,7 +153,7 @@ public final class Dough2{
 ////		final double kHydration = kWater * kWaterFixedResidue;
 		final double kPH = phFactor();
 		final double kAtmosphericPressure = atmosphericPressureFactor(core.atmosphere.pressure);
-		return /*kSugar * kFat * kSalt * kHydration **/ kPH * kAtmosphericPressure;
+		return /*kCarbohydrate * kFat * kSalt * kHydration **/ kPH * kAtmosphericPressure;
 	}
 
 	/**
@@ -226,9 +226,9 @@ public final class Dough2{
 				- (core.correctForIngredients? flourWeight * core.flour.fat: 0.)) / core.fat.fat;
 			saltWeight = flourWeight * core.saltQuantity - fatWeight * core.fat.salt
 				- (core.correctForIngredients? flourWeight * core.flour.salt + fatWeight * core.fat.salt: 0.);
-			final double sugarWeight = flourWeight * core.carbohydrateQuantity;
+			final double carbohydrateWeight = flourWeight * core.carbohydrateQuantity;
 			waterWeight = flourWeight * core.waterQuantity
-				- (core.correctForIngredients? sugarWeight * core.carbohydrate.water + fatWeight * core.fat.water: 0.)
+				- (core.correctForIngredients? carbohydrateWeight * core.carbohydrate.water + fatWeight * core.fat.water: 0.)
 				- (core.flour.correctForHumidity? flourWeight * Flour.estimatedHumidity(core.atmosphere.relativeHumidity): 0.);
 			final double yeastWeight = flourWeight * core.yeastQuantity;
 
@@ -237,7 +237,7 @@ public final class Dough2{
 				.withWater(Math.max(waterWeight, 0.))
 				//FIXME
 //				.withWaterAsMilk(Math.max(waterWeight / core.milk.water, 0.))
-				.withSugar(sugarWeight / (core.carbohydrate.carbohydrate * core.carbohydrate.type.factor))
+				.withCarbohydrate(carbohydrateWeight / (core.carbohydrate.carbohydrate * core.carbohydrate.type.factor))
 				.withFat(Math.max(fatWeight, 0.))
 				.withSalt(Math.max(saltWeight, 0.))
 				.withYeast(yeastWeight / (core.yeast.yeast * core.yeast.type.factor));
