@@ -153,7 +153,7 @@ public final class Dough2{
 		final double kWater = waterChlorineDioxideFactor(yeast);
 ////		final double kWaterFixedResidue = waterFixedResidueFactor();
 ////		final double kHydration = kWater * kWaterFixedResidue;
-		final double kPH = phFactor();
+		final double kPH = doughPHFactor();
 		final double kAtmosphericPressure = atmosphericPressureFactor(core.atmosphere.pressure);
 		return /*kCarbohydrate * kFat * kSalt **/ kWater * kPH * kAtmosphericPressure;
 	}
@@ -168,8 +168,8 @@ public final class Dough2{
 	private double waterChlorineDioxideFactor(final double yeast){
 		///the following formula is for 1e8 CFU/ml yeast
 		final double factor = yeast * Yeast.YeastType.FY_CELL_COUNT / 1.e8;
-		final double chlorineDioxide = core.water.chlorineDioxide * factor;
-		return Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, chlorineDioxide);
+		final double equivalentChlorineDioxide = core.water.chlorineDioxide * factor;
+		return Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, equivalentChlorineDioxide);
 	}
 
 	/**
@@ -187,7 +187,7 @@ public final class Dough2{
 	 *
 	 * @return	Correction factor.
 	 */
-	private double phFactor(){
+	private double doughPHFactor(){
 		//usually between 6 and 6.8
 		final double flourPH = 6.4;
 		final double fatFactor = (core.fat.type == Fat.FatType.BUTTER? 1.: 0.);
