@@ -28,7 +28,7 @@ import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.ingredients.Flour;
-import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Carbohydrate;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
@@ -188,7 +188,7 @@ class DoughTest{
 	void twoStagesWithStretchAndFoldsRealAccountForIngredients() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., 7.9, 237.)
-			.addSugar(0.003, Sugar.SugarType.SUCROSE, 0.998, 0.0005)
+			.addSugar(0.003, Carbohydrate.CarbohydrateType.SUCROSE, 0.998, 0.0005)
 			.addSalt(0.015)
 			.addFat(0.014, 0.913, 0.9175, 0., 0.002)
 			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)

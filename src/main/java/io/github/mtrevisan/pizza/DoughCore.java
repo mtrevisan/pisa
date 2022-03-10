@@ -25,11 +25,9 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.ingredients.Atmosphere;
-import io.github.mtrevisan.pizza.ingredients.Egg;
 import io.github.mtrevisan.pizza.ingredients.Fat;
 import io.github.mtrevisan.pizza.ingredients.Flour;
-import io.github.mtrevisan.pizza.ingredients.Milk;
-import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Carbohydrate;
 import io.github.mtrevisan.pizza.ingredients.Water;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
@@ -115,17 +113,9 @@ public final class DoughCore{
 	private double waterQuantity;
 	private Water water;
 
-	//TODO
-	private double milkWeight;
-	private Milk milk;
-
-	//TODO
-	private double eggWeight;
-	private Egg egg;
-
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
-	private double sugarQuantity;
-	private Sugar sugar;
+	private double carbohydrateQuantity;
+	private Carbohydrate carbohydrate;
 
 	/** Total fat quantity w.r.t. flour [% w/w]. */
 	private double fatQuantity;
@@ -199,22 +189,22 @@ public final class DoughCore{
 
 	/**
 	 * @param sugarQuantity	Sugar quantity w.r.t. flour [% w/w].
-	 * @param sugar	Sugar data.
+	 * @param carbohydrate	Sugar data.
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public DoughCore addSugar(final double sugarQuantity, final Sugar sugar) throws DoughException{
+	public DoughCore addSugar(final double sugarQuantity, final Carbohydrate carbohydrate) throws DoughException{
 		if(sugarQuantity < 0. || sugarQuantity >= SUGAR_MAX)
 			throw DoughException.create("Sugar [% w/w] must be between 0 and {} % w/w",
 				Helper.round(SUGAR_MAX, VOLUME_PERCENT_ACCURACY_DIGITS));
-		if(sugar == null)
+		if(carbohydrate == null)
 			throw DoughException.create("Missing sugar data");
-		if(this.sugar != null)
+		if(this.carbohydrate != null)
 			throw DoughException.create("Sugar was already set");
 
-		this.sugarQuantity += sugar.type.factor * sugarQuantity * sugar.carbohydrate;
-		addWater(sugarQuantity * sugar.water, Water.createPure());
-		this.sugar = sugar;
+		this.carbohydrateQuantity += carbohydrate.type.factor * sugarQuantity * carbohydrate.carbohydrate;
+		addWater(sugarQuantity * carbohydrate.water, Water.createPure());
+		this.carbohydrate = carbohydrate;
 
 		return this;
 	}
@@ -264,11 +254,11 @@ public final class DoughCore{
 	 * @throws DoughException	If pressure is negative or above maximum.
 	 */
 	public DoughCore withAtmosphere(final Atmosphere atmosphere) throws DoughException{
+		if(atmosphere == null)
+			throw DoughException.create("Missing atmosphere data");
 		if(atmosphere.pressure < 0. || atmosphere.pressure >= ATMOSPHERIC_PRESSURE_MAX)
 			throw DoughException.create("Atmospheric pressure [hPa] must be between 0 and {} hPa",
 				Helper.round(ATMOSPHERIC_PRESSURE_MAX, 1));
-		if(atmosphere == null)
-			throw DoughException.create("Missing atmosphere data");
 
 		this.atmosphere = atmosphere;
 
@@ -394,9 +384,9 @@ public final class DoughCore{
 				- (correctForIngredients? flourWeight * flour.fat: 0.)) / fat.fat;
 			saltWeight = flourWeight * this.saltQuantity - fatWeight * this.fat.salt
 				- (correctForIngredients? flourWeight * flour.salt + fatWeight * fat.salt: 0.);
-			final double sugarWeight = flourWeight * this.sugarQuantity;
+			final double sugarWeight = flourWeight * this.carbohydrateQuantity;
 			waterWeight = flourWeight * this.waterQuantity
-				- (correctForIngredients? sugarWeight * sugar.water + fatWeight * fat.water: 0.)
+				- (correctForIngredients? sugarWeight * carbohydrate.water + fatWeight * fat.water: 0.)
 				- (flour.correctForHumidity? flourWeight * Flour.estimatedHumidity(atmosphere.relativeHumidity): 0.);
 			final double yeastWeight = flourWeight * this.yeastQuantity;
 
@@ -405,7 +395,7 @@ public final class DoughCore{
 				.withWater(Math.max(waterWeight, 0.))
 				//FIXME
 //				.withWaterAsMilk(Math.max(waterWeight / milk.water, 0.))
-				.withSugar(sugarWeight / (sugar.carbohydrate * sugar.type.factor))
+				.withSugar(sugarWeight / (carbohydrate.carbohydrate * carbohydrate.type.factor))
 				.withFat(Math.max(fatWeight, 0.))
 				.withSalt(Math.max(saltWeight, 0.))
 				.withYeast(yeastWeight / (yeast.yeast * yeast.type.factor));
@@ -528,7 +518,7 @@ public final class DoughCore{
 
 
 	private double totalFraction(){
-		return 1. + waterQuantity + sugarQuantity + fatQuantity + saltQuantity + yeastQuantity;
+		return 1. + waterQuantity + carbohydrateQuantity + fatQuantity + saltQuantity + yeastQuantity;
 	}
 
 }

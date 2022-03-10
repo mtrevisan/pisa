@@ -29,7 +29,7 @@ import io.github.mtrevisan.pizza.DoughException;
 import java.util.Objects;
 
 
-public final class Sugar{
+public final class Carbohydrate{
 
 	/**
 	 * Factor as ratio of specific growth rate w.r.t. glucose for aerobic cultures.
@@ -37,7 +37,7 @@ public final class Sugar{
 	 * @see <a href="https://academic.oup.com/femsyr/article/16/1/fov107/2467713">van Dijken, Bauer, Brambilla, Duboc, Francois, Gancedo, Giuseppin, Heijen, Hoare, Lange. An interlaboratory comparison of physiological and genetic properties of four Saccharomyces cerevisiae strains. 2000.</a>
 	 * @see <a href="https://hal.insa-toulouse.fr/hal-02559361/file/b_b_vanDijken2000.pdf">Marques, Raghavendran, Stambuk, Gombert. Sucrose and Saccharomyces cerevisiae: a relationship most sweet. 2016.</a>
 	 */
-	public enum SugarType{
+	public enum CarbohydrateType{
 		@SuppressWarnings("PointlessArithmeticExpression")
 		GLUCOSE(0.41 / 0.41, 12.0107 * 6. + 1.00784 * 12. + 15.9994 * 6.),
 		//maltose is a disaccharide, formed by glucose and glucose
@@ -53,7 +53,7 @@ public final class Sugar{
 		public final double molecularWeight;
 
 
-		SugarType(final double factor, final double molecularWeight){
+		CarbohydrateType(final double factor, final double molecularWeight){
 			this.factor = factor;
 			this.molecularWeight = molecularWeight;
 		}
@@ -61,7 +61,7 @@ public final class Sugar{
 	}
 
 
-	public final SugarType type;
+	public final CarbohydrateType type;
 	/** Raw carbohydrate content [% w/w]. */
 	public final double carbohydrate;
 	/** Water content [% w/w]. */
@@ -75,17 +75,17 @@ public final class Sugar{
 	 * @return	The instance.
 	 * @throws DoughException   If there are errors in the parameters' values.
 	 */
-	public static Sugar create(final SugarType type, final double carbohydrate, final double water) throws DoughException{
+	public static Carbohydrate create(final CarbohydrateType type, final double carbohydrate, final double water) throws DoughException{
 		Objects.requireNonNull(type, "Type must be non null");
 		if(carbohydrate < 0.)
 			throw DoughException.create("Carbohydrate content must be non-negative");
 		if(water < 0.)
 			throw DoughException.create("Water content must be non-negative");
 
-		return new Sugar(type, carbohydrate, water);
+		return new Carbohydrate(type, carbohydrate, water);
 	}
 
-	private Sugar(final SugarType type, final double carbohydrate, final double water){
+	private Carbohydrate(final CarbohydrateType type, final double carbohydrate, final double water){
 		this.type = type;
 		this.carbohydrate = carbohydrate;
 		this.water = water;

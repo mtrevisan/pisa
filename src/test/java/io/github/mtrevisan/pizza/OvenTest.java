@@ -28,7 +28,7 @@ import io.github.mtrevisan.pizza.bakingpans.BakingPanMaterial;
 import io.github.mtrevisan.pizza.bakingpans.CircularBakingPan;
 import io.github.mtrevisan.pizza.bakingpans.RectangularBakingPan;
 import io.github.mtrevisan.pizza.ingredients.Flour;
-import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Carbohydrate;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.yeasts.SaccharomycesCerevisiaeCECT10131Yeast;
 import org.junit.jupiter.api.Assertions;
@@ -44,7 +44,7 @@ class OvenTest{
 	void forcedTopAndBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Carbohydrate.CarbohydrateType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
@@ -98,7 +98,7 @@ class OvenTest{
 	void naturalBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Carbohydrate.CarbohydrateType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
@@ -150,7 +150,7 @@ class OvenTest{
 	void forcedBottom() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Carbohydrate.CarbohydrateType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)
@@ -202,7 +202,7 @@ class OvenTest{
 	void naturalTop() throws DoughException, YeastException, OvenException{
 		final Dough dough = Dough.create(new SaccharomycesCerevisiaeCECT10131Yeast())
 			.addWater(0.65, 0.02, 0., Dough.PURE_WATER_PH, 0.)
-			.addSugar(0.003, Sugar.SugarType.SUCROSE, 1., 0.)
+			.addSugar(0.003, Carbohydrate.CarbohydrateType.SUCROSE, 1., 0.)
 			.addSalt(0.016)
 			.addFat(0.016, 0.913, 0.9175, 0., 0.)
 			.withYeast(Yeast.YeastType.INSTANT_DRY, 1.)

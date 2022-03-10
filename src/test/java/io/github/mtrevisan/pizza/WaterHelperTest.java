@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.pizza;
 
-import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Carbohydrate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,21 +37,21 @@ class WaterHelperTest{
 
 	@Test
 	void boilingTemperatureAmbient(){
-		final double temperature = WaterHelper.boilingTemperature(0., 0., Sugar.SugarType.GLUCOSE, ATMOSPHERE);
+		final double temperature = WaterHelper.boilingTemperature(0., 0., Carbohydrate.CarbohydrateType.GLUCOSE, ATMOSPHERE);
 
 		Assertions.assertEquals(100.0, temperature, 0.1);
 	}
 
 	@Test
 	void boilingTemperatureAmbientWithSalt(){
-		final double temperature = WaterHelper.boilingTemperature(0.0524, 0., Sugar.SugarType.GLUCOSE, ATMOSPHERE);
+		final double temperature = WaterHelper.boilingTemperature(0.0524, 0., Carbohydrate.CarbohydrateType.GLUCOSE, ATMOSPHERE);
 
 		Assertions.assertEquals(100.9, temperature, 0.1);
 	}
 
 	@Test
 	void boilingTemperatureHalfway(){
-		final double temperature = WaterHelper.boilingTemperature(0.0052, 0., Sugar.SugarType.GLUCOSE, ATMOSPHERE * 2.);
+		final double temperature = WaterHelper.boilingTemperature(0.0052, 0., Carbohydrate.CarbohydrateType.GLUCOSE, ATMOSPHERE * 2.);
 
 		Assertions.assertEquals(5_188.7, temperature, 0.1);
 	}

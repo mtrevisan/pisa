@@ -25,7 +25,7 @@
 package io.github.mtrevisan.pizza;
 
 import io.github.mtrevisan.pizza.ingredients.Flour;
-import io.github.mtrevisan.pizza.ingredients.Sugar;
+import io.github.mtrevisan.pizza.ingredients.Carbohydrate;
 import io.github.mtrevisan.pizza.ingredients.Yeast;
 import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
@@ -174,7 +174,7 @@ public final class Dough{
 
 	/** Total sugar (glucose) quantity w.r.t. flour [% w/w]. */
 	private double sugar;
-	private Sugar.SugarType sugarType;
+	private Carbohydrate.CarbohydrateType carbohydrateType;
 	/** Raw sugar content [% w/w]. */
 	private double rawSugar = 1.;
 	/** Water content in sugar [% w/w]. */
@@ -260,20 +260,20 @@ public final class Dough{
 
 	/**
 	 * @param sugar	Sugar quantity w.r.t. flour [% w/w].
-	 * @param sugarType	Sugar type.
+	 * @param carbohydrateType	Sugar type.
 	 * @param sugarContent	Sucrose content [% w/w].
 	 * @param waterContent	Water content [% w/w].
 	 * @return	This instance.
 	 * @throws DoughException	If sugar is too low or too high.
 	 */
-	public Dough addSugar(final double sugar, final Sugar.SugarType sugarType, final double sugarContent, final double waterContent)
+	public Dough addSugar(final double sugar, final Carbohydrate.CarbohydrateType carbohydrateType, final double sugarContent, final double waterContent)
 			throws DoughException{
 		if(sugar < 0.)
 			throw DoughException.create("Sugar [% w/w] must be positive");
 
-		this.sugar += sugarType.factor * sugar * sugarContent;
+		this.sugar += carbohydrateType.factor * sugar * sugarContent;
 		addWater(sugar * waterContent, 0., 0., PURE_WATER_PH, 0.);
-		this.sugarType = sugarType;
+		this.carbohydrateType = carbohydrateType;
 		rawSugar = sugarContent;
 		sugarWaterContent = waterContent;
 
@@ -735,7 +735,7 @@ public final class Dough{
 	 */
 	private double sugarFactor(final double temperature){
 		//[g/l]
-		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.carbohydrate * Sugar.SugarType.GLUCOSE.factor: 0.),
+		final double s = 1000. * getSugarRatio(yeast, sugar + (flour != null? flour.carbohydrate * Carbohydrate.CarbohydrateType.GLUCOSE.factor: 0.),
 			temperature);
 		//TODO
 		//Monod equation
@@ -854,7 +854,7 @@ public final class Dough{
 				.withFat(fat)
 				.withSalt(salt)
 				.density(fatDensity, temperature, atmosphericPressure);
-			sugarRatio = fractionOverTotal(sugar, yeast) * (sugarType != null? sugarType.factor: Sugar.SugarType.GLUCOSE.factor) * doughDensity;
+			sugarRatio = fractionOverTotal(sugar, yeast) * (carbohydrateType != null? carbohydrateType.factor: Carbohydrate.CarbohydrateType.GLUCOSE.factor) * doughDensity;
 		}
 		return sugarRatio;
 	}
@@ -941,7 +941,7 @@ public final class Dough{
 		double totalFlour = fractionOverTotal(doughWeight, 0.);
 		final double waterCorrection = calculateWaterCorrection();
 		final double yeastFactor = this.yeast / (yeastType.factor * rawYeast);
-		final double sugarFactor = (sugarType != null? this.sugar / (sugarType.factor * rawSugar): 0.);
+		final double sugarFactor = (carbohydrateType != null? this.sugar / (carbohydrateType.factor * rawSugar): 0.);
 		do{
 			yeast = totalFlour * yeastFactor;
 			flour = totalFlour - yeast * (1. - rawYeast);
