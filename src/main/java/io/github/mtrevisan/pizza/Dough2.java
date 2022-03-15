@@ -97,7 +97,7 @@ public final class Dough2{
 	public static void main(String[] args) throws DoughException, YeastException{
 		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1.))
 			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
-			.addWater(0.65, Water.create(0.02, 0., 237., 7.9))
+			.addWater(0.65, Water.create(Water.PURE_WATER_CONTENT, 0.02, 0., 237., 7.9))
 			.addCarbohydrate(0.004, Carbohydrate.create(Carbohydrate.CarbohydrateType.SUCROSE, 0.998, 0.0005))
 			.addFat(0.021, Fat.create(Fat.FatType.OLIVE_OIL, 0.913, 0.002, 0., 0.9175))
 			.addSalt(0.016)
@@ -250,11 +250,9 @@ public final class Dough2{
 
 			recipe = Recipe.create()
 				.withFlour(flourWeight)
-				.withWater(Math.max(waterWeight, 0.))
-				//FIXME
-//				.withWaterAsMilk(Math.max(waterWeight / core.milk.water, 0.))
+				.withWater(Math.max(waterWeight, 0.) / core.water.water)
 				.withCarbohydrate(carbohydrateWeight / (core.carbohydrate.carbohydrate * core.carbohydrate.type.factor))
-				.withFat(Math.max(fatWeight, 0.))
+				.withFat(Math.max(fatWeight, 0.) / core.fat.fat)
 				.withSalt(Math.max(saltWeight, 0.))
 				.withYeast(yeastWeight / (core.yeast.yeast * core.yeast.type.factor));
 

@@ -29,7 +29,13 @@ import io.github.mtrevisan.pizza.DoughException;
 
 public final class Water{
 
+	/** For milk is around 85.5–89.5%. */
+	public static final double PURE_WATER_CONTENT = 1.;
 	private static final double PURE_WATER_PH = 5.4;
+
+
+	/** Raw water content [% w/w]. */
+	public final double water;
 
 	/** Chlorine dioxide in water [mg/l]. */
 	public final double chlorineDioxide;
@@ -51,10 +57,11 @@ public final class Water{
 	 * @return	The instance.
 	 */
 	public static Water createPure(){
-		return new Water(0., 0., 0., PURE_WATER_PH);
+		return new Water(PURE_WATER_CONTENT, 0., 0., 0., PURE_WATER_PH);
 	}
 
 	/**
+	 * @param water	Water content [% w/w].
 	 * @param chlorineDioxide   Chlorine dioxide content [mg/l].
 	 * @param calciumCarbonate   Calcium carbonate content [mg/l].
 	 * @param fixedResidue   Fixed residue [mg/l].
@@ -62,8 +69,8 @@ public final class Water{
 	 * @return	The instance.
 	 * @throws DoughException   If there are errors in the parameters' values.
 	 */
-	public static Water create(final double chlorineDioxide, final double calciumCarbonate, final double fixedResidue, final double pH)
-			throws DoughException{
+	public static Water create(final double water, final double chlorineDioxide, final double calciumCarbonate,
+			final double fixedResidue, final double pH) throws DoughException{
 		if(chlorineDioxide < 0.)
 			throw DoughException.create("Chlorine dioxide content must be non-negative");
 		if(calciumCarbonate < 0.)
@@ -73,10 +80,12 @@ public final class Water{
 		if(fixedResidue < 0.)
 			throw DoughException.create("Fixed residue must be non-negative");
 
-		return new Water(chlorineDioxide, calciumCarbonate, fixedResidue, pH);
+		return new Water(water, chlorineDioxide, calciumCarbonate, fixedResidue, pH);
 	}
 
-	private Water(final double chlorineDioxide, final double calciumCarbonate, final double fixedResidue, final double pH){
+	private Water(final double water, final double chlorineDioxide, final double calciumCarbonate, final double fixedResidue,
+			final double pH){
+		this.water = water;
 		this.chlorineDioxide = chlorineDioxide;
 		this.calciumCarbonate = calciumCarbonate;
 		this.pH = pH;
