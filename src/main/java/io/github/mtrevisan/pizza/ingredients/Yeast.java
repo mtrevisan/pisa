@@ -25,7 +25,6 @@
 package io.github.mtrevisan.pizza.ingredients;
 
 import io.github.mtrevisan.pizza.DoughException;
-import io.github.mtrevisan.pizza.utils.Helper;
 import io.github.mtrevisan.pizza.yeasts.YeastModelAbstract;
 
 import java.util.Objects;
@@ -82,6 +81,8 @@ public final class Yeast{
 	public final YeastType type;
 	/** Raw yeast content [% w/w]. */
 	public final double yeast;
+	/** Alive yeast [% w/w]. */
+	public final double aliveYeast;
 
 
 	/**
@@ -91,19 +92,23 @@ public final class Yeast{
 	 * @return	The instance.
 	 * @throws DoughException   If there are errors in the parameters' values.
 	 */
-	public static Yeast create(final YeastModelAbstract model, final YeastType type, final double yeast) throws DoughException{
+	public static Yeast create(final YeastModelAbstract model, final YeastType type, final double yeast, final double aliveYeast)
+			throws DoughException{
 		Objects.requireNonNull(model, "Yeast model must be non null");
 		Objects.requireNonNull(type, "Yeast type must be non null");
 		if(yeast <= 0. || yeast > 1.)
 			throw DoughException.create("Yeast content must be between 0 and 1");
+		if(aliveYeast <= 0. || aliveYeast > 1.)
+			throw DoughException.create("Alive yeast must be between 0 and 1");
 
-		return new Yeast(model, type, yeast);
+		return new Yeast(model, type, yeast, aliveYeast);
 	}
 
-	private Yeast(final YeastModelAbstract model, final YeastType type, final double yeast){
+	private Yeast(final YeastModelAbstract model, final YeastType type, final double yeast, final double aliveYeast){
 		this.model = model;
 		this.type = type;
 		this.yeast = yeast;
+		this.aliveYeast = aliveYeast;
 	}
 
 }

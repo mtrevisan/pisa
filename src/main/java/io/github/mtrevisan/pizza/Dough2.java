@@ -95,7 +95,7 @@ public final class Dough2{
 
 
 	public static void main(String[] args) throws DoughException, YeastException{
-		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1.))
+		DoughCore core = DoughCore.create(Yeast.create(new SaccharomycesCerevisiaePedonYeast(), Yeast.YeastType.INSTANT_DRY, 1., 0.95))
 			.withFlour(Flour.create(230., 0., 0.0008, 1.3, 0., 0., 0.001))
 			.addWater(0.65, Water.create(Water.PURE_WATER_CONTENT, 0.02, 0., 237., 7.9))
 			.addCarbohydrate(0.004, Carbohydrate.create(Carbohydrate.CarbohydrateType.SUCROSE, 0.998, 0.0005))
@@ -312,7 +312,7 @@ public final class Dough2{
 		//TODO calculate lambda
 		final double lambda = 0.5;
 		//TODO calculate the factor
-		final double aliveYeast = 0.95 * yeast;
+		final double aliveYeast = core.yeast.aliveYeast * yeast;
 
 
 		final double[] ingredientsFactors = new double[procedure.leaveningStages.length];
