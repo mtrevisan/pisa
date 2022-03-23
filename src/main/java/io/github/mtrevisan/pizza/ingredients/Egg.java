@@ -39,7 +39,7 @@ public final class Egg{
 	 * @param fat	Fat content [% w/w].
 	 * @param water	Water content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Egg create(final double fat, final double water) throws DoughException{
 		if(fat < 0.)

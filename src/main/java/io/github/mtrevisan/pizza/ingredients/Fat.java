@@ -84,7 +84,7 @@ public final class Fat{
 	 * @param fat	Fat content [% w/w].
 	 * @param water	Water content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Fat create(final FatType type, final double fat, final double salt, final double water, final double density)
 			throws DoughException{

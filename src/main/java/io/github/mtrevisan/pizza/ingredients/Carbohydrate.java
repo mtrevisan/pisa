@@ -73,7 +73,7 @@ public final class Carbohydrate{
 	 * @param carbohydrate	Carbohydrate content [% w/w].
 	 * @param water	Water content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Carbohydrate create(final CarbohydrateType type, final double carbohydrate, final double water) throws DoughException{
 		Objects.requireNonNull(type, "Type must be non null");

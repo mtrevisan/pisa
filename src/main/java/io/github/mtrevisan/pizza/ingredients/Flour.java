@@ -58,7 +58,7 @@ public final class Flour{
 	 * @param ash	Ash content [% w/w].
 	 * @param salt	Salt content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Flour create(final double strength, final double protein, final double fat, final double carbohydrate, final double fiber,
 			final double ash, final double salt) throws DoughException{

@@ -278,7 +278,7 @@ public final class Recipe{
 		final double mcpSalt = salt * specificHeatSalt(ingredientsTemperature);
 		//cp of yeast is 0.26 ± 0.18 (https://www.sciencedirect.com/science/article/abs/pii/0006300257904213)
 		final double mcpYeast = yeast * 0.26;
-		final double k = mcpFlour + mcpSugar + mcpFat + mcpSalt  + mcpYeast;
+		final double k = mcpFlour + mcpSugar + mcpFat + mcpSalt + mcpYeast;
 		return ((mcpWater + k) * doughTemperature - k * ingredientsTemperature) / mcpWater;
 	}
 

@@ -90,7 +90,7 @@ public final class Yeast{
 	 * @param type	Yeast type.
 	 * @param yeast	Yeast content [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Yeast create(final YeastModelAbstract model, final YeastType type, final double yeast, final double aliveYeast)
 			throws DoughException{

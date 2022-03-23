@@ -91,11 +91,11 @@ public enum OvenType{
 	/**
 	 * Empirical equation that can be used for air speed from 2 to 20 m/s.
 	 *
-	 * @param airTemperature   temperature [°C].
-	 * @param airPressure   air pressure [hPa].
-	 * @param airRelativeHumidity   air relative humidity [%].
-	 * @param airSpeed   air speed [m / s].
-	 * @param pizzaDiameter   pizza diameter [mm].
+	 * @param airTemperature	Temperature [°C].
+	 * @param airPressure	Air pressure [hPa].
+	 * @param airRelativeHumidity	Air relative humidity [%].
+	 * @param airSpeed	Air speed [m / s].
+	 * @param pizzaDiameter	Pizza diameter [mm].
 	 * @return	Convective heat transfer coefficient [W / (m² · K)].
 	 */
 	static double heatTransferCoefficient(final double airTemperature, final double airPressure, final double airRelativeHumidity,

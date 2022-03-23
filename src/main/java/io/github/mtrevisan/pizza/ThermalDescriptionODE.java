@@ -78,15 +78,15 @@ public class ThermalDescriptionODE implements FirstOrderDifferentialEquations{
 	private final int layersOil;
 	private final int layersDough;
 	private final int layersPan;
-	/**  [m] */
+	/** [m] */
 	private final double layerThicknessMozzarella;
-	/**  [m] */
+	/** [m] */
 	private final double layerThicknessTomato;
-	/**  [m] */
+	/** [m] */
 	private final double layerThicknessOil;
-	/**  [m] */
+	/** [m] */
 	private final double layerThicknessDough;
-	/**  [m] */
+	/** [m] */
 	private final double layerThicknessPan;
 
 	private final OvenType ovenType;

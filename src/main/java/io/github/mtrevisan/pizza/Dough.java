@@ -664,8 +664,8 @@ public final class Dough{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
 	 *
-	 * @param yeast   Quantity of yeast [% w/w].
-	 * @param temperature   Temperature [°C].
+	 * @param yeast	Quantity of yeast [% w/w].
+	 * @param temperature	Temperature [°C].
 	 * @return	The estimated lag [hrs].
 	 */
 	private double estimatedLag(final double yeast, final double temperature){
@@ -778,7 +778,7 @@ public final class Dough{
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
 	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
 	 *
-	 * @param yeast   Yeast [% w/w].
+	 * @param yeast	Yeast [% w/w].
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
@@ -800,7 +800,7 @@ public final class Dough{
 	 * @see <a href="http://fens.usv.ro/index.php/FENS/article/download/328/326">Codina, Mironeasa, Voica. Influence of wheat flour dough hydration levels on gas production during dough fermentation and bread quality. 2011. Journal of Faculty of Food Engineering. Vol. X, Issue 4.</a>
 	 * @see <a href="https://www.nature.com/articles/s41598-018-36786-2.pdf">Minervini, Dinardo, de Angelis, Gobbetti. Tap water is one of the drivers that establish and assembly the lactic acid bacterium biota during sourdough preparation. 2018.</a>
 	 *
-	 * @param yeast   Yeast [% w/w].
+	 * @param yeast	Yeast [% w/w].
 	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
@@ -821,7 +821,7 @@ public final class Dough{
 	/**
 	 * @see <a href="https://academic.oup.com/mutage/article/19/2/157/1076450">Buschini, Carboni, Furlini, Poli, Rossi. Sodium hypochlorite-, chlorine dioxide- and peracetic acid-induced genotoxicity detected by Saccharomyces cerevisiae tests. 2004.</a>
 	 *
-	 * @param yeast   Yeast [% w/w].
+	 * @param yeast	Yeast [% w/w].
 	 * @return	Correction factor.
 	 */
 	private double waterChlorineDioxideFactor(final double yeast, final double temperature){

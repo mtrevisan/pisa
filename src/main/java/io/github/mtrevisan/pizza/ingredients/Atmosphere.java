@@ -41,7 +41,7 @@ public final class Atmosphere{
 
 	/**
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Atmosphere create() throws DoughException{
 		return new Atmosphere(STANDARD_AMBIENT_PRESSURE);
@@ -50,7 +50,7 @@ public final class Atmosphere{
 	/**
 	 * @param pressure	Atmospheric pressure [hPa].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Atmosphere create(final double pressure) throws DoughException{
 		if(pressure <= 0.)
@@ -63,7 +63,7 @@ public final class Atmosphere{
 	 * @param pressure	Atmospheric pressure [hPa].
 	 * @param relativeHumidity	Relative humidity of the air [% w/w].
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Atmosphere create(final double pressure, final double relativeHumidity) throws DoughException{
 		if(pressure <= 0.)

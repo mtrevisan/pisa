@@ -528,12 +528,12 @@ public class A243491{
 	/**
 	 * Empirical equation that can be used for air speed from 2 to 20 m/s.
 	 *
-	 * @param airTemperature   temperature [°C].
-	 * @param airPressure   air pressure [hPa].
-	 * @param airRelativeHumidity   air relative humidity [%].
-	 * @param airSpeed   air speed [m / s].
-	 * @param pizzaDiameter   pizza diameter [mm].
-	 * @return	convective heat transfer [W / (m² · K)].
+	 * @param airTemperature	Temperature [°C].
+	 * @param airPressure	Air pressure [hPa].
+	 * @param airRelativeHumidity	Air relative humidity [%].
+	 * @param airSpeed	Air speed [m / s].
+	 * @param pizzaDiameter	Pizza diameter [mm].
+	 * @return	Convective heat transfer [W / (m² · K)].
 	 */
 	private double heatTransferCoefficient(final double airTemperature, final double airPressure, final double airRelativeHumidity,
 			final double airSpeed, final double pizzaDiameter){
@@ -608,7 +608,7 @@ public class A243491{
 	 * Y. Choi and M.R. Okos (1986) Journal of Food Process and Applications 1(1): 93 – 101
 	 * http://b.web.umkc.edu/beckerb/publications/journals/thermophysical.pdf
 	 *
-	 * @param temperature   temperature [°C].
+	 * @param temperature	Temperature [°C].
 	 * @return	Cp [J / (kg · K)].
 	 */
 	private double specificHeat(final double temperature, final double[][] params, final int index){

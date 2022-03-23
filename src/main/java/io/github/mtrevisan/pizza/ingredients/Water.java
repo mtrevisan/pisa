@@ -62,12 +62,12 @@ public final class Water{
 
 	/**
 	 * @param water	Water content [% w/w].
-	 * @param chlorineDioxide   Chlorine dioxide content [mg/l].
-	 * @param calciumCarbonate   Calcium carbonate content [mg/l].
-	 * @param fixedResidue   Fixed residue [mg/l].
-	 * @param pH   pH.
+	 * @param chlorineDioxide	Chlorine dioxide content [mg/l].
+	 * @param calciumCarbonate	Calcium carbonate content [mg/l].
+	 * @param fixedResidue	Fixed residue [mg/l].
+	 * @param pH	pH.
 	 * @return	The instance.
-	 * @throws DoughException   If there are errors in the parameters' values.
+	 * @throws DoughException	If there are errors in the parameters' values.
 	 */
 	public static Water create(final double water, final double chlorineDioxide, final double calciumCarbonate,
 			final double fixedResidue, final double pH) throws DoughException{
