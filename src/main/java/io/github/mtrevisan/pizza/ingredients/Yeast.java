@@ -55,7 +55,9 @@ public final class Yeast{
 		 * general, instant yeast has a small amount of ascorbic acid added as a preservative. Some producers provide specific variants for
 		 * doughs with high sugar contents, and such yeasts are more generally known as osmotolerant yeasts.
 		 */
-		INSTANT_DRY(3.125, 0.05);
+		INSTANT_DRY(3.125, 0.05),
+		//aka SAF
+		OSMOTOLERANT(3.57, 0.05);
 
 
 		/**

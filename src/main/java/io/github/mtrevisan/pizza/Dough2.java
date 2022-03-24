@@ -113,7 +113,7 @@ public final class Dough2{
 		Recipe recipe = dough.createRecipe(procedure, 767.55, 18., 27.);
 
 //		System.out.println("yeast = " + Helper.round(recipe.getYeast(), 5) + "%");
-		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.58 g
+		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.6 g
 		System.out.println(recipe);
 	}
 
@@ -167,6 +167,8 @@ public final class Dough2{
 	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
 	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
 	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
+	 *
+	 * normally between 1.8-2.2%
 	 *
 	 * @param yeast	Yeast [% w/w].
 	 * @param temperature	Temperature [°C].
@@ -339,8 +341,7 @@ public final class Dough2{
 	private double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
 		//lag phase duration [hrs]
 		//TODO calculate lambda
-//		final double lambda = lagPhaseDuration(yeast, procedure.leaveningStages[0].temperature);
-		final double lambda = 0.5;
+		final double lambda = lagPhaseDuration(yeast);
 		//TODO calculate the factor
 		final double aliveYeast = core.yeast.aliveYeast * yeast;
 
@@ -368,22 +369,20 @@ public final class Dough2{
 	 * @see <a href="https://mohagheghsho.ir/wp-content/uploads/2020/01/Description-of-leavening-of-bread.pdf">Description of leavening of bread dough with mathematical modelling</a>
 	 *
 	 * @param yeast	Quantity of yeast [% w/w].
-	 * @param temperature	Temperature [°C].
 	 * @return	The estimated lag [hrs].
 	 */
-//	private double lagPhaseDuration(final double yeast, final double temperature){
-//		//TODO
-//		///the following formula is for 2.51e7 CFU/ml yeast
-//		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 2.51e7) * (core.waterQuantity / core.totalFraction());
-//		//transform [% w/w] to [g / l]
-//		final double equivalentSalt = core.saltQuantity * densityFactor * 10.;
-//		final double saltLag = Math.log(1. + Math.exp(0.494 * (equivalentSalt - 84.)));
-//
-//		//FIXME this formula is for 36±1 °C
-//		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
-//
-//		return lag + saltLag;
-//	}
+	private double lagPhaseDuration(final double yeast){
+		///the following formula is for 2.51e7 CFU/ml yeast
+		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 2.51e7) * (core.waterQuantity / core.totalFraction());
+		//transform [% w/w] to [g / l]
+		final double equivalentSalt = core.saltQuantity * densityFactor * 10.;
+		final double saltLag = Math.log(1. + Math.exp(0.494 * (equivalentSalt - 84.)));
+
+		//FIXME this formula is for 36±1 °C
+		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
+
+		return lag + saltLag;
+	}
 
 	//http://arccarticles.s3.amazonaws.com/webArticle/articles/jdfhs282010.pdf
 	private double doughVolumeExpansionRatio(final double yeast, final double lambda, final double temperature, final Duration duration){
