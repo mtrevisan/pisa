@@ -329,7 +329,6 @@ public final class Dough2{
 	//https://www.researchgate.net/publication/318756298_Bread_Dough_and_Baker's_Yeast_An_Uplifting_Synergy
 	private double volumeExpansionRatioDifference(final double yeast, final Procedure procedure) throws MathIllegalArgumentException{
 		//lag phase duration [hrs]
-		//TODO calculate lambda
 		final double lambda = lagPhaseDuration(yeast);
 		//TODO calculate the factor
 		final double aliveYeast = core.yeast.aliveYeast * yeast;
