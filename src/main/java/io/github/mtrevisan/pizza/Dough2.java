@@ -150,44 +150,33 @@ public final class Dough2{
 		//TODO calculate ingredientsFactor (account for water and carbohydrate at least)
 //		final double kCarbohydrate = carbohydrateFactor(yeast, temperature);
 ////		final double kFat = fatFactor();
-//		final double kSalt = saltFactor(yeast, temperature);
+		final double kSalt = saltFactor(yeast);
 		final double kWater = waterChlorineDioxideFactor(yeast);
 ////		final double kWaterFixedResidue = waterFixedResidueFactor();
 		final double kHydration = kWater/* * kWaterFixedResidue*/;
 		final double kPH = doughPHFactor();
 		final double kAtmospherePressure = atmospherePressureFactor(core.atmosphere.pressure);
-		return /*kCarbohydrate * kFat * kSalt **/ kHydration * kPH * kAtmospherePressure;
+		return /*kCarbohydrate * kFat **/ kSalt * kHydration * kPH * kAtmospherePressure;
 	}
 
 	/**
-	 * @see <a href="https://meridian.allenpress.com/jfp/article/71/7/1412/172677/Individual-Effects-of-Sodium-Potassium-Calcium-and">Bautista-Gallego, Arroyo-López, Durán-Quintana, Garrido-Fernández. Individual Effects of Sodium, Potassium, Calcium, and Magnesium Chloride Salts on Lactobacillus pentosus and Saccharomyces cerevisiae Growth. 2008.</a>
-	 *
-	 * @see <a href="https://www.microbiologyresearch.org/docserver/fulltext/micro/64/1/mic-64-1-91.pdf">Watson. Effects of Sodium Chloride on Steady-state Growth and Metabolism of Saccharomyces cerevisiae. 1970. Journal of General Microbiology. Vol 64.</a>
-	 * @see <a href="https://aem.asm.org/content/aem/43/4/757.full.pdf">Wei, Tanner, Malaney. Effect of Sodium Chloride on baker's yeast growing in gelatin. 1981. Applied and Environmental Microbiology. Vol. 43, No. 4.</a>
-	 * @see <a href="https://meridian.allenpress.com/jfp/article/70/2/456/170132/Use-of-Logistic-Regression-with-Dummy-Variables">López, Quintana, Fernández. Use of logistic regression with dummy variables for modeling the growth–no growth limits of Saccharomyces cerevisiae IGAL01 as a function of Sodium chloride, acid type, and Potassium Sorbate concentration according to growth media. 2006. Journal of Food Protection. Vol 70, No. 2.</a>
-	 * @see <a href="https://undergradsciencejournals.okstate.edu/index.php/jibi/article/view/2512">Lenaburg, Kimmons, Kafer, Holbrook, Franks. Yeast Growth: The effect of tap water and distilled water on yeast fermentation with salt additives. 2016.</a>
-	 * @see <a href="https://www.academia.edu/28193854/Impact_of_sodium_chloride_on_wheat_flour_dough_for_yeast_leavened_products_II_Baking_quality_parameters_and_their_relationship">Beck, Jekle, Becker. Impact of sodium chloride on wheat flour dough for yeast-leavened products. II. Baking quality parameters and their relationship. 2010.</a>
-	 *
 	 * normally between 1.8-2.2%
+	 * @see <a href="https://aip.scitation.org/doi/pdf/10.1063/5.0037822">Linda, Amalina, Umar. Measurement of oxygen consumption of Saccharomyces cerevisiae using BiochipC under influenced of sodium chloride and glucose. 2021.</a>
 	 *
 	 * @param yeast	Yeast [% w/w].
-	 * @param temperature	Temperature [°C].
 	 * @return	Correction factor.
 	 */
-//	private double saltFactor(final double yeast, final double temperature){
-//		//TODO
-//		double factor = 1.;
-//		if(core.saltQuantity > 0.){
-//			///the following formula is for 2.51e7 CFU/ml yeast
-//			final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 2.51e7) * (core.waterQuantity / core.totalFraction());
-//			final double equivalentSalt = core.saltQuantity * densityFactor;
-//			final double x = 11.7362 * equivalentSalt;
-//			final double a = (Double.isInfinite(Math.exp(x))? 1. - 0.0256 * x: 1. - Math.log(Math.pow(1. + Math.exp(x), 0.0256)));
-//			final double b = equivalentSalt / (87.5679 - 0.2725 * equivalentSalt);
-//			factor = Math.exp(a * b);
-//		}
-//		return factor;
-//	}
+	private double saltFactor(final double yeast){
+		double factor = 1.;
+		if(core.saltQuantity > 0.){
+			///the following formula is for 1.e7 CFU/ml yeast
+			final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 1.e7) / core.totalFraction();
+			//transform [% w/w] to [g / l]
+			final double salt = core.saltQuantity * densityFactor * 10.;
+			factor = 1. - 0.00126 * salt;
+		}
+		return Math.max(factor, 0.);
+	}
 
 	/**
 	 * @see <a href="https://annalsmicrobiology.biomedcentral.com/track/pdf/10.1007/s13213-012-0494-8.pdf">Zhu, Chen, Yu. Fungicidal mechanism of chlorine dioxide on Saccharomyces cerevisiae. 2013.</a>
@@ -198,9 +187,9 @@ public final class Dough2{
 	 */
 	private double waterChlorineDioxideFactor(final double yeast){
 		///the following formula is for 1e8 CFU/ml yeast
-		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 1.e8) * (core.waterQuantity / core.totalFraction());
-		final double equivalentChlorineDioxide = core.water.chlorineDioxide * densityFactor;
-		return Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, equivalentChlorineDioxide);
+		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 1.e8) / core.totalFraction();
+		final double equivalentChlorineDioxide = core.waterQuantity * core.water.chlorineDioxide * densityFactor;
+		return Math.max(Helper.evaluatePolynomial(CHLORINE_DIOXIDE_COEFFICIENTS, equivalentChlorineDioxide), 0.);
 	}
 
 	/**
@@ -231,7 +220,7 @@ public final class Dough2{
 			return 0.;
 
 		final double tmp = (compositePH - core.yeast.model.getPHMin()) * (compositePH - core.yeast.model.getPHMax());
-		return tmp / (tmp - Math.pow(compositePH - core.yeast.model.getPHOpt(), 2.));
+		return Math.max(tmp / (tmp - Math.pow(compositePH - core.yeast.model.getPHOpt(), 2.)), 0.);
 	}
 
 	/**
@@ -373,10 +362,10 @@ public final class Dough2{
 	 */
 	private double lagPhaseDuration(final double yeast){
 		///the following formula is for 2.51e7 CFU/ml yeast
-		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 2.51e7) * (core.waterQuantity / core.totalFraction());
+		final double densityFactor = yeast * (Yeast.YeastType.FY_CELL_COUNT / 2.51e7) / core.totalFraction();
 		//transform [% w/w] to [g / l]
-		final double equivalentSalt = core.saltQuantity * densityFactor * 10.;
-		final double saltLag = Math.log(1. + Math.exp(0.494 * (equivalentSalt - 84.)));
+		final double salt = core.saltQuantity * densityFactor * 10.;
+		final double saltLag = Math.log(1. + Math.exp(0.494 * (salt - 84.)));
 
 		//FIXME this formula is for 36±1 °C
 		final double lag = (yeast > 0.? 0.0068 * Math.pow(yeast, -0.937): Double.POSITIVE_INFINITY);
