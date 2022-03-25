@@ -147,8 +147,8 @@ public final class Dough2{
 	 * @return	Factor to be applied to maximum specific growth rate.
 	 */
 	double ingredientsFactor(final double yeast, final double temperature){
-		//TODO calculate ingredientsFactor (account for water and carbohydrate at least)
-//		final double kCarbohydrate = carbohydrateFactor(yeast, temperature);
+		//TODO calculate ingredientsFactor (account for water and sugar at least, see doughVolumeExpansionRatio)
+//		final double kSugar = sugarFactor(yeast, temperature);
 ////		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast);
 		final double kWater = waterChlorineDioxideFactor(yeast);
@@ -156,7 +156,7 @@ public final class Dough2{
 		final double kHydration = kWater/* * kWaterFixedResidue*/;
 		final double kPH = doughPHFactor();
 		final double kAtmospherePressure = atmospherePressureFactor(core.atmosphere.pressure);
-		return /*kCarbohydrate * kFat **/ kSalt * kHydration * kPH * kAtmospherePressure;
+		return /*kSugar * kFat **/ kSalt * kHydration * kPH * kAtmospherePressure;
 	}
 
 	/**

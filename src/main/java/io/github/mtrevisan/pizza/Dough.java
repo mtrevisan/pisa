@@ -891,24 +891,25 @@ public final class Dough{
 	}
 
 	/**
-	 * TODO Se la durezza dell’acqua è troppo elevata la fermentazione subisce rallentamenti a causa della formazione di una struttura glutinica troppo rigida. In caso contrario, dove la durezza dell’acqua risulta essere troppo scarsa, l’impasto si presenta assai appiccicoso e poco manipolabile. In questo frangente sarà utile abbassare l’idratazione.
-	 *
 	 * Hardness
-	 * Various minerals can be found in water. Two of them—calcium and magnesium—play a major role in water hardness and also in
+	 * Various minerals can be found in water. Two of them — calcium and magnesium — play a major role in water hardness and also in
 	 * dough-making. The type and amount of these minerals varies with the locale.
-	 * Medium-hard water—that is, water with 50 to 100 ppm (parts per million) of carbonates—is the best for baking. It contains the right
-	 * amount of mineral salts—mostly of calcium and magnesium—which strengthen gluten and also, to some extent, serve as yeast nutrients.
+	 * Medium-hard water — that is, water with 50 to 100 ppm (parts per million) of carbonates — is the best for baking. It contains the right
+	 * amount of mineral salts — mostly of calcium and magnesium — which strengthen gluten and also, to some extent, serve as yeast nutrients.
 	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s
-	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2 percent. It can also help
-	 * to increase the salt portion up to 2.5 percent of flour weight. On the baked pizza, the soft water tends to produce a crust texture
-	 * and color that’s less than optimum.
+	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2%. It can also help to
+	 * increase the salt portion up to 2.5% of flour weight. On the baked pizza, the soft water tends to produce a crust texture and color
+	 * that’s less than optimum.
 	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or
 	 * rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or
 	 * malted flour might help.
-	 * Water from a city source usually has a proper degree of hardness for good dough development. However, a pizzeria in a small town or
-	 * one that draws ground water might have excessively hard water.
 	 *
-	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for bread baking.
+	 * TODO Generally, water of medium hardness, with about 100 to 150 ppm of minerals, is best suited to bread baking. The minerals in water
+	 * 	provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard, there will be a
+	 * 	tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption more difficult
+	 * 	for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a dough that
+	 * 	is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is suitable for
+	 * 	bread baking.
 	 * https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf
 	 *
 	 * https://mytapscore.com/blogs/tips-for-taps/why-is-water-quality-important-in-baking
