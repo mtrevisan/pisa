@@ -149,10 +149,10 @@ public final class Dough2{
 	double ingredientsFactor(final double yeast, final double temperature){
 		//TODO calculate ingredientsFactor (account for water and sugar at least, see doughVolumeExpansionRatio)
 //		final double kSugar = sugarFactor(yeast, temperature);
-////		final double kFat = fatFactor();
+//		final double kFat = fatFactor();
 		final double kSalt = saltFactor(yeast);
 		final double kWater = waterChlorineDioxideFactor(yeast);
-////		final double kWaterFixedResidue = waterFixedResidueFactor();
+//		final double kWaterFixedResidue = waterCalciumCarbonateFactor();
 		final double kHydration = kWater/* * kWaterFixedResidue*/;
 		final double kPH = doughPHFactor();
 		final double kAtmospherePressure = atmospherePressureFactor(core.atmosphere.pressure);

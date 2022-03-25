@@ -40,6 +40,20 @@ public final class Water{
 	/** Chlorine dioxide in water [mg/l]. */
 	public final double chlorineDioxide;
 	/**
+	 * Generally, water of medium hardness, with about 50 to 100 ppm of minerals (1 mg/l = 1.001142303 ppm), is best suited to bread baking.
+	 * The minerals in water provide food for the yeast, and therefore can benefit fermentation. However, if the water is excessively hard,
+	 * there will be a tightening effect on the gluten, as well as a decrease in the fermentation rate (the minerals make water absorption
+	 * more difficult for the proteins in the flour). On the other hand, if water is excessively soft, the lack of minerals will result in a
+	 * dough that is sticky and slack. Generally speaking, most water is not extreme in either direction, and if water is potable, it is
+	 * suitable for bread baking.
+	 * Soft water (less than 50 ppm carbonates) has a shortage of those salts, which tends to result in a soft, sticky dough because there’s
+	 * less gluten-tightening effect from minerals. To counteract stickiness, reduce the water portion by about 2%. It can also help to
+	 * increase the salt portion up to 2.5% of flour weight. On the baked pizza, the soft water tends to produce a crust texture and color
+	 * that’s less than optimum.
+	 * Hard water (over 100 ppm carbonates) has too much of the salts. This toughens gluten excessively, which retards the fermentation or
+	 * rise of dough. To counteract that, increase the yeast level and, if it’s used, adjust the amount of yeast food. Also, adding malt or
+	 * malted flour might help.
+	 *
 	 * Calcium carbonate (CaCO₃) in water [mg/l] = [°F · 10] = [°E · 6.99] = [°D · 5.62] = [°dH · 5.6].
 	 *
 	 * NOTE: Water hardness is expressed in German degree (°D is 1 mg CaO (or 0.719 mg MgO) dissolved in 100 ml of water), French degree
