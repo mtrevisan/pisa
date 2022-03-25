@@ -51,7 +51,7 @@ public final class Dough2{
 	private static final Logger LOGGER = LoggerFactory.getLogger(Dough2.class);
 
 
-	private static final double[] CHLORINE_DIOXIDE_COEFFICIENTS = new double[]{1., -0.17, 0.00762};
+	private static final double[] CHLORINE_DIOXIDE_COEFFICIENTS = new double[]{1., -0.166, 0.00762};
 
 	/**
 	 * @see #ATMOSPHERIC_PRESSURE_MAX
@@ -113,7 +113,7 @@ public final class Dough2{
 		Recipe recipe = dough.createRecipe(procedure, 767.55, 18., 27.);
 
 //		System.out.println("yeast = " + Helper.round(recipe.getYeast(), 5) + "%");
-		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.6 g
+		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.6 g, stability: 7.0 min
 		System.out.println(recipe);
 	}
 
@@ -297,6 +297,8 @@ public final class Dough2{
 
 			recipe.withWaterTemperature(waterTemperature);
 		}
+
+		recipe.withStability(core.water.stability(core.waterQuantity));
 
 		return recipe;
 	}

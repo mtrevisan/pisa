@@ -63,6 +63,9 @@ public final class Recipe{
 	/** Time to start seasoning the pizza. */
 	private LocalTime seasoningInstant;
 
+	/** Period of time that the dough keeps the normal consistency with the continuation of mixing process [min]. */
+	private double stability;
+
 
 	public static Recipe create(){
 		return new Recipe();
@@ -197,6 +200,27 @@ public final class Recipe{
 	 */
 	public double getYeast(){
 		return yeast;
+	}
+
+	/**
+	 * Period of time that the dough keeps the normal consistency with the continuation of mixing process.
+	 *
+	 * @param stability	Dough stability [min].
+	 * @return	The instance.
+	 */
+	public Recipe withStability(final double stability){
+		this.stability = stability;
+
+		return this;
+	}
+
+	/**
+	 * Period of time that the dough keeps the normal consistency with the continuation of mixing process.
+	 *
+	 * @return	Dough stability [min].
+	 */
+	public double getStability(){
+		return stability;
 	}
 
 
@@ -365,6 +389,7 @@ public final class Recipe{
 		sj.add("fat: " + Helper.round(fat, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
 		sj.add("salt: " + Helper.round(salt, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
 		sj.add("yeast: " + Helper.round(yeast, DoughCore.WEIGHT_ACCURACY_DIGITS) + " g");
+		sj.add("stability: " + Helper.round(stability, 1) + " min");
 		if(doughMakingInstant != null)
 			sj.add("dough making: " + doughMakingInstant);
 		final int stages = (stageStartEndInstants != null? stageStartEndInstants.length: 0);
