@@ -113,7 +113,7 @@ public final class Dough2{
 		Recipe recipe = dough.createRecipe(procedure, 767.55, 18., 27.);
 
 //		System.out.println("yeast = " + Helper.round(recipe.getYeast(), 5) + "%");
-		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.6 g, stability: 7.0 min
+		//flour: 453.0 g, water: 294.5 g at 31.0 °C, sugar: 1.81 g, fat: 10.42 g, salt: 7.25 g, yeast: 0.6 g, stability: 6.9 min
 		System.out.println(recipe);
 	}
 
@@ -298,7 +298,7 @@ public final class Dough2{
 			recipe.withWaterTemperature(waterTemperature);
 		}
 
-		recipe.withStability(core.water.stability(core.waterQuantity));
+		recipe.withStability(stability());
 
 		return recipe;
 	}
@@ -404,6 +404,15 @@ public final class Dough2{
 		//FIXME this formula is for 36±1 °C
 		//vertex must be at 1.1%
 		return (yeast < 0.011? 24_546. * (0.022 - yeast) * yeast: 2.97);
+	}
+
+	/**
+	 * @see <a href="https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf">Ștefan, Voicu, Constantin, Ferdeș, Muscalu. The effect of water hardness on rheological behavior of dough. 2015.</a>
+	 *
+	 * @return	Stability, the period of time that the dough keeps the normal consistency with the continuation of mixing process [min].
+	 */
+	public double stability(){
+		return 6.9 + 4.76 * core.water.calciumCarbonate * core.waterQuantity;
 	}
 
 }

@@ -47,7 +47,7 @@ public final class Water{
 	 * Water with hardness of 0 and 5 °D is regarded as soft water; if the hardness is between 5 and 12 °D, then the water is weak hard;
 	 * for the hardness of 12–30 °D, water is hard and over 30 °D water is very hard.
 	 */
-	private final double calciumCarbonate;
+	public final double calciumCarbonate;
 	/**
 	 * pH of water.
 	 * <p>
@@ -97,16 +97,6 @@ public final class Water{
 		this.calciumCarbonate = calciumCarbonate;
 		this.pH = pH;
 		this.fixedResidue = fixedResidue;
-	}
-
-	/**
-	 * @see <a href="https://pdfs.semanticscholar.org/793b/586b66ccefcc0bee1da2d1b480425850bc45.pdf">Ștefan, Voicu, Constantin, Ferdeș, Muscalu. The effect of water hardness on rheological behavior of dough. 2015.</a>
-	 *
-	 * @param waterQuantity	Water quantity w.r.t. flour [% w/w].
-	 * @return	Stability, the period of time that the dough keeps the normal consistency with the continuation of mixing process [min].
-	 */
-	public double stability(final double waterQuantity){
-		return 6.9 + 4.76 * chlorineDioxide * waterQuantity;
 	}
 
 }
